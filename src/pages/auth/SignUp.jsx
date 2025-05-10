@@ -62,7 +62,7 @@ const SignUp = () => {
 
   return (
     <div className="bg-background flex flex-row justify-center w-full min-h-screen">
-      <div className="bg-card w-full max-w-md relative shadow-md">
+      <div className="bg-card w-full max-w-md relative">
         <Helmet>
           <title>Sign Up - Sound Explores App</title>
           <meta
@@ -81,7 +81,7 @@ const SignUp = () => {
           <meta property="og:url" content="https://example.com/signup" />
           <meta property="og:type" content="website" />
         </Helmet>
-        <StatusBar />
+        {/* <StatusBar /> */}
 
         {/* Header */}
         <motion.div

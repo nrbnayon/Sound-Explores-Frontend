@@ -54,7 +54,7 @@ const SignIn = () => {
   return (
     <div className="bg-background flex flex-col w-full min-h-screen">
       {/* StatusBar fixed at top */}
-      <StatusBar />
+      {/* <StatusBar /> */}
 
       <Helmet>
         <title>Sign In - Sound Explores App</title>
@@ -77,20 +77,20 @@ const SignIn = () => {
 
       {/* Centered content */}
       <div className="flex-1 flex justify-center items-center">
-        <div className="bg-card w-full max-w-md relative shadow-md my-4">
+        <div className="bg-card w-full max-w-md relative my-4">
           {/* Logo */}
           <div className="mr-0.5">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
-              className="flex flex-col items-center p-6 border-b bg-gradient-to-b from-blue-50 to-white dark:bg-transparent dark:from-transparent dark:to-transparent"
+              className="flex flex-col items-center p-6 border-b bg-background"
             >
               <motion.img
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
-                className="w-36 h-36 object-cover"
+                className="w-44 h-44 object-cover"
                 alt="Logo"
                 src="/logo.png"
               />
