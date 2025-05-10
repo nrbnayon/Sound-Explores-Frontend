@@ -52,7 +52,7 @@ const SignIn = () => {
   };
 
   return (
-    <div className="bg-background flex flex-col w-full min-h-screen">
+    <div className="bg-background flex flex-col w-full min-h-screen shadow-md">
       {/* StatusBar fixed at top */}
       {/* <StatusBar /> */}
 
