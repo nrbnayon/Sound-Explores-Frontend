@@ -61,7 +61,7 @@
 
 /* Custom animations */
 .slide-in-bottom {
-  animation: slide-in-bottom 0.3s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+  animation: slide-in-bottom 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
 }
 
 .scroll-container {
@@ -70,11 +70,11 @@
 
   /* Optional: Style the scrollbar for a more modern look */
   &::-webkit-scrollbar {
-    width: 8px;
+    width: 2px;
   }
 
   &::-webkit-scrollbar-track {
-    background: #f1f1f1;
+    background: #ffffff00;
     border-radius: 4px;
   }
 
@@ -91,7 +91,7 @@
 /* For Firefox */
 .scroll-container {
   scrollbar-width: thin;
-  scrollbar-color: #c1c1c1 #f1f1f1;
+  scrollbar-color: #c1c1c1 #ffffff00;
 }
 
 /* CSS for better transitions with lists */
@@ -124,10 +124,20 @@
 }
 
 /* Font settings */
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   line-height: 1.2;
 }
 
-p, li, input, textarea, button, select {
+p,
+li,
+input,
+textarea,
+button,
+select {
   line-height: 1.5;
 }
