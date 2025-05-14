@@ -36,12 +36,26 @@ export function AuthProvider({ children }) {
       setLoading(true);
       console.log("Checking authentication status");
 
-      if (hasCookie("isAuthenticated")) {
+      // Check for the authentication cookie
+      if (
+        hasCookie("isAuthenticated") &&
+        (hasCookie("accessToken") || hasCookie("refreshToken"))
+      ) {
         console.log("Auth cookie found, fetching user profile");
-        // Get user profile from API
-        const response = await apiClient.get("/user/me");
-        console.log("User profile data:", response.data);
-        setUser(response.data.data);
+        try {
+          // Get user profile from API
+          const response = await apiClient.get("/user/me");
+          console.log("User profile data:", response.data);
+          setUser(response.data.data);
+        } catch (error) {
+          console.error("Error fetching user profile:", error);
+
+          // Only remove tokens if the error is authentication related
+          if (error.response && error.response.status === 401) {
+            removeAuthTokens();
+            setUser(null);
+          }
+        }
       } else {
         console.log("No auth cookie found, setting user to null");
         setUser(null);
@@ -49,7 +63,6 @@ export function AuthProvider({ children }) {
     } catch (error) {
       console.error("Authentication check error:", error);
       setUser(null);
-      removeAuthTokens();
     } finally {
       setLoading(false);
     }
@@ -63,7 +76,7 @@ export function AuthProvider({ children }) {
   const signIn = async (credentials) => {
     try {
       setLoading(true);
-      console.log("Signing in with:", credentials);
+      console.log("Signing in with:", credentials.email);
 
       const response = await apiClient.post("/auth/login", credentials);
       console.log("Sign in response:", response.data);
@@ -75,7 +88,6 @@ export function AuthProvider({ children }) {
       // Store user data in state
       setUser(response.data.data.userData);
 
-      // setCookie("isAuthenticated", "true", { maxAge: 86400 * 30 }); // 30 days
       toast.success("Successfully signed in!");
       navigate(ROUTES.SOUND_LIBRARY);
       return true;
@@ -102,7 +114,7 @@ export function AuthProvider({ children }) {
         toast.success(
           "Account created successfully! Please verify your email."
         );
-        navigate(ROUTES.VERIFICATION, { state: { email: userData.email } });
+        navigate(ROUTES.SEND_CODE, { state: { email: userData.email } });
       }
 
       return true;
@@ -122,8 +134,7 @@ export function AuthProvider({ children }) {
       // Call logout API endpoint if available
       // await apiClient.post('/auth/logout');
 
-      // Remove authentication cookies.
-      removeCookie("refreshToken", { path: "/" });
+      // Remove authentication cookies
       removeAuthTokens();
 
       // Clear user data

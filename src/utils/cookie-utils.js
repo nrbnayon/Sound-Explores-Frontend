@@ -6,7 +6,7 @@ export const setCookie = (name, value, options = {}) => {
   const defaultOptions = {
     path: "/",
     maxAge: 86400 * 30, // 30 days by default
-    secure: process.env.NODE_ENV === "production",
+    secure: import.meta.env.VITE_NODE_ENV === "production",
     sameSite: "strict",
   };
 
@@ -56,7 +56,7 @@ export const getCookie = (name) => {
 export const removeCookie = (name, options = {}) => {
   setCookie(name, "", {
     ...options,
-    maxAge: -1, // Expire immediately
+    maxAge: -1, 
   });
   console.log(`Cookie removed: ${name}`);
 };
@@ -92,14 +92,9 @@ export const parseJwt = (token) => {
 
 // Store tokens in cookies
 export const setAuthTokens = (accessToken, refreshToken) => {
-  // Set access token with shorter expiry (match your backend token expiry)
-  setCookie("accessToken", accessToken, { maxAge: 60 * 60 }); // 1 hour
-
-  // Set refresh token with longer expiry
-  setCookie("refreshToken", refreshToken, { maxAge: 7 * 24 * 60 * 60 }); // 7 days
-
-  // Set authenticated flag
-  setCookie("isAuthenticated", "true", { maxAge: 7 * 24 * 60 * 60 }); // 7 days
+  setCookie("accessToken", accessToken, { maxAge: 30 * 24 *  60 * 60 }); 
+  setCookie("refreshToken", refreshToken, { maxAge: 365 * 24 * 60 * 60 }); 
+  setCookie("isAuthenticated", "true", { maxAge: 365 * 24 * 60 * 60 }); 
 };
 
 // Remove auth tokens
@@ -108,4 +103,10 @@ export const removeAuthTokens = () => {
   removeCookie("refreshToken");
   removeCookie("isAuthenticated");
 };
-    
+
+// Check if token is expired
+export const isTokenExpired = (token) => {
+  const payload = parseJwt(token);
+  if (!payload) return true;
+  return payload.exp * 1000 < Date.now();
+};

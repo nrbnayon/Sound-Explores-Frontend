@@ -1,6 +1,6 @@
 // src/lib/api-client.js
 import axios from "axios";
-import { getCookie, setCookie } from "../utils/cookie-utils";
+import { getCookie, setCookie, removeAuthTokens } from "../utils/cookie-utils";
 
 // Use environment variable for API URL or default to localhost
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4500/api";
@@ -71,16 +71,15 @@ apiClient.interceptors.response.use(
         !originalRequest.url.includes("/auth/refresh-token")
       ) {
         if (isRefreshing) {
-          // If we're already refreshing the token, queue this request
           try {
-                const token = await new Promise((resolve, reject) => {
-                    failedQueue.push({ resolve, reject });
-                });
-                originalRequest.headers.Authorization = `Bearer ${token}`;
-                return await axios(originalRequest);
-            } catch (err) {
-                return await Promise.reject(err);
-            }
+            const token = await new Promise((resolve, reject) => {
+              failedQueue.push({ resolve, reject });
+            });
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return await axios(originalRequest);
+          } catch (err) {
+            return Promise.reject(err);
+          }
         }
 
         // Mark this request as retried
@@ -91,37 +90,29 @@ apiClient.interceptors.response.use(
         if (!refreshToken) {
           // No refresh token available, clear auth state and redirect
           clearAuthState();
-          redirectToLogin();
           return Promise.reject(error);
         }
 
         // Try to get a new access token using the refresh token
         try {
-              try {
-                  const response = await apiClient
-                      .post("/auth/refresh-token", { refreshToken });
-                  const { accessToken } = response.data.data;
-                  setCookie("accessToken", accessToken, { maxAge: 60 * 60 });
+          const response = await apiClient.post("/auth/refresh-token", {
+            refreshToken,
+          });
+          const { accessToken } = response.data.data;
+          setCookie("accessToken", accessToken, { maxAge: 30 * 24 * 60 * 60 });
 
-                  // Update authorization header
-                  originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-                  processQueue(null, accessToken);
-                  return await axios(originalRequest);
-              } catch (err_1) {
-                  processQueue(err_1, null);
-                  // Token refresh failed, clear auth state and redirect
-                  clearAuthState();
-                  redirectToLogin();
-                  return await Promise.reject(err_1);
-              }
-          } finally {
-              isRefreshing = false;
-          }
-      } else {
-        // Either this request has already been retried or it's the refresh token endpoint
-        // In this case, clear auth state and redirect
-        clearAuthState();
-        redirectToLogin();
+          // Update authorization header
+          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+          processQueue(null, accessToken);
+          return axios(originalRequest);
+        } catch (err) {
+          processQueue(err, null);
+          // Token refresh failed, clear auth state
+          clearAuthState();
+          return Promise.reject(err);
+        } finally {
+          isRefreshing = false;
+        }
       }
     }
 
@@ -129,20 +120,10 @@ apiClient.interceptors.response.use(
   }
 );
 
-// Helper functions
+// Helper function to clear auth state
 function clearAuthState() {
   console.log("Clearing authentication state");
-  document.cookie = "isAuthenticated=; Max-Age=0; path=/;";
-  document.cookie = "accessToken=; Max-Age=0; path=/;";
-  document.cookie = "refreshToken=; Max-Age=0; path=/;";
-}
-
-function redirectToLogin() {
-  // Redirect to login page if not already there
-  if (!window.location.pathname.includes("/signin")) {
-    console.log("Redirecting to login page");
-    window.location.href = "/signin";
-  }
+  removeAuthTokens();
 }
 
 export default apiClient;

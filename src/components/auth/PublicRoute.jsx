@@ -1,6 +1,6 @@
-import { Navigate, Outlet, useLocation } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
-import LoadingScreen from '../ui/LoadingScreen';
+import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
+import LoadingScreen from "../ui/LoadingScreen";
 
 const PublicRoute = () => {
   const { isAuthenticated, loading } = useAuth();
@@ -14,8 +14,12 @@ const PublicRoute = () => {
   // redirect them to the app's main page
   if (isAuthenticated) {
     // Check if they were redirected to login from a specific page
-    const from = location.state?.from?.pathname || '/sound-library';
+    const from = location.state?.from?.pathname || "/sound-library";
     return <Navigate to={from} replace />;
+  }
+
+  if (isAuthenticated) {
+    return <Navigate to='/sound-library' replace />;
   }
 
   // Otherwise, render the public route component
