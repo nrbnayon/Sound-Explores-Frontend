@@ -95,9 +95,12 @@ apiClient.interceptors.response.use(
 
         // Try to get a new access token using the refresh token
         try {
-          const response = await apiClient.post("/auth/refresh-token", {
-            refreshToken,
-          });
+          const response = await apiClient.get(
+            `/auth/refresh-token?refreshToken=${refreshToken}`
+          );
+          // const response = await apiClient.post("/auth/refresh-token", {
+          //   refreshToken,
+          // });
           const { accessToken } = response.data.data;
           setCookie("accessToken", accessToken, { maxAge: 30 * 24 * 60 * 60 });
 
