@@ -3,7 +3,7 @@ import axios from "axios";
 import { getCookie, setCookie } from "../utils/cookie-utils";
 
 // Use environment variable for API URL or default to localhost
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4500";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4500/api";
 
 console.log("API URL:", API_URL);
 
