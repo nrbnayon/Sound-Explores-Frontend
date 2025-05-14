@@ -1,28 +1,29 @@
 // src\config\constants.js
 // API Configuration
-export const API_URL = import.meta.env.VITE_API_URL || 'https://api.example.com';
+export const API_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:4500/api";
 
 // Routes
 export const ROUTES = {
-  HOME: '/',
-  SIGNIN: '/signin',
-  SIGNUP: '/signup',
-  FORGET_PASSWORD: '/forget-password',
-  RESET_PASSWORD: '/reset-password',
-  SEND_CODE: '/send-code',
-  SOUND_LIBRARY: '/sound-library',
-  ALL_FRIENDS: '/all-friends',
-  PROFILE: '/profile',
-  EDIT_PROFILE: '/edit-profile',
-  PRIVACY_POLICY: '/privacy-policy',
-  PAYMENT: '/payment',
-  CHAT_INTERFACE: '/chat-interface',
+  HOME: "/",
+  SIGNIN: "/signin",
+  SIGNUP: "/signup",
+  FORGET_PASSWORD: "/forget-password",
+  RESET_PASSWORD: "/reset-password",
+  SEND_CODE: "/send-code",
+  SOUND_LIBRARY: "/sound-library",
+  ALL_FRIENDS: "/all-friends",
+  PROFILE: "/profile",
+  EDIT_PROFILE: "/edit-profile",
+  PRIVACY_POLICY: "/privacy-policy",
+  PAYMENT: "/payment",
+  CHAT_INTERFACE: "/chat-interface",
 };
 
 // Theme
 export const THEME = {
-  LIGHT: 'light',
-  DARK: 'dark',
+  LIGHT: "light",
+  DARK: "dark",
 };
 
 // Breakpoints
@@ -33,9 +34,9 @@ export const BREAKPOINTS = {
 
 // Storage Keys
 export const STORAGE_KEYS = {
-  TOKEN: 'token',
-  THEME: 'theme',
-  USER: 'user',
+  TOKEN: "token",
+  THEME: "theme",
+  USER: "user",
 };
 
 // Animation durations

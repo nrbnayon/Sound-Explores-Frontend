@@ -1,5 +1,5 @@
 // src\layouts\AuthLayout.jsx
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "../contexts/AuthContext";
 import LoadingScreen from "../components/ui/LoadingScreen";
@@ -7,6 +7,7 @@ import LoadingScreen from "../components/ui/LoadingScreen";
 const AuthLayout = () => {
   const { loading } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
   if (loading) {
     return <LoadingScreen />;

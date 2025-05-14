@@ -22,7 +22,7 @@ const loginSchema = z.object({
 });
 
 const SignIn = () => {
-  const { signIn, loading } = useAuth();
+  const { signIn } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -52,170 +52,172 @@ const SignIn = () => {
   };
 
   return (
-    <div className='bg-background flex flex-row justify-center w-full min-h-screen'>
-      <div className='bg-card w-full max-w-md relative shadow-md'>
-        <Helmet>
-          <title>Sign In - Sound Explores App</title>
-          <meta
-            name='description'
-            content='Login to your Sound Explores account'
-          />
-          <meta property='og:title' content='Sign In - Sound Explores App' />
-          <meta
-            property='og:description'
-            content='Login to your Sound Explores account'
-          />
-          <meta
-            property='og:image'
-            content='https://example.com/og-image-signin.jpg'
-          />
-          <meta property='og:url' content='https://example.com/signin' />
-          <meta property='og:type' content='website' />
-        </Helmet>
-        <StatusBar />
+    <div className="bg-background flex flex-col w-full min-h-screen shadow-md">
+      {/* StatusBar fixed at top */}
+      {/* <StatusBar /> */}
 
-        {/* Header */}
-        <motion.div
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.3 }}
-          className={`flex items-center justify-center p-4 border-b    sticky top-0 z-10 transition-shadow ${
-            scrolled ? "shadow-md" : ""
-          }`}
-        >
-          <h1 className='text-xl font-bold'>Sign In</h1>
-        </motion.div>
+      <Helmet>
+        <title>Sign In - Sound Explores App</title>
+        <meta
+          name="description"
+          content="Login to your Sound Explores account"
+        />
+        <meta property="og:title" content="Sign In - Sound Explores App" />
+        <meta
+          property="og:description"
+          content="Login to your Sound Explores account"
+        />
+        <meta
+          property="og:image"
+          content="https://example.com/og-image-signin.jpg"
+        />
+        <meta property="og:url" content="https://example.com/signin" />
+        <meta property="og:type" content="website" />
+      </Helmet>
 
-        {/* Logo */}
-        <div className='mr-0.5'>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-            className='flex flex-col items-center p-6 border-b bg-gradient-to-b from-blue-50 to-white'
-          >
-            <motion.img
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className='w-36 h-36 object-cover'
-              alt='Logo'
-              src='/logo.png'
-            />
-            <h2 className='text-2xl text-black font-bold mb-1'>Welcome Back</h2>
-            <p className='text-xs text-muted-foreground'>
-              Login to your account to continue
-            </p>
-          </motion.div>
-        </div>
+      {/* Centered content */}
+      <div className="flex-1 flex justify-center items-center">
+        <div className="bg-card w-full max-w-md relative my-4">
+          {/* Logo */}
+          <div className="mr-0.5">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              className="flex flex-col items-center p-6 border-b bg-background"
+            >
+              <motion.img
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="w-44 h-44 object-cover"
+                alt="Logo"
+                src="/logo.png"
+              />
+              <h2 className="text-2xl text-black dark:text-white font-bold mb-1">
+                Welcome Back
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                Login to your account to continue
+              </p>
+            </motion.div>
+          </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit(onSubmit)} className='p-6'>
-          <div className='space-y-4'>
-            {/* Email Field */}
-            <div className='flex flex-col gap-2'>
-              <label className='font-medium text-base'>Email</label>
-              <Card className='p-0 w-full border border-solid border-gray-200 shadow-none'>
-                <CardContent className='p-0'>
-                  <Input
-                    {...register("email")}
-                    className={`border-none px-4 py-3 h-auto text-foreground text-sm ${
-                      errors.email ? "border-red-500" : ""
-                    }`}
-                    placeholder='Enter your Email...'
-                  />
-                </CardContent>
-              </Card>
-              {errors.email && (
-                <span className='text-destructive text-sm'>
-                  {errors.email.message}
-                </span>
-              )}
-            </div>
-
-            {/* Password Field */}
-            <div className='flex flex-col gap-2'>
-              <label className='font-medium text-base'>Password</label>
-              <Card className='p-0 w-full border border-solid border-gray-200 shadow-none'>
-                <CardContent className='p-0 flex items-center'>
-                  <Input
-                    {...register("password")}
-                    className={`border-none px-4 py-3 h-auto text-foreground text-sm ${
-                      errors.password ? "border-red-500" : ""
-                    }`}
-                    placeholder='Enter your Password...'
-                    type={showPassword ? "text" : "password"}
-                  />
-                  <div
-                    className='absolute right-10 cursor-pointer'
-                    onClick={togglePasswordVisibility}
-                  >
-                    {showPassword ? (
-                      <EyeOffIcon className='w-5 h-5 text-muted-foreground' />
-                    ) : (
-                      <EyeIcon className='w-5 h-5 text-muted-foreground' />
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-              {errors.password && (
-                <span className='text-destructive text-sm'>
-                  {errors.password.message}
-                </span>
-              )}
-            </div>
-
-            {/* Remember Me & Forget Password */}
-            <div className='flex items-center justify-between'>
-              <div className='flex items-center gap-2'>
-                <Controller
-                  name='rememberMe'
-                  control={control}
-                  render={({ field }) => (
-                    <Checkbox
-                      id='remember-me'
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      className='w-4 h-4 rounded border-2 border-blue-500'
+          {/* Form */}
+          <form onSubmit={handleSubmit(onSubmit)} className="p-6">
+            <div className="space-y-4">
+              {/* Email Field */}
+              <div className="flex flex-col gap-2">
+                <label className="font-medium text-base">Email</label>
+                <Card className="p-0 w-full border border-solid border-gray-200 shadow-none">
+                  <CardContent className="p-0">
+                    <Input
+                      {...register("email")}
+                      className={`border-none px-4 py-3 h-auto text-foreground text-sm ${
+                        errors.email ? "border-red-500" : ""
+                      }`}
+                      placeholder="Enter your Email..."
                     />
-                  )}
-                />
-                <label
-                  htmlFor='remember-me'
-                  className='cursor-pointer text-sm text-foreground'
-                >
-                  Remember Me
-                </label>
+                  </CardContent>
+                </Card>
+                {errors.email && (
+                  <span className="text-destructive text-sm">
+                    {errors.email.message}
+                  </span>
+                )}
               </div>
 
-              <Link
-                to='/forget-password'
-                className='font-medium text-blue-500 text-sm'
-              >
-                Forgot Password?
-              </Link>
-            </div>
+              {/* Password Field */}
+              <div className="flex flex-col gap-2">
+                <label className="font-medium text-base">Password</label>
+                <Card className="p-0 w-full border border-solid border-gray-200 shadow-none">
+                  <CardContent className="p-0 flex items-center">
+                    <Input
+                      {...register("password")}
+                      className={`border-none px-4 py-3 h-auto text-foreground text-sm ${
+                        errors.password ? "border-red-500" : ""
+                      }`}
+                      placeholder="Enter your Password..."
+                      type={showPassword ? "text" : "password"}
+                    />
+                    <div
+                      className="absolute right-10 cursor-pointer"
+                      onClick={togglePasswordVisibility}
+                    >
+                      {showPassword ? (
+                        <EyeOffIcon className="w-5 h-5 text-muted-foreground" />
+                      ) : (
+                        <EyeIcon className="w-5 h-5 text-muted-foreground" />
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+                {errors.password && (
+                  <span className="text-destructive text-sm">
+                    {errors.password.message}
+                  </span>
+                )}
+              </div>
 
-            {/* Login Button */}
-            <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
-              <Button
-                type='submit'
-                className='w-full py-3 bg-primary rounded-full text-white font-medium hover:bg-blue-600 transition-colors'
-                disabled={loading}
-              >
-                {loading ? "Signing in..." : "Sign In"}
-              </Button>
-            </motion.div>
+              {/* Remember Me & Forget Password */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Controller
+                    name="rememberMe"
+                    control={control}
+                    render={({ field }) => (
+                      <Checkbox
+                        id="remember-me"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        className="w-4 h-4 rounded border-2 border-blue-500"
+                      />
+                    )}
+                  />
+                  <label
+                    htmlFor="remember-me"
+                    className="cursor-pointer text-sm text-foreground"
+                  >
+                    Remember Me
+                  </label>
+                </div>
 
-            {/* Sign Up Link */}
-            <div className='flex items-center justify-center gap-1 mt-2'>
-              <p className='text-foreground text-sm'>Don't have an account?</p>
-              <Link to='/signup' className='font-medium text-blue-500 text-sm'>
-                Sign Up
-              </Link>
+                <Link
+                  to="/forget-password"
+                  className="font-medium text-blue-500 text-sm"
+                >
+                  Forgot Password?
+                </Link>
+              </div>
+
+              {/* Login Button */}
+              <motion.div
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+              >
+                <Button
+                  type="submit"
+                  className="w-full py-3 bg-primary rounded-full text-white font-medium hover:bg-blue-600 transition-colors"
+                >
+                  Sign In
+                </Button>
+              </motion.div>
+
+              {/* Sign Up Link */}
+              <div className="flex items-center justify-center gap-1 mt-2">
+                <p className="text-foreground text-sm">
+                  Don't have an account?
+                </p>
+                <Link
+                  to="/signup"
+                  className="font-medium text-blue-500 text-sm"
+                >
+                  Sign Up
+                </Link>
+              </div>
             </div>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
     </div>
   );
