@@ -11,6 +11,7 @@ export const ROUTES = {
   RESET_PASSWORD: '/reset-password',
   SEND_CODE: '/send-code',
   SOUND_LIBRARY: '/sound-library',
+  ALL_FRIENDS: '/all-friends',
   PROFILE: '/profile',
   EDIT_PROFILE: '/edit-profile',
   PRIVACY_POLICY: '/privacy-policy',

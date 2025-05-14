@@ -2,6 +2,7 @@ import { useState } from "react";
 import { LogOut } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "../../contexts/AuthContext";
+import toast from "react-hot-toast";
 
 const SideBar = ({ onTitleChange, onSoundListChange }) => {
   const [activeButton, setActiveButton] = useState(1);
@@ -19,14 +20,19 @@ const SideBar = ({ onTitleChange, onSoundListChange }) => {
     setActiveButton(button);
   };
 
+  const handleLogout = async () => {
+    await signOut();
+    toast.success("Logout Successfull");
+  };
+
   return (
-    <div className="flex w-full flex-col h-full bg-[#252525]">
-      <div className="p-5 border-b border-gray-300">
-        <h1 className="text-xl text-white font-bold">Sound App</h1>
+    <div className='flex w-full flex-col h-full bg-[#252525]'>
+      <div className='p-5 border-b border-gray-300'>
+        <h1 className='text-xl text-white font-bold'>Sound App</h1>
       </div>
 
-      <nav className="flex-1 w-full p-4">
-        <ul className="space-y-4">
+      <nav className='flex-1 w-full p-4'>
+        <ul className='space-y-4'>
           <motion.li whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <button
               onClick={() => handleSoundButtonClick(1)}
@@ -52,17 +58,20 @@ const SideBar = ({ onTitleChange, onSoundListChange }) => {
         </ul>
       </nav>
 
-      <div className="p-4 mt-auto border-t text-white border-gray-300">
+      <button
+        onClick={() => handleLogout()}
+        className='p-4 mt-auto border-t text-white border-gray-300'
+      >
         <motion.button
           onClick={signOut}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className="flex items-center gap-2 w-full text-left px-4 py-3 hover:bg-gray-600 transition-colors rounded-md"
+          className='flex items-center gap-2 w-full text-left px-4 py-3 hover:bg-gray-600 transition-colors rounded-md'
         >
           <LogOut size={18} />
           <span>Log Out</span>
         </motion.button>
-      </div>
+      </button>
     </div>
   );
 };

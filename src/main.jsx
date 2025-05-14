@@ -1,3 +1,4 @@
+// src\main.jsx
 import React from "react";
 import ReactDOM from "react-dom/client";
 import "./index.css";
@@ -10,12 +11,14 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import AppRoutes from "./routes";
 import { HelmetProvider } from "react-helmet-async";
 
-// Create a client
+// Create a client with improved settings
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
       retry: 1,
+      staleTime: 60 * 1000, // 1 minute
+      cacheTime: 5 * 60 * 1000, // 5 minutes
     },
   },
 });

@@ -1,4 +1,4 @@
-// src\contexts\AuthContext.jsx
+// src/contexts/AuthContext.jsx
 import {
   createContext,
   useContext,
@@ -8,9 +8,17 @@ import {
 } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import axios from "axios";
-import { useLocalStorage } from "../hooks/useLocalStorage";
-import { API_URL } from "../config/constants";
+import {
+  setCookie,
+  getCookie,
+  removeCookie,
+  hasCookie,
+  setAuthTokens,
+  removeAuthTokens,
+} from "../utils/cookie-utils";
+import apiClient from "../lib/api-client";
+import { ROUTES } from "../config/constants";
+import { useQueryClient } from "@tanstack/react-query";
 
 const AuthContext = createContext({});
 
@@ -18,62 +26,58 @@ export const useAuth = () => useContext(AuthContext);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useLocalStorage("token", null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   // Check if user is authenticated on component mount
   const checkAuth = useCallback(async () => {
     try {
-      if (token) {
-        // For demonstration, we'll create a mock user
-        // In a real application, you would verify the token with your API
-        setUser({
-          id: 1,
-          name: "Daniel Austin",
-          email: "daniel_austin@yourdomain.com",
-          avatar: "/profile.png",
-        });
+      setLoading(true);
+      console.log("Checking authentication status");
+
+      if (hasCookie("isAuthenticated")) {
+        console.log("Auth cookie found, fetching user profile");
+        // Get user profile from API
+        const response = await apiClient.get("/user/me");
+        console.log("User profile data:", response.data);
+        setUser(response.data.data);
       } else {
+        console.log("No auth cookie found, setting user to null");
         setUser(null);
       }
     } catch (error) {
-      console.error("Authentication error:", error);
+      console.error("Authentication check error:", error);
       setUser(null);
-      setToken(null);
+      removeAuthTokens();
     } finally {
       setLoading(false);
     }
-  }, [token]); // Only depend on token
+  }, []);
 
   useEffect(() => {
     checkAuth();
-  }, [checkAuth]); // Depend on checkAuth instead of token and setToken
+  }, [checkAuth]);
 
   // Sign in function
   const signIn = async (credentials) => {
     try {
       setLoading(true);
-      // In a real application, you would make an API call here
-      // const response = await axios.post(`${API_URL}/auth/login`, credentials);
+      console.log("Signing in with:", credentials);
 
-      // Mock successful login
-      const mockResponse = {
-        data: {
-          user: {
-            id: 1,
-            name: "Daniel Austin",
-            email: credentials.email,
-            avatar: "/profile.png",
-          },
-          token: "mock-jwt-token",
-        },
-      };
+      const response = await apiClient.post("/auth/login", credentials);
+      console.log("Sign in response:", response.data);
 
-      setUser(mockResponse.data.user);
-      setToken(mockResponse.data.token);
+      // Set auth tokens in cookies
+      const { accessToken, refreshToken } = response.data.data;
+      setAuthTokens(accessToken, refreshToken);
+
+      // Store user data in state
+      setUser(response.data.data.userData);
+
+      // setCookie("isAuthenticated", "true", { maxAge: 86400 * 30 }); // 30 days
       toast.success("Successfully signed in!");
-      navigate("/sound-library");
+      navigate(ROUTES.SOUND_LIBRARY);
       return true;
     } catch (error) {
       console.error("Sign in error:", error);
@@ -88,26 +92,19 @@ export function AuthProvider({ children }) {
   const signUp = async (userData) => {
     try {
       setLoading(true);
-      // In a real application, you would make an API call here
-      // const response = await axios.post(`${API_URL}/auth/register`, userData);
+      console.log("Creating new user account:", userData.email);
 
-      // Mock successful registration
-      const mockResponse = {
-        data: {
-          user: {
-            id: 1,
-            name: userData.name,
-            email: userData.email,
-            avatar: "/profile.png",
-          },
-          token: "mock-jwt-token",
-        },
-      };
+      const response = await apiClient.post("/user/create-user", userData);
+      console.log("Sign up response:", response.data);
 
-      setUser(mockResponse.data.user);
-      setToken(mockResponse.data.token);
-      toast.success("Account created successfully!");
-      navigate("/sound-library");
+      // User may need to verify email before logging in
+      if (response.data.success) {
+        toast.success(
+          "Account created successfully! Please verify your email."
+        );
+        navigate(ROUTES.VERIFICATION, { state: { email: userData.email } });
+      }
+
       return true;
     } catch (error) {
       console.error("Sign up error:", error);
@@ -119,37 +116,38 @@ export function AuthProvider({ children }) {
   };
 
   // Sign out function
-  const signOut = () => {
-    setUser(null);
-    setToken(null);
-    toast.success("Successfully signed out");
-    navigate("/");
-  };
-
-  // Reset password function
-  const resetPassword = async (data) => {
+  const signOut = async () => {
     try {
-      setLoading(true);
-      // Mock API call
-      // await axios.post(`${API_URL}/auth/reset-password`, data);
-      toast.success("Password reset successfully");
-      navigate("/signin");
-      return true;
+      console.log("Signing out user");
+      // Call logout API endpoint if available
+      // await apiClient.post('/auth/logout');
+
+      // Remove authentication cookies.
+      removeCookie("refreshToken", { path: "/" });
+      removeAuthTokens();
+
+      // Clear user data
+      setUser(null);
+
+      // Clear all queries from the cache
+      queryClient.clear();
+
+      toast.success("Successfully signed out");
+      navigate(ROUTES.SIGNIN);
     } catch (error) {
-      console.error("Reset password error:", error);
-      toast.error(error.response?.data?.message || "Failed to reset password");
-      return false;
-    } finally {
-      setLoading(false);
+      console.error("Sign out error:", error);
+      toast.error("Failed to sign out");
     }
   };
 
-  // Send password reset email
+  // Request password reset
   const sendPasswordResetEmail = async (email) => {
     try {
       setLoading(true);
-      // Mock API call
-      // await axios.post(`${API_URL}/auth/forgot-password`, { email });
+      console.log("Requesting password reset for:", email);
+
+      await apiClient.patch("/auth/forgot-password-request", { email });
+
       toast.success(
         `If an account exists with ${email}, we've sent a reset link`
       );
@@ -167,11 +165,17 @@ export function AuthProvider({ children }) {
   };
 
   // Verify OTP code
-  const verifyOtp = async (otpCode) => {
+  const verifyOtp = async (email, otp) => {
     try {
       setLoading(true);
-      // Mock API call
-      // await axios.post(`${API_URL}/auth/verify-otp`, { otpCode });
+      console.log("Verifying OTP for:", email);
+
+      const response = await apiClient.patch("/auth/verify-user", {
+        email,
+        otp,
+      });
+      console.log("OTP verification response:", response.data);
+
       toast.success("OTP verified successfully");
       return true;
     } catch (error) {
@@ -183,18 +187,85 @@ export function AuthProvider({ children }) {
     }
   };
 
+  // Resend OTP code
+  const resendOtp = async (email) => {
+    try {
+      setLoading(true);
+      console.log("Resending OTP for:", email);
+
+      const response = await apiClient.post("/auth/resend-code", { email });
+      console.log("Resend OTP response:", response.data);
+
+      toast.success("Verification code has been resent");
+      return true;
+    } catch (error) {
+      console.error("Resend OTP error:", error);
+      toast.error(error.response?.data?.message || "Failed to resend code");
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Reset password
+  const resetPassword = async (passwords) => {
+    try {
+      setLoading(true);
+      console.log("Resetting password");
+
+      const response = await apiClient.patch("/auth/reset-password", passwords);
+      console.log("Reset password response:", response.data);
+
+      toast.success("Password reset successfully");
+      navigate(ROUTES.SIGNIN);
+      return true;
+    } catch (error) {
+      console.error("Reset password error:", error);
+      toast.error(error.response?.data?.message || "Failed to reset password");
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Change password
+  const changePassword = async (passwords) => {
+    try {
+      setLoading(true);
+      console.log("Changing password");
+
+      const response = await apiClient.patch(
+        "/auth/update-password",
+        passwords
+      );
+      console.log("Change password response:", response.data);
+
+      toast.success("Password changed successfully");
+      return true;
+    } catch (error) {
+      console.error("Change password error:", error);
+      toast.error(error.response?.data?.message || "Failed to change password");
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Update user profile
   const updateProfile = async (profileData) => {
     try {
       setLoading(true);
-      // Mock API call
-      // const response = await axios.put(`${API_URL}/user/profile`, profileData, {
-      //   headers: { Authorization: `Bearer ${token}` }
-      // });
+      console.log("Updating user profile:", profileData);
 
-      // Mock successful update
-      const updatedUser = { ...user, ...profileData };
-      setUser(updatedUser);
+      const response = await apiClient.patch(
+        "/user/update-profile",
+        profileData
+      );
+      console.log("Update profile response:", response.data);
+
+      // Update user data in state
+      setUser(response.data.user);
+
       toast.success("Profile updated successfully");
       return true;
     } catch (error) {
@@ -218,6 +289,8 @@ export function AuthProvider({ children }) {
         resetPassword,
         sendPasswordResetEmail,
         verifyOtp,
+        resendOtp,
+        changePassword,
         updateProfile,
       }}
     >
