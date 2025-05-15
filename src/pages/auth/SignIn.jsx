@@ -57,12 +57,12 @@ const SignIn = () => {
       {/* <StatusBar /> */}
 
       <Helmet>
-        <title>Sign In - Sound Explores App</title>
+        <title>Sign In - Sound Explores Library</title>
         <meta
           name="description"
           content="Login to your Sound Explores account"
         />
-        <meta property="og:title" content="Sign In - Sound Explores App" />
+        <meta property="og:title" content="Sign In - Sound Explores Library" />
         <meta
           property="og:description"
           content="Login to your Sound Explores account"

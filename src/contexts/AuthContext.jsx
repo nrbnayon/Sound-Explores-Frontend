@@ -1,4 +1,3 @@
-// src/contexts/AuthContext.jsx
 import {
   createContext,
   useContext,
@@ -6,7 +5,7 @@ import {
   useEffect,
   useCallback,
 } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
   setCookie,
@@ -27,7 +26,9 @@ export const useAuth = () => useContext(AuthContext);
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [verificationInProgress, setVerificationInProgress] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const queryClient = useQueryClient();
 
   // Check if user is authenticated on component mount
@@ -72,6 +73,20 @@ export function AuthProvider({ children }) {
     checkAuth();
   }, [checkAuth]);
 
+  // Redirect user if they're trying to access verification page without email
+  useEffect(() => {
+    // Check if user is trying to access the send code page
+    if (location.pathname === ROUTES.SEND_CODE) {
+      // If there's no email in the state, redirect to signup
+      if (!location.state?.email) {
+        console.log(
+          "No email provided for verification, redirecting to signup"
+        );
+        navigate(ROUTES.SIGNUP);
+      }
+    }
+  }, [location, navigate]);
+
   // Sign in function
   const signIn = async (credentials) => {
     try {
@@ -109,11 +124,13 @@ export function AuthProvider({ children }) {
       const response = await apiClient.post("/user/create-user", userData);
       console.log("Sign up response:", response.data);
 
-      // User may need to verify email before logging in
+      // Start verification process
       if (response.data.success) {
+        setVerificationInProgress(true);
         toast.success(
           "Account created successfully! Please verify your email."
         );
+        // Pass the email in the state
         navigate(ROUTES.SEND_CODE, { state: { email: userData.email } });
       }
 
@@ -131,18 +148,10 @@ export function AuthProvider({ children }) {
   const signOut = async () => {
     try {
       console.log("Signing out user");
-      // Call logout API endpoint if available
-      // await apiClient.post('/auth/logout');
-
-      // Remove authentication cookies
       removeAuthTokens();
-
-      // Clear user data
       setUser(null);
-
-      // Clear all queries from the cache
+      setVerificationInProgress(false);
       queryClient.clear();
-
       toast.success("Successfully signed out");
       navigate(ROUTES.SIGNIN);
     } catch (error) {
@@ -156,16 +165,13 @@ export function AuthProvider({ children }) {
     try {
       setLoading(true);
       console.log("Requesting password reset for:", email);
-
       await apiClient.patch("/auth/forgot-password-request", { email });
-
       toast.success(
         `If an account exists with ${email}, we've sent a reset link`
       );
       return true;
     } catch (error) {
       console.error("Send reset email error:", error);
-      // We don't want to reveal if an email exists or not for security reasons
       toast.success(
         `If an account exists with ${email}, we've sent a reset link`
       );
@@ -181,13 +187,19 @@ export function AuthProvider({ children }) {
       setLoading(true);
       console.log("Verifying OTP for:", email);
 
+      if (!email || !otp) {
+        throw new Error("Email and OTP are required");
+      }
+
       const response = await apiClient.patch("/auth/verify-user", {
         email,
         otp,
       });
       console.log("OTP verification response:", response.data);
 
-      toast.success("OTP verified successfully");
+      // Mark verification as complete
+      setVerificationInProgress(false);
+      toast.success("Your account verified successfully");
       return true;
     } catch (error) {
       console.error("OTP verification error:", error);
@@ -204,10 +216,14 @@ export function AuthProvider({ children }) {
       setLoading(true);
       console.log("Resending OTP for:", email);
 
-      const response = await apiClient.post("/auth/resend-code", { email });
+      if (!email) {
+        throw new Error("Email is required");
+      }
+
+      const response = await apiClient.patch("/auth/resend-code", { email });
       console.log("Resend OTP response:", response.data);
 
-      toast.success("Verification code has been resent");
+      toast.success("Verification code resent successfully");
       return true;
     } catch (error) {
       console.error("Resend OTP error:", error);
@@ -294,6 +310,7 @@ export function AuthProvider({ children }) {
         user,
         loading,
         isAuthenticated: !!user,
+        verificationInProgress,
         signIn,
         signUp,
         signOut,

@@ -34,3 +34,35 @@
 
 //   return children;
 // };
+
+import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { ROUTES } from "../config/constants";
+import { motion } from "framer-motion";
+
+export const VerificationRoute = () => {
+  const location = useLocation();
+  const hasEmail = location.state?.email;
+
+  // If there's no email in the location state, redirect to signup
+  if (!hasEmail) {
+    return <Navigate to={ROUTES.SIGNUP} replace />;
+  }
+
+  // Otherwise, render the verification component
+  return (
+    <motion.div
+      key={location.pathname}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+      className="max-h-screen bg-background"
+    >
+      <main className="md:container mx-auto flex justify-center">
+        <div className="w-full md:max-w-md">
+          <Outlet />
+        </div>
+      </main>
+    </motion.div>
+  );
+};

@@ -16,13 +16,20 @@ import { Helmet } from "react-helmet-async";
 
 // Validation schema
 const signUpSchema = z.object({
-  name: z.string().min(1, "Name is required"),
+  fullName: z.string().min(2, "Name is required"),
   phone: z
     .string()
     .min(1, "Phone number is required")
-    .refine((val) => /^\d{10,}$/.test(val.replace(/\D/g, "")), {
-      message: "Please enter a valid phone number",
-    }),
+    .refine(
+      (val) => {
+        const cleaned = val.replace(/[\s()-]/g, "");
+        return /^(\+?88)?0?\d{9,}$/.test(cleaned);
+      },
+      {
+        message: "Please enter a valid phone number",
+      }
+    ),
+  email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   agreeToTerms: z.literal(true, {
     errorMap: () => ({ message: "You must agree to the terms" }),
@@ -43,8 +50,9 @@ const SignUp = () => {
   } = useForm({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
-      name: "",
+      fullName: "",
       phone: "",
+      email: "",
       password: "",
       agreeToTerms: false,
     },
@@ -52,6 +60,7 @@ const SignUp = () => {
 
   // Handle form submission
   const onSubmit = async (data) => {
+    console.log("Create new user::", data);
     await signUp(data);
   };
 
@@ -61,25 +70,28 @@ const SignUp = () => {
   };
 
   return (
-    <div className='bg-background flex flex-row justify-center w-full min-h-screen'>
-      <div className='bg-card w-full max-w-md relative'>
+    <div className="bg-background flex flex-row justify-center w-full min-h-screen">
+      <div className="bg-card w-full max-w-md relative">
         <Helmet>
-          <title>Sign Up - Sound Explores App</title>
+          <title>Sign Up - Sound Explores Library</title>
           <meta
-            name='description'
-            content='Create a new Sound Explores account'
-          />
-          <meta property='og:title' content='Sign Up - Sound Explores App' />
-          <meta
-            property='og:description'
-            content='Create a new Sound Explores account'
+            name="description"
+            content="Create a new Sound Explores account"
           />
           <meta
-            property='og:image'
-            content='https://example.com/og-image-signup.jpg'
+            property="og:title"
+            content="Sign Up - Sound Explores Library"
           />
-          <meta property='og:url' content='https://example.com/signup' />
-          <meta property='og:type' content='website' />
+          <meta
+            property="og:description"
+            content="Create a new Sound Explores account"
+          />
+          <meta
+            property="og:image"
+            content="https://example.com/og-image-signup.jpg"
+          />
+          <meta property="og:url" content="https://example.com/signup" />
+          <meta property="og:type" content="website" />
         </Helmet>
         {/* <StatusBar /> */}
 
@@ -92,137 +104,161 @@ const SignUp = () => {
             scrolled ? "shadow-md" : ""
           }`}
         >
-          <div className='flex items-center'>
-            <Link to='/'>
+          <div className="flex items-center">
+            <Link to="/">
               <motion.div
                 whileHover={{ scale: 1.0 }}
                 whileTap={{ scale: 0.9 }}
-                className='p-2 rounded-full hover:bg-background hover:rounded-full border-gray-400 transition-colors'
+                className="p-2 rounded-full hover:bg-background hover:rounded-full border-gray-400 transition-colors"
               >
-                <ArrowLeft className='w-5 h-5' />
+                <ArrowLeft className="w-5 h-5" />
               </motion.div>
             </Link>
-            <h1 className='text-xl font-bold'>Sign Up</h1>
+            <h1 className="text-xl font-bold">Sign Up</h1>
           </div>
         </motion.div>
 
         {/* Logo */}
-        <div className='mr-0.5'>
+        <div className="mr-0.5">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
-            className='flex flex-col items-center p-6 border-b bg-background'
+            className="flex flex-col items-center p-6 border-b bg-background"
           >
             <motion.img
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className='w-36 h-36 object-cover'
-              alt='Logo'
-              src='/logo.png'
+              className="w-36 h-36 object-cover"
+              alt="Logo"
+              src="/logo.png"
             />
-            <h2 className='text-2xl text-black dark:text-white font-bold mb-1'>
+            <h2 className="text-2xl text-black dark:text-white font-bold mb-1">
               Create Account
             </h2>
-            <p className='text-xs text-muted-foreground'>
+            <p className="text-xs text-muted-foreground">
               Fill in your details to register
             </p>
           </motion.div>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit(onSubmit)} className='p-6'>
-          <div className='space-y-4'>
+        <form onSubmit={handleSubmit(onSubmit)} className="p-6">
+          <div className="space-y-4">
             {/* Name Field */}
-            <div className='flex flex-col gap-2'>
-              <label className='font-medium text-base'>
-                Full Name<span className='text-red-500'>*</span>{" "}
+            <div className="flex flex-col gap-2">
+              <label className="font-medium text-base">
+                Full Name<span className="text-red-400">*</span>{" "}
               </label>
-              <Card className='p-0 w-full border border-solid border-gray-200 shadow-none'>
-                <CardContent className='p-0'>
+              <Card className="p-0 w-full border border-solid border-gray-200 shadow-none">
+                <CardContent className="p-0">
                   <Input
                     {...register("fullName")}
                     className={`border-none px-4 py-3 h-auto text-foreground text-sm ${
                       errors.fullName ? "border-red-500" : ""
                     }`}
-                    placeholder='Enter your full name...'
+                    placeholder="Enter your full name..."
                   />
                 </CardContent>
               </Card>
               {errors.fullName && (
-                <span className='text-destructive text-sm'>
+                <span className="text-destructive text-sm">
                   {errors.fullName.message}
                 </span>
               )}
             </div>
 
             {/* Phone Field */}
-            <div className='flex flex-col gap-2'>
-              <label className='font-medium text-base'>
-                Phone number<span className='text-red-500'>*</span>
+            <div className="flex flex-col gap-2">
+              <label className="font-medium text-base">
+                Enter Phone number<span className="text-red-400">*</span>
               </label>
-              <Card className='p-0 w-full border border-solid border-gray-200 shadow-none'>
-                <CardContent className='p-0'>
+              <Card className="p-0 w-full border border-solid border-gray-200 shadow-none">
+                <CardContent className="p-0">
                   <Input
                     {...register("phone")}
-                    type='tel'
+                    type="tel"
                     className={`border-none px-4 py-3 h-auto text-foreground text-sm ${
                       errors.phone ? "border-red-500" : ""
                     }`}
-                    placeholder='Enter your Phone number...'
+                    placeholder="e.g. +880 1712345678"
                   />
                 </CardContent>
               </Card>
               {errors.phone && (
-                <span className='text-destructive text-sm'>
+                <span className="text-destructive text-sm">
                   {errors.phone.message}
                 </span>
               )}
             </div>
 
-            {/* Password Field */}
-            <div className='flex flex-col gap-2'>
-              <label className='font-medium text-base'>
-                Password<span className='text-red-500'>*</span>
+            {/* email Field */}
+            <div className="flex flex-col gap-2">
+              <label className="font-medium text-base">
+                Email<span className="text-red-400">*</span>
               </label>
-              <Card className='p-0 w-full border border-solid border-gray-200 shadow-none'>
-                <CardContent className='p-0 flex items-center'>
+              <Card className="p-0 w-full border border-solid border-gray-200 shadow-none">
+                <CardContent className="p-0">
+                  <Input
+                    {...register("email")}
+                    type="email"
+                    className={`border-none px-4 py-3 h-auto text-foreground text-sm ${
+                      errors.email ? "border-red-500" : ""
+                    }`}
+                    placeholder="Enter your email address..."
+                  />
+                </CardContent>
+              </Card>
+              {errors.email && (
+                <span className="text-destructive text-sm">
+                  {errors.email.message}
+                </span>
+              )}
+            </div>
+
+            {/* Password Field */}
+            <div className="flex flex-col gap-2">
+              <label className="font-medium text-base">
+                Password<span className="text-red-400">*</span>
+              </label>
+              <Card className="p-0 w-full border border-solid border-gray-200 shadow-none">
+                <CardContent className="p-0 flex items-center">
                   <Input
                     {...register("password")}
                     className={`border-none px-4 py-3 h-auto text-foreground text-sm ${
                       errors.password ? "border-red-500" : ""
                     }`}
-                    placeholder='Enter your Password...'
+                    placeholder="Enter your Password..."
                     type={showPassword ? "text" : "password"}
                   />
                   <div
-                    className='absolute right-10 cursor-pointer'
+                    className="absolute right-10 cursor-pointer"
                     onClick={togglePasswordVisibility}
                   >
                     {showPassword ? (
-                      <EyeOffIcon className='w-5 h-5 text-muted-foreground' />
+                      <EyeOffIcon className="w-5 h-5 text-muted-foreground" />
                     ) : (
-                      <EyeIcon className='w-5 h-5 text-muted-foreground' />
+                      <EyeIcon className="w-5 h-5 text-muted-foreground" />
                     )}
                   </div>
                 </CardContent>
               </Card>
               {errors.password && (
-                <span className='text-destructive text-sm'>
+                <span className="text-destructive text-sm">
                   {errors.password.message}
                 </span>
               )}
             </div>
 
             {/* Terms Checkbox */}
-            <div className='flex items-start gap-2'>
+            <div className="flex items-start gap-2">
               <Controller
-                name='agreeToTerms'
+                name="agreeToTerms"
                 control={control}
                 render={({ field }) => (
                   <Checkbox
-                    id='terms'
+                    id="terms"
                     checked={field.value}
                     onCheckedChange={field.onChange}
                     className={`mt-1 w-4 h-4 rounded border-2 ${
@@ -232,20 +268,20 @@ const SignUp = () => {
                 )}
               />
               <label
-                htmlFor='terms'
-                className='cursor-pointer text-sm text-foreground'
+                htmlFor="terms"
+                className="cursor-pointer text-sm text-foreground"
               >
                 I agree to the processing of personal data and accept the{" "}
                 <Link
-                  to='/privacy-policy'
-                  className='text-primary hover:underline'
+                  to="/privacy-policy"
+                  className="text-primary hover:underline"
                 >
                   Terms of Service & Privacy Policy
                 </Link>
               </label>
             </div>
             {errors.agreeToTerms && (
-              <span className='text-destructive text-sm block mt-1'>
+              <span className="text-destructive text-sm block mt-1">
                 {errors.agreeToTerms.message}
               </span>
             )}
@@ -253,19 +289,19 @@ const SignUp = () => {
             {/* Sign Up Button */}
             <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
               <Button
-                type='submit'
-                className='w-full py-3 bg-primary rounded-full text-white font-medium hover:bg-blue-600 transition-colors'
+                type="submit"
+                className="w-full py-3 bg-primary rounded-full text-white font-medium hover:bg-blue-600 transition-colors"
               >
                 Sign Up
               </Button>
             </motion.div>
 
             {/* Already have an account */}
-            <div className='flex items-center justify-center gap-1 mt-2'>
-              <p className='text-foreground text-sm'>
+            <div className="flex items-center justify-center gap-1 mt-2">
+              <p className="text-foreground text-sm">
                 Already have an account?
               </p>
-              <Link to='/' className='font-medium text-blue-500 text-sm'>
+              <Link to="/" className="font-medium text-blue-500 text-sm">
                 Sign In
               </Link>
             </div>
