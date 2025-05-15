@@ -19,8 +19,8 @@ const SendOtp = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [email, setEmail] = useState("");
-  const [timer, setTimer] = useState(60);
-  const [isTimerActive, setIsTimerActive] = useState(true);
+  const [timer, setTimer] = useState(0);
+  const [isTimerActive, setIsTimerActive] = useState(false);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -28,6 +28,7 @@ const SendOtp = () => {
 
   const inputRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
 
+  // Load email from location state or redirect
   useEffect(() => {
     if (location.state && location.state.email) {
       setEmail(location.state.email);
@@ -37,15 +38,54 @@ const SendOtp = () => {
     }
   }, [location.state, navigate]);
 
-  // Timer for resend code functionality
+  // Initialize or restore timer state from localStorage
+  useEffect(() => {
+    const initializeTimer = () => {
+      const storedTimerData = localStorage.getItem("otpTimer");
+
+      if (storedTimerData) {
+        const { expiryTime } = JSON.parse(storedTimerData);
+        const now = new Date().getTime();
+        const remainingTime = Math.max(
+          0,
+          Math.floor((expiryTime - now) / 1000)
+        );
+
+        if (remainingTime > 0) {
+          setTimer(remainingTime);
+          setIsTimerActive(true);
+        } else {
+          setTimer(0);
+          setIsTimerActive(false);
+          localStorage.removeItem("otpTimer");
+        }
+      } else {
+        // Initial timer setup - 3 minutes (180 seconds)
+        setTimer(180);
+        setIsTimerActive(true);
+        const expiryTime = new Date().getTime() + 180 * 1000;
+        localStorage.setItem("otpTimer", JSON.stringify({ expiryTime }));
+      }
+    };
+
+    initializeTimer();
+  }, []);
+
+  // Timer countdown logic
   useEffect(() => {
     let interval;
     if (isTimerActive && timer > 0) {
       interval = setInterval(() => {
-        setTimer((prevTimer) => prevTimer - 1);
+        setTimer((prevTimer) => {
+          const newTimer = prevTimer - 1;
+          // Update localStorage with new expiry time
+          if (newTimer === 0) {
+            localStorage.removeItem("otpTimer");
+            setIsTimerActive(false);
+          }
+          return newTimer;
+        });
       }, 1000);
-    } else if (timer === 0) {
-      setIsTimerActive(false);
     }
 
     return () => clearInterval(interval);
@@ -104,6 +144,7 @@ const SendOtp = () => {
       setIsSubmitting(true);
       const success = await verifyOtp(email, otpValue);
       if (success) {
+        localStorage.removeItem("otpTimer"); // Clear timer data on successful verification
         navigate(ROUTES.SIGNIN);
       }
     } catch (error) {
@@ -122,8 +163,13 @@ const SendOtp = () => {
 
         if (success) {
           setOtp(["", "", "", ""]);
-          setTimer(60);
+
+          // Reset timer to 3 minutes (180 seconds) and update localStorage
+          setTimer(180);
           setIsTimerActive(true);
+          const expiryTime = new Date().getTime() + 180 * 1000;
+          localStorage.setItem("otpTimer", JSON.stringify({ expiryTime }));
+
           setError("");
           inputRefs[0].current.focus();
         }
@@ -132,6 +178,13 @@ const SendOtp = () => {
         toast.error("Failed to resend verification code");
       }
     }
+  };
+
+  // Format time to mm:ss
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
   };
 
   return (
@@ -146,15 +199,22 @@ const SendOtp = () => {
           className="flex items-center justify-between p-4 border-b bg-card"
         >
           <div className="flex items-center">
-            <Link to={ROUTES.SIGNUP}>
-              <motion.div
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-              >
+            {!isTimerActive && (
+              <Link to={ROUTES.SIGNUP}>
+                <motion.div
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                </motion.div>
+              </Link>
+            )}
+            {isTimerActive && (
+              <div className="p-2 rounded-full text-gray-300 cursor-not-allowed">
                 <ArrowLeft className="w-5 h-5" />
-              </motion.div>
-            </Link>
+              </div>
+            )}
             <h1 className="text-xl font-bold ml-2">Verify OTP</h1>
           </div>
         </motion.div>
@@ -207,7 +267,7 @@ const SendOtp = () => {
                     onChange={(e) => handleOtpChange(e, index)}
                     onKeyDown={(e) => handleKeyDown(e, index)}
                     onPaste={index === 0 ? handlePaste : undefined}
-                    className="w-full h-full text-center text-2xl font-semibold border-none focus:outline-none focus:ring-0"
+                    className="w-full h-full text-black text-center text-2xl font-semibold border-none focus:outline-none focus:ring-0"
                     autoFocus={index === 0}
                   />
                 </motion.div>
@@ -231,7 +291,9 @@ const SendOtp = () => {
                     : "text-blue-500 cursor-pointer"
                 }`}
               >
-                {isTimerActive ? `Resend Code (${timer}s)` : "Resend Code"}
+                {isTimerActive
+                  ? `Resend Code (${formatTime(timer)})`
+                  : "Resend Code"}
               </button>
             </div>
 

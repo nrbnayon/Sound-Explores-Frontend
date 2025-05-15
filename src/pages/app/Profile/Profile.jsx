@@ -9,6 +9,7 @@ import { Helmet } from "react-helmet-async";
 
 const Profile = () => {
   const { user, signOut } = useAuth();
+  console.log("User::", user?.profile?.fullName);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [avatar, setAvatar] = useState(user?.avatar || "/profile.png");
   const fileInputRef = useRef(null);
@@ -46,23 +47,27 @@ const Profile = () => {
       <div className="bg-card w-full max-w-md relative shadow-md">
         <Helmet>
           <title>
-            {user?.name ? `${user.name}'s Profile` : "Profile"} - Sound Explores
-            App
+            {user?.profile?.fullName
+              ? `${user?.profile?.fullName}'s Profile`
+              : "Profile"}{" "}
+            - Sound Explores App
           </title>
           <meta
             name="description"
-            content={`View ${user?.name || "user"}'s profile on Sound Explores`}
+            content={`View ${
+              user?.profile?.fullName || "User"
+            }'s profile on Sound Explores`}
           />
           <meta name="robots" content="noindex, nofollow" />
           <meta
             property="og:title"
             content={`${
-              user?.name || "User"
+              user?.profile?.fullName || "User"
             }'s Profile - Sound Explores Library`}
           />
           <meta
             property="og:description"
-            content={`View ${user?.name || "user"}'s profile on Sound Explores`}
+            content={`View ${user?.profile?.fullName || "user"}'s profile on Sound Explores`}
           />
           <meta
             property="og:image"
@@ -120,7 +125,7 @@ const Profile = () => {
             </div>
 
             <h2 className="text-2xl text-black font-bold mb-1">
-              {user?.name || "User Name"}
+              {user?.profile?.fullName || "User Name"}
             </h2>
             <p className="text-xs text-muted-foreground mb-2">
               {user?.email || "user@example.com"}

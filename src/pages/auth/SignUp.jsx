@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { parsePhoneNumberFromString } from "libphonenumber-js";
 import { EyeIcon, EyeOffIcon, ArrowLeft } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent } from "../../components/ui/card";
@@ -13,8 +14,9 @@ import { useAuth } from "../../contexts/AuthContext";
 import { motion } from "framer-motion";
 import { StatusBar } from "../../components/common/StatusBar";
 import { Helmet } from "react-helmet-async";
+import toast from "react-hot-toast";
 
-// Validation schema
+// Validation schema aligned with backend
 const signUpSchema = z.object({
   fullName: z.string().min(2, "Name is required"),
   phone: z
@@ -22,8 +24,8 @@ const signUpSchema = z.object({
     .min(1, "Phone number is required")
     .refine(
       (val) => {
-        const cleaned = val.replace(/[\s()-]/g, "");
-        return /^(\+?88)?0?\d{9,}$/.test(cleaned);
+        const phoneNumber = parsePhoneNumberFromString(val);
+        return phoneNumber?.isValid() ?? false;
       },
       {
         message: "Please enter a valid phone number",
@@ -46,6 +48,7 @@ const SignUp = () => {
     register,
     handleSubmit,
     control,
+    setError,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(signUpSchema),
@@ -61,7 +64,27 @@ const SignUp = () => {
   // Handle form submission
   const onSubmit = async (data) => {
     console.log("Create new user::", data);
-    await signUp(data);
+    try {
+      const res = await signUp(data);
+      // if (res) {
+      //   toast.success(
+      //     `Please check your email ${data?.email} for a 4-digit OTP and verify your account.`
+      //   );
+      // }
+    } catch (error) {
+      // Handle specific validation errors from the backend
+      if (error.response?.data?.errors) {
+        error.response.data.errors.forEach((err) => {
+          // Map backend errors to form fields
+          if (err.path && err.path.includes("phone")) {
+            setError("phone", {
+              type: "manual",
+              message: err.message || "Invalid phone number format",
+            });
+          }
+        });
+      }
+    }
   };
 
   // Toggle password visibility

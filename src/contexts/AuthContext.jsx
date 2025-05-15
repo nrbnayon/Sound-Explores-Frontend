@@ -128,17 +128,42 @@ export function AuthProvider({ children }) {
       if (response.data.success) {
         setVerificationInProgress(true);
         toast.success(
-          "Account created successfully! Please verify your email."
+          response?.data?.message ||
+            `Account created successfully!  Please check your email ${userData?.email} for code.`
         );
         // Pass the email in the state
         navigate(ROUTES.SEND_CODE, { state: { email: userData.email } });
+        return true;
       }
-
-      return true;
+      return false;
     } catch (error) {
       console.error("Sign up error:", error);
-      toast.error(error.response?.data?.message || "Failed to create account");
-      return false;
+
+      // Handle validation errors
+      if (error.response?.data?.errors) {
+        const validationErrors = error.response.data.errors;
+        // Display first validation error as toast
+        toast.error(validationErrors[0]?.message || "Validation failed");
+      } else if (error.response?.data?.message) {
+        // Handle case where email already exists
+        if (error.response?.data?.message.includes("email already exist")) {
+          setVerificationInProgress(true);
+          resendOtp(userData.email);
+          navigate(ROUTES.SEND_CODE, { state: { email: userData.email } });
+          toast.warn(
+            "This email is already registered. Verification code resent."
+          );
+        } else {
+          toast.error(
+            error.response.data.message || "Failed to create account"
+          );
+        }
+      } else {
+        toast.error("An unexpected error occurred");
+      }
+
+      // Return the error so the component can handle it for form validation
+      throw error;
     } finally {
       setLoading(false);
     }
