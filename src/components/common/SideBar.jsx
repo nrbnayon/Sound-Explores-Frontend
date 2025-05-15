@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { useAuth } from "../../contexts/AuthContext";
 import toast from "react-hot-toast";
 
-const SideBar = ({ onTitleChange, onSoundListChange }) => {
+const SideBar = ({ onTitleChange, onSoundListChange, onClose }) => {
   const [activeButton, setActiveButton] = useState(1);
   const { signOut } = useAuth();
 
@@ -12,27 +12,34 @@ const SideBar = ({ onTitleChange, onSoundListChange }) => {
     onTitleChange("Sound Library");
     onSoundListChange(true);
     setActiveButton(button);
+    if (onClose) onClose();
   };
 
   const handleFriendButtonClick = (button) => {
     onTitleChange("Friends");
     onSoundListChange(false);
     setActiveButton(button);
+    if (onClose) onClose();
   };
 
   const handleLogout = async () => {
-    await signOut();
-    toast.success("Logout Successful");
+    try {
+      await signOut();
+      toast.success("Logout Successful");
+    } catch (error) {
+      toast.error("Logout failed");
+      console.error("Logout error:", error);
+    }
   };
 
   return (
-    <div className="flex w-full flex-col h-full bg-[#252525]">
-      <div className="p-5 border-b border-gray-300">
-        <h1 className="text-xl text-white font-bold">Sound App</h1>
+    <div className='flex w-full flex-col h-full bg-[#252525]'>
+      <div className='p-5 border-b border-gray-300 flex justify-between items-center'>
+        <h1 className='text-xl text-white font-bold'>Sound App</h1>
       </div>
 
-      <nav className="flex-1 w-full p-4">
-        <ul className="space-y-4">
+      <nav className='flex-1 w-full p-4'>
+        <ul className='space-y-4'>
           <motion.li whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <button
               onClick={() => handleSoundButtonClick(1)}
@@ -58,20 +65,17 @@ const SideBar = ({ onTitleChange, onSoundListChange }) => {
         </ul>
       </nav>
 
-      <button
-        onClick={() => handleLogout()}
-        className="p-4 mt-auto border-t text-white border-gray-300"
-      >
+      <div className='p-4 mt-auto border-t border-gray-300'>
         <motion.button
-          onClick={signOut}
+          onClick={handleLogout}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className="flex items-center gap-2 w-full text-left px-4 py-3 hover:bg-gray-600 transition-colors rounded-md"
+          className='flex items-center gap-2 w-full text-left px-4 py-3 hover:bg-gray-600 transition-colors rounded-md text-white'
         >
           <LogOut size={18} />
           <span>Log Out</span>
         </motion.button>
-      </button>
+      </div>
     </div>
   );
 };
