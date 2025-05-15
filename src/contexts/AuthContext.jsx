@@ -310,14 +310,12 @@ export function AuthProvider({ children }) {
       console.log("Updating user profile:", profileData);
 
       const response = await apiClient.patch(
-        "/user/update-profile",
+        "/user/update-profile-data",
         profileData
       );
       console.log("Update profile response:", response.data);
-
       // Update user data in state
       setUser(response.data.user);
-
       toast.success("Profile updated successfully");
       return true;
     } catch (error) {

@@ -6,11 +6,13 @@ import { useAuth } from "../../../contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import Header from "../../../components/common/Header";
 import { Helmet } from "react-helmet-async";
+import apiClient from "../../../lib/api-client";
 
 const Profile = () => {
   const { user, signOut } = useAuth();
   console.log("User::", user?.profile?.fullName);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [avatar, setAvatar] = useState(user?.avatar || "/profile.png");
   const fileInputRef = useRef(null);
 
@@ -26,14 +28,46 @@ const Profile = () => {
   };
 
   // Handle avatar upload
-  const handleAvatarChange = (e) => {
+  const handleAvatarChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        setAvatar(reader.result);
-      };
-      reader.readAsDataURL(file);
+      try {
+        setIsUploading(true);
+
+        // Display preview immediately
+        const reader = new FileReader();
+        reader.onload = () => {
+          setAvatar(reader.result);
+        };
+        reader.readAsDataURL(file);
+
+        // Prepare form data for API
+        const formData = new FormData();
+        formData.append("file", file);
+
+        // Send to API
+        const response = await apiClient.patch(
+          "/user/update-profile-image",
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+
+        // Update with server response if available
+        if (response.data && response.data.avatar) {
+          setAvatar(response.data.avatar);
+        }
+      } catch (error) {
+        console.error("Error uploading avatar:", error);
+        // Revert to previous avatar on error
+        setAvatar(user?.avatar || "/profile.png");
+        // You could add error handling UI here
+      } finally {
+        setIsUploading(false);
+      }
     }
   };
 
@@ -67,7 +101,9 @@ const Profile = () => {
           />
           <meta
             property="og:description"
-            content={`View ${user?.profile?.fullName || "user"}'s profile on Sound Explores`}
+            content={`View ${
+              user?.profile?.fullName || "user"
+            }'s profile on Sound Explores`}
           />
           <meta
             property="og:image"
