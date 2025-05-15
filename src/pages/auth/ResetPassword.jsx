@@ -1,34 +1,38 @@
 // src\pages\auth\ResetPassword.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent } from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
 import { useAuth } from "../../contexts/AuthContext";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { StatusBar } from "../../components/common/StatusBar";
+import { ROUTES } from "../../config/constants";
 
 // Validation schema
 const resetPasswordSchema = z
   .object({
-    newPassword: z.string().min(6, "Password must be at least 6 characters"),
-    confirmPassword: z.string().min(6, "Please confirm your password"),
+    new_password: z.string().min(6, "Password must be at least 6 characters"),
+    confirm_password: z.string().min(6, "Please confirm your password"),
   })
-  .refine((data) => data.newPassword === data.confirmPassword, {
+  .refine((data) => data.new_password === data.confirm_password, {
     message: "Passwords don't match",
-    path: ["confirmPassword"],
+    path: ["confirm_password"],
   });
 
 const ResetPassword = () => {
   const { resetPassword } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [token, setToken] = useState("");
 
   // React Hook Form
   const {
@@ -38,18 +42,37 @@ const ResetPassword = () => {
   } = useForm({
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: {
-      newPassword: "",
-      confirmPassword: "",
+      new_password: "",
+      confirm_password: "",
     },
   });
+
+  // Get email and token from location state
+  useEffect(() => {
+    if (location.state) {
+      if (location.state.email) {
+        setEmail(location.state.email);
+      }
+      if (location.state.token) {
+        setToken(location.state.token);
+      } else {
+        // If no token in state, redirect back to password reset request
+        navigate(ROUTES.FORGET_PASSWORD);
+      }
+    } else {
+      // If no state at all, redirect back to password reset request
+      navigate(ROUTES.FORGET_PASSWORD);
+    }
+  }, [location.state, navigate]);
 
   // Handle form submission
   const onSubmit = async (data) => {
     setLoading(true);
     try {
-      const success = await resetPassword(data);
+      // Pass the token for reset password API
+      const success = await resetPassword(data, token);
       if (success) {
-        navigate("/signin");
+        navigate(ROUTES.SIGNIN);
       }
     } finally {
       setLoading(false);
@@ -78,7 +101,7 @@ const ResetPassword = () => {
           className='flex items-center justify-between p-4 border-b bg-card sticky top-0 z-10'
         >
           <div className='flex items-center'>
-            <Link to='/send-code'>
+            <Link to={ROUTES.SIGNIN}>
               <motion.div
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
@@ -121,7 +144,8 @@ const ResetPassword = () => {
             <div>
               <h2 className='text-2xl font-bold mb-2'>Create New Password</h2>
               <p className='text-muted-foreground text-sm'>
-                Please create a new secure password for your account.
+                Please create a new secure password for your account
+                {email ? ` (${email})` : ""}.
               </p>
             </div>
 
@@ -133,9 +157,9 @@ const ResetPassword = () => {
               <Card className='shadow-none border border-gray-200'>
                 <CardContent className='p-0 relative'>
                   <Input
-                    {...register("newPassword")}
+                    {...register("new_password")}
                     className={`border-none px-4 py-3 h-auto text-foreground text-sm ${
-                      errors.newPassword
+                      errors.new_password
                         ? "focus:ring-red-500"
                         : "focus:ring-blue-500"
                     }`}
@@ -159,13 +183,13 @@ const ResetPassword = () => {
                   </div>
                 </CardContent>
               </Card>
-              {errors.newPassword && (
+              {errors.new_password && (
                 <motion.span
                   initial={{ opacity: 0, y: -5 }}
                   animate={{ opacity: 1, y: 0 }}
                   className='text-destructive text-xs block'
                 >
-                  {errors.newPassword.message}
+                  {errors.new_password.message}
                 </motion.span>
               )}
             </div>
@@ -178,9 +202,9 @@ const ResetPassword = () => {
               <Card className='shadow-none border border-gray-200'>
                 <CardContent className='p-0 relative'>
                   <Input
-                    {...register("confirmPassword")}
+                    {...register("confirm_password")}
                     className={`border-none px-4 py-3 h-auto text-foreground text-sm ${
-                      errors.confirmPassword
+                      errors.confirm_password
                         ? "focus:ring-red-500"
                         : "focus:ring-blue-500"
                     }`}
@@ -192,10 +216,10 @@ const ResetPassword = () => {
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                       type='button'
-                      onClick={toggleNewPasswordVisibility}
+                      onClick={toggleConfirmPasswordVisibility}
                       className='text-muted-foreground flex items-center justify-center'
                     >
-                      {showNewPassword ? (
+                      {showConfirmPassword ? (
                         <EyeOff className='w-5 h-5' />
                       ) : (
                         <Eye className='w-5 h-5' />
@@ -204,13 +228,13 @@ const ResetPassword = () => {
                   </div>
                 </CardContent>
               </Card>
-              {errors.confirmPassword && (
+              {errors.confirm_password && (
                 <motion.span
                   initial={{ opacity: 0, y: -5 }}
                   animate={{ opacity: 1, y: 0 }}
                   className='text-destructive text-xs block'
                 >
-                  {errors.confirmPassword.message}
+                  {errors.confirm_password.message}
                 </motion.span>
               )}
             </div>
@@ -223,7 +247,7 @@ const ResetPassword = () => {
             >
               <Button
                 type='submit'
-                disabled={loading}
+                disabled={loading || !token}
                 className='w-full py-3 bg-primary hover:bg-blue-600 text-white rounded-full font-medium transition-colors'
               >
                 {loading ? "Processing..." : "Reset Password"}
@@ -240,10 +264,10 @@ const ResetPassword = () => {
           className='p-6 text-center border-t'
         >
           <Link
-            to='/send-code'
+            to={ROUTES.FORGET_PASSWORD}
             className='text-sm text-primary hover:text-blue-800 font-medium'
           >
-            Back to verification
+            Back to password reset request
           </Link>
         </motion.div>
       </div>

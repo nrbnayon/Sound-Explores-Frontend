@@ -1,15 +1,15 @@
-// src\pages\auth\ForgetPassword.jsx
+// ForgetPassword.jsx with updated flow tracking
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { ArrowLeft } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent } from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
 import { useAuth } from "../../contexts/AuthContext";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { StatusBar } from "../../components/common/StatusBar";
 
 // Validation schema
@@ -19,7 +19,6 @@ const forgotPasswordSchema = z.object({
 
 const ForgetPassword = () => {
   const { sendPasswordResetEmail } = useAuth();
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
   // React Hook Form
@@ -38,10 +37,7 @@ const ForgetPassword = () => {
   const onSubmit = async (data) => {
     setLoading(true);
     try {
-      const success = await sendPasswordResetEmail(data.email);
-      if (success) {
-        navigate("/send-code");
-      }
+      await sendPasswordResetEmail(data.email);
     } finally {
       setLoading(false);
     }

@@ -8,9 +8,6 @@ import {
 import { useNavigate, useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
-  setCookie,
-  getCookie,
-  removeCookie,
   hasCookie,
   setAuthTokens,
   removeAuthTokens,
@@ -31,7 +28,6 @@ export function AuthProvider({ children }) {
   const location = useLocation();
   const queryClient = useQueryClient();
 
-  // Check if user is authenticated on component mount
   const checkAuth = useCallback(async () => {
     try {
       setLoading(true);
@@ -73,16 +69,13 @@ export function AuthProvider({ children }) {
     checkAuth();
   }, [checkAuth]);
 
-  // Redirect user if they're trying to access verification page without email
   useEffect(() => {
-    // Check if user is trying to access the send code page
     if (location.pathname === ROUTES.SEND_CODE) {
-      // If there's no email in the state, redirect to signup
       if (!location.state?.email) {
         console.log(
           "No email provided for verification, redirecting to signup"
         );
-        navigate(ROUTES.SIGNUP);
+        navigate(ROUTES.HOME);
       }
     }
   }, [location, navigate]);
@@ -162,7 +155,6 @@ export function AuthProvider({ children }) {
         toast.error("An unexpected error occurred");
       }
 
-      // Return the error so the component can handle it for form validation
       throw error;
     } finally {
       setLoading(false);
@@ -190,16 +182,50 @@ export function AuthProvider({ children }) {
     try {
       setLoading(true);
       console.log("Requesting password reset for:", email);
-      await apiClient.patch("/auth/forgot-password-request", { email });
-      toast.success(
-        `If an account exists with ${email}, we've sent a reset link`
-      );
-      return true;
+
+      const response = await apiClient.patch("/auth/forgot-password-request", {
+        email,
+      });
+      console.log("Get response Forget Pass::", response);
+
+      // Based on your API response structure
+      if (response?.data?.success) {
+        setVerificationInProgress(true);
+        // Explicitly pass the email in state for the next page and mark as password reset flow
+        navigate(ROUTES.SEND_CODE, {
+          state: {
+            email: email,
+            fromPasswordReset: true,
+          },
+          replace: false,
+        });
+        toast.success(
+          response?.data?.message ||
+            `Check your email ${email}, we've sent verification OTP Code`
+        );
+        return true;
+      } else {
+        // Fallback success handling
+        toast.success(
+          response?.data?.message || `Verification code sent to ${email}`
+        );
+        setVerificationInProgress(true);
+        navigate(ROUTES.SEND_CODE, {
+          state: {
+            email: email,
+            fromPasswordReset: true,
+          },
+          replace: false,
+        });
+        return true;
+      }
     } catch (error) {
       console.error("Send reset email error:", error);
-      toast.success(
-        `If an account exists with ${email}, we've sent a reset link`
-      );
+
+      const errorMessage =
+        error.response?.data?.message || "Failed to send reset email";
+      toast.error(errorMessage);
+
       return false;
     } finally {
       setLoading(false);
@@ -225,15 +251,31 @@ export function AuthProvider({ children }) {
       // Mark verification as complete
       setVerificationInProgress(false);
       toast.success("Your account verified successfully");
-      return true;
+
+      const isPasswordReset = location.state?.fromPasswordReset;
+
+      const authToken = response.data?.data?.token || response.data?.token;
+
+      if (isPasswordReset && authToken) {
+        // Navigate to reset password with token for password reset flow
+        navigate(ROUTES.RESET_PASSWORD, {
+          state: {
+            email,
+            token: authToken,
+          },
+        });
+      }
+
+      return response.data;
     } catch (error) {
       console.error("OTP verification error:", error);
       toast.error(error.response?.data?.message || "Invalid OTP code");
-      return false;
+      throw error;
     } finally {
       setLoading(false);
     }
   };
+  
 
   // Resend OTP code
   const resendOtp = async (email) => {
@@ -260,12 +302,22 @@ export function AuthProvider({ children }) {
   };
 
   // Reset password
-  const resetPassword = async (passwords) => {
+  const resetPassword = async (passwords, token) => {
     try {
       setLoading(true);
-      console.log("Resetting password");
+      console.log("Resetting password with token");
 
-      const response = await apiClient.patch("/auth/reset-password", passwords);
+      // Use the token in the Authorization header
+      const response = await apiClient.patch(
+        "/auth/reset-password",
+        passwords,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
       console.log("Reset password response:", response.data);
 
       toast.success("Password reset successfully");
