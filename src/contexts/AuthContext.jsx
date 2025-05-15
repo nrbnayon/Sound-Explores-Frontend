@@ -275,7 +275,6 @@ export function AuthProvider({ children }) {
       setLoading(false);
     }
   };
-  
 
   // Resend OTP code
   const resendOtp = async (email) => {
@@ -365,11 +364,39 @@ export function AuthProvider({ children }) {
         "/user/update-profile-data",
         profileData
       );
+
       console.log("Update profile response:", response.data);
-      // Update user data in state
-      setUser(response.data.user);
-      toast.success("Profile updated successfully");
-      return true;
+
+      if (response?.data?.success) {
+        // Get the updated user data from the response
+        const updatedUser = response.data.data || response.data.user;
+        setUser((prevUser) => {
+          return {
+            ...prevUser,
+            email: profileData.email || prevUser.email,
+            phone: profileData.phone || prevUser.phone,
+            profile: {
+              ...prevUser.profile,
+              fullName: profileData.fullName || prevUser.profile?.fullName,
+              nickname: profileData.nickname || prevUser.profile?.nickname,
+              dateOfBirth:
+                profileData.dateOfBirth || prevUser.profile?.dateOfBirth,
+              address: profileData.address || prevUser.profile?.address,
+              ...(updatedUser?.profile || {}),
+            },
+            ...(updatedUser || {}),
+          };
+        });
+
+        // Wait for state update to complete before navigating
+        setTimeout(() => {
+          toast.success("Profile updated successfully");
+          // navigate(ROUTES.PROFILE, { replace: true });
+        }, 100);
+
+        return true;
+      }
+      return false;
     } catch (error) {
       console.error("Update profile error:", error);
       toast.error(error.response?.data?.message || "Failed to update profile");
