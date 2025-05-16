@@ -1,5 +1,5 @@
 // src\components\Friends\FriendItem.jsx
-import { useState, useRef, useEffect } from 'react';
+import { useState,  useEffect } from 'react';
 import { Mail } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -129,7 +129,7 @@ export const FriendItem = ({ friend, onRemove }) => {
         <button
           className='bg-red-500 absolute top-[-55px] text-white h-10 w-20 mx-1 rounded'
           onClick={() => {
-            onRemove(friend.id);
+            onRemove(friend._id);
             setIsOpen(false);
           }}
         >

@@ -61,11 +61,8 @@ const SoundLibrary = () => {
   }, [sidebarOpen]);
 
   return (
-    <div className="bg-background flex flex-row justify-center w-full h-screen overflow-hidden">
-      <div
-        className="bg-card w-full max-w-md relative shadow-md"
-        ref={mainContentRef}
-      >
+    <div className="bg-background flex flex-row justify-center w-full h-screen overflow-hidden border-2 border-red-500">
+      <div className="bg-card w-full relative shadow-md" ref={mainContentRef}>
         <StatusBar />
 
         {/* Sidebar - FIXED ANIMATION HERE */}

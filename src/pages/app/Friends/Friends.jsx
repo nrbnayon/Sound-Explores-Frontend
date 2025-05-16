@@ -1,78 +1,114 @@
 // src\pages\app\Friends\Friends.jsx
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search } from "lucide-react";
 import FindFriends from "../../../components/Friends/FindFriends";
 import YourFriends from "../../../components/Friends/YourFriends";
-import { useGetAllUsers } from "../../../hooks/useConnections";
+import FriendRequests from "../../../components/Friends/FriendRequests";
+import Pagination from "../../../components/ui/pagination";
+import {
+  useGetAllUsers,
+  useFriendList,
+  useSentRequests,
+  useReceivedRequests,
+} from "../../../hooks/useConnections";
 
 const Friends = () => {
-  const [selectedTab, setSelectedTab] = useState(false); // true = Find Friends, false = Your Friends
+  // Tab management
+  // 0 = Your Friends, 1 = Find Friends, 2 = Friend Requests
+  const [selectedTab, setSelectedTab] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [limit, setLimit] = useState(10);
   const contentRef = useRef(null);
 
   // Track content height to prevent scrollbar flashing
   const [contentHeight, setContentHeight] = useState("auto");
 
-  const [initialFriends, setInitialFriends] = useState([
-    { id: 1, name: "Jane Cooper", image: "/profile.png" },
-    { id: 2, name: "Savannah Nguyen", image: "/profile.png" },
-    { id: 3, name: "Devon Lane", image: "/profile.png" },
-  ]);
+  // Get friend data using hooks
+  const { data: friendListData, isLoading: isFriendListLoading } =
+    useFriendList({
+      search: searchTerm,
+      page: currentPage,
+      limit,
+    });
 
-  const [filteredFriends, setFilteredFriends] = useState(initialFriends);
+  const { data: allUsersData, isLoading: isAllUsersLoading } = useGetAllUsers({
+    search: searchTerm,
+    page: currentPage,
+    limit,
+  });
 
-  const {
-    data: allUser,
-    isLoading: isFetchingData,
-    isError,
-  } = useGetAllUsers({});
+  const { data: receivedRequestsData, isLoading: isReceivedRequestsLoading } =
+    useReceivedRequests({
+      search: searchTerm,
+      page: currentPage,
+      limit,
+    });
 
-  console.log("Get all user::", allUser);
+  const { data: sentRequestsData, isLoading: isSentRequestsLoading } =
+    useSentRequests({
+      search: searchTerm,
+      page: currentPage,
+      limit,
+    });
+
+  // Prepare data for components
+  const friends = friendListData?.data?.data || [];
+  const totalFriendsPages = friendListData?.data?.meta?.totalPage || 1;
+
+  const allUsers = allUsersData?.data?.data || [];
+  const totalUsersPages = allUsersData?.data?.meta?.totalPage || 1;
+
+  const receivedRequests = receivedRequestsData?.data?.data || [];
+  const sentRequests = sentRequestsData?.data?.data || [];
+  const requests = [...receivedRequests, ...sentRequests];
+  const totalRequestsPages = Math.max(
+    receivedRequestsData?.data?.meta?.totalPage || 1,
+    sentRequestsData?.data?.meta?.totalPage || 1
+  );
 
   // Handle search
   const handleSearch = (e) => {
     const term = e.target.value;
     setSearchTerm(term);
-
-    if (!term.trim()) {
-      setFilteredFriends(initialFriends);
-    } else {
-      const filtered = initialFriends.filter((friend) =>
-        friend.name.toLowerCase().includes(term.toLowerCase())
-      );
-      setFilteredFriends(filtered);
-    }
+    setCurrentPage(1);
   };
 
-  // Update filtered friends when initial friends change
-  useEffect(() => {
-    if (!searchTerm.trim()) {
-      setFilteredFriends(initialFriends);
-    } else {
-      const filtered = initialFriends.filter((friend) =>
-        friend.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      setFilteredFriends(filtered);
-    }
-  }, [initialFriends, searchTerm]);
+  // Handle page change
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
 
-  // Lock scroll container height before tab change
   const handleTabChange = (newTabState) => {
-    // Only proceed if we're actually changing tabs
     if (selectedTab !== newTabState) {
-      // Lock the height to prevent jumps
       if (contentRef.current) {
         setContentHeight(`${contentRef.current.scrollHeight}px`);
       }
-
-      // Change the tab
       setSelectedTab(newTabState);
+      setCurrentPage(1);
+      setSearchTerm("");
 
-      // Reset height after animation completes
       setTimeout(() => {
         setContentHeight("auto");
-      }, 350); // Slightly longer than animation duration
+      }, 350);
+    }
+  };
+
+  // Count of pending friend requests (for badge)
+  const pendingRequestsCount = receivedRequests.length;
+
+  // Get current tab pagination count
+  const getCurrentTabTotalPages = () => {
+    switch (selectedTab) {
+      case 0: // Your Friends
+        return totalFriendsPages;
+      case 1: // Find Friends
+        return totalUsersPages;
+      case 2: // Friend Requests
+        return totalRequestsPages;
+      default:
+        return 1;
     }
   };
 
@@ -80,7 +116,7 @@ const Friends = () => {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="flex flex-col h-[calc(100vh-120px)] overflow-hidden"
+      className="flex flex-col h-[calc(100vh-120px)] overflow-hidden "
     >
       {/* Tabs - Fixed, doesn't scroll */}
       <div className="sticky top-0 z-10 bg-background">
@@ -89,36 +125,63 @@ const Friends = () => {
             <motion.button
               whileHover={{ backgroundColor: "#f9fafb" }}
               whileTap={{ scale: 0.95 }}
-              className={`w-1/2 py-3 text-center transition-colors ${
-                !selectedTab
+              className={`${
+                pendingRequestsCount > 0 ? "w-1/3" : "w-1/2"
+              } py-3 text-center transition-colors ${
+                selectedTab === 0
                   ? "text-primary font-medium border-b-2 border-blue-500"
                   : "text-muted-foreground"
               }`}
-              onClick={() => handleTabChange(false)}
+              onClick={() => handleTabChange(0)}
             >
               Your Friends
             </motion.button>
             <motion.button
               whileHover={{ backgroundColor: "#f9fafb" }}
               whileTap={{ scale: 0.95 }}
-              className={`w-1/2 py-3 text-center transition-colors ${
-                selectedTab
+              className={`${
+                pendingRequestsCount > 0 ? "w-1/3" : "w-1/2"
+              } py-3 text-center transition-colors ${
+                selectedTab === 1
                   ? "text-primary font-medium border-b-2 border-blue-500"
                   : "text-muted-foreground"
               }`}
-              onClick={() => handleTabChange(true)}
+              onClick={() => handleTabChange(1)}
             >
               Find Friends
             </motion.button>
+
+            {/* Only show Requests tab if there are pending requests */}
+            {pendingRequestsCount > 0 && (
+              <motion.button
+                whileHover={{ backgroundColor: "#f9fafb" }}
+                whileTap={{ scale: 0.95 }}
+                className={`w-1/3 py-3 text-center transition-colors relative ${
+                  selectedTab === 2
+                    ? "text-primary font-medium border-b-2 border-blue-500"
+                    : "text-muted-foreground"
+                }`}
+                onClick={() => handleTabChange(2)}
+              >
+                Requests
+                <span className="absolute top-2 right-8 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-500 rounded-full">
+                  {pendingRequestsCount}
+                </span>
+              </motion.button>
+            )}
           </div>
         </div>
 
         {/* Search Bar - Fixed, doesn't scroll */}
-        <div className="relative mb-4 text-black">
+        <div className="relative mb-4 px-1 text-black">
           <input
             type="text"
             placeholder={
-              selectedTab ? "Search for friends" : "Search your friends"
+              selectedTab === 0
+                ? "Search your friends"
+                : selectedTab === 1
+                ? "Search for new friends"
+                : "Search friend requests"
             }
             value={searchTerm}
             onChange={handleSearch}
@@ -140,27 +203,53 @@ const Friends = () => {
       >
         <AnimatePresence mode="wait">
           <motion.div
-            key={selectedTab ? "find" : "your"}
+            key={`tab-${selectedTab}`}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3 }}
             className="w-full friends-list-container"
           >
-            {selectedTab ? (
+            {selectedTab === 0 && (
+              <YourFriends friends={friends} isLoading={isFriendListLoading} />
+            )}
+
+            {selectedTab === 1 && (
               <FindFriends
-                friends={filteredFriends}
-                setFriends={setInitialFriends}
+                users={allUsers}
+                friends={friends}
+                sentRequests={sentRequests}
+                receivedRequests={receivedRequests}
+                isLoading={
+                  isAllUsersLoading ||
+                  isFriendListLoading ||
+                  isSentRequestsLoading ||
+                  isReceivedRequestsLoading
+                }
               />
-            ) : (
-              <YourFriends
-                friends={filteredFriends}
-                setFriends={setInitialFriends}
+            )}
+
+            {selectedTab === 2 && (
+              <FriendRequests
+                receivedRequests={receivedRequests}
+                sentRequests={sentRequests}
+                isLoading={isReceivedRequestsLoading || isSentRequestsLoading}
               />
             )}
           </motion.div>
         </AnimatePresence>
       </div>
+
+      {/* Pagination */}
+      {getCurrentTabTotalPages() > 1 && (
+        <div className="mt-4 mb-2">
+          <Pagination
+            totalPages={getCurrentTabTotalPages()}
+            currentPage={currentPage}
+            onPageChange={handlePageChange}
+          />
+        </div>
+      )}
     </motion.div>
   );
 };

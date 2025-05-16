@@ -1,18 +1,22 @@
-// src\components\Friends\YourFriends.jsx - Updated
+// src\components\Friends\YourFriends.jsx
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import { FriendItem } from "./FriendItem";
 import { X } from "lucide-react";
+import { useRemoveFriend } from "../../hooks/useConnections";
 
-const YourFriends = ({ friends, setFriends }) => {
+const YourFriends = ({ friends, isLoading }) => {
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [friendToRemove, setFriendToRemove] = useState(null);
+
+  // Use the hook for removing a friend
+  const { mutate: removeFriend, isLoading: isRemoving } = useRemoveFriend();
 
   // Handle initiating friend removal
   const handleInitiateRemove = (id) => {
     // Find the friend to remove and set it in state
-    const friend = friends.find((friend) => friend.id === id);
+    const friend = friends.find((friend) => friend._id === id);
     setFriendToRemove(friend);
     setIsConfirmModalOpen(true);
   };
@@ -21,20 +25,22 @@ const YourFriends = ({ friends, setFriends }) => {
   const handleConfirmRemove = () => {
     if (!friendToRemove) return;
 
-    // Here you would make an API call to remove the friend
+    // Call the API to remove the friend
+    removeFriend(friendToRemove._id, {
+      onSuccess: () => {
+        // Show success message
+        toast.success("Friend removed successfully");
 
-    // Update local state
-    const updatedFriends = friends.filter(
-      (friend) => friend.id !== friendToRemove.id
-    );
-    setFriends(updatedFriends);
-
-    // Close modal and reset state
-    setIsConfirmModalOpen(false);
-    setFriendToRemove(null);
-
-    // Show success message
-    toast.success("Friend removed successfully");
+        // Close modal and reset state
+        setIsConfirmModalOpen(false);
+        setFriendToRemove(null);
+      },
+      onError: (error) => {
+        toast.error(error.message || "Failed to remove friend");
+        setIsConfirmModalOpen(false);
+        setFriendToRemove(null);
+      },
+    });
   };
 
   // Handle cancel friend removal
@@ -47,16 +53,30 @@ const YourFriends = ({ friends, setFriends }) => {
     <div className="flex flex-col w-full">
       <div className="min-h-[200px]">
         <AnimatePresence>
-          {friends.length > 0 ? (
+          {isLoading ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="loader"></div>
+            </div>
+          ) : friends.length > 0 ? (
             friends.map((friend) => (
               <motion.div
-                key={friend.id}
+                key={friend._id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.3 }}
               >
-                <FriendItem friend={friend} onRemove={handleInitiateRemove} />
+                <FriendItem
+                  friend={{
+                    id: friend._id,
+                    name:
+                      friend.name ||
+                      friend.firstName + " " + friend.lastName ||
+                      friend.email,
+                    image: friend.avatar || "/profile.png",
+                  }}
+                  onRemove={handleInitiateRemove}
+                />
               </motion.div>
             ))
           ) : (
@@ -124,7 +144,9 @@ const YourFriends = ({ friends, setFriends }) => {
               <div className="mb-6">
                 <p className="text-gray-600">
                   Are you sure you want to remove{" "}
-                  <span className="font-medium">{friendToRemove?.name}</span>{" "}
+                  <span className="font-medium">
+                    {friendToRemove?.name || "this friend"}
+                  </span>{" "}
                   from your friends?
                 </p>
               </div>
@@ -135,6 +157,7 @@ const YourFriends = ({ friends, setFriends }) => {
                   whileTap={{ scale: 0.95 }}
                   className="px-4 py-2 rounded-md text-sm font-medium bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors"
                   onClick={handleCancelRemove}
+                  disabled={isRemoving}
                 >
                   Cancel
                 </motion.button>
@@ -143,8 +166,9 @@ const YourFriends = ({ friends, setFriends }) => {
                   whileTap={{ scale: 0.95 }}
                   className="px-4 py-2 rounded-md text-sm font-medium bg-destructive text-white hover:bg-red-600 transition-colors"
                   onClick={handleConfirmRemove}
+                  disabled={isRemoving}
                 >
-                  Remove
+                  {isRemoving ? "Removing..." : "Remove"}
                 </motion.button>
               </div>
             </motion.div>

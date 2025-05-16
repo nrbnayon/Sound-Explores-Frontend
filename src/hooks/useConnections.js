@@ -1,73 +1,131 @@
-// src/hooks/useConnections.js
+// src\hooks\useConnections.js
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import apiClient from "../lib/api-client";
 import toast from "react-hot-toast";
 
+// Constants for user connection status
+export const CONNECTION_STATUS = {
+  PENDING: "PENDING",
+  ACCEPTED: "ACCEPTED",
+  BLOCKED: "BLOCKED",
+  REMOVED: "REMOVED",
+};
+
 const CONNECTION_KEYS = {
   all: ["connections"],
   lists: () => [...CONNECTION_KEYS.all, "list"],
-  friendList: () => [...CONNECTION_KEYS.lists(), "friends"],
-  sentRequests: () => [...CONNECTION_KEYS.lists(), "sent"],
-  receivedRequests: () => [...CONNECTION_KEYS.lists(), "received"],
+  friendList: (filters) => [...CONNECTION_KEYS.lists(), "friends", { filters }],
+  sentRequests: (filters) => [...CONNECTION_KEYS.lists(), "sent", { filters }],
+  receivedRequests: (filters) => [
+    ...CONNECTION_KEYS.lists(),
+    "received",
+    { filters },
+  ],
   users: (filters) => [...CONNECTION_KEYS.all, "users", { filters }],
 };
 
-// Get all users (with search)
+// Get all users (with search and pagination)
 export const useGetAllUsers = (filters = {}) => {
   return useQuery({
     queryKey: CONNECTION_KEYS.users(filters),
     queryFn: async () => {
       const params = new URLSearchParams();
 
-      if (filters.searchTerm) params.append("searchTerm", filters.searchTerm);
+      if (filters.search) params.append("search", filters.search);
       if (filters.page) params.append("page", filters.page);
       if (filters.limit) params.append("limit", filters.limit);
 
       const query = params.toString() ? `?${params.toString()}` : "";
       console.log(`Fetching users with query:`, query);
 
-      const { data } = await apiClient.get(`/user/get-all-user${query}`);
-      console.log("Users data:", data);
-      return data;
+      const response = await apiClient.get(`/user/get-all-user${query}`);
+      return response;
+    },
+    onError: (error) => {
+      console.error("Error fetching users:", error);
+      toast.error(error.response?.data?.message || "Failed to fetch users");
     },
   });
 };
 
-// Get friend list
-export const useFriendList = () => {
+// Get friend list (with search and pagination)
+export const useFriendList = (filters = {}) => {
   return useQuery({
-    queryKey: CONNECTION_KEYS.friendList(),
+    queryKey: CONNECTION_KEYS.friendList(filters),
     queryFn: async () => {
-      console.log("Fetching friend list");
-      const { data } = await apiClient.get("/user-connection/friend-list");
-      console.log("Friend list data:", data);
-      return data;
+      const params = new URLSearchParams();
+
+      if (filters.search) params.append("search", filters.search);
+      if (filters.page) params.append("page", filters.page);
+      if (filters.limit) params.append("limit", filters.limit);
+
+      const query = params.toString() ? `?${params.toString()}` : "";
+      console.log("Fetching friend list with query:", query);
+
+      const response = await apiClient.get(
+        `/user-connection/friend-list${query}`
+      );
+      return response;
+    },
+    onError: (error) => {
+      console.error("Error fetching friend list:", error);
+      toast.error(error.response?.data?.message || "Failed to fetch friends");
     },
   });
 };
 
-// Get sent friend requests
-export const useSentRequests = () => {
+// Get sent friend requests (with search and pagination)
+export const useSentRequests = (filters = {}) => {
   return useQuery({
-    queryKey: CONNECTION_KEYS.sentRequests(),
+    queryKey: CONNECTION_KEYS.sentRequests(filters),
     queryFn: async () => {
-      console.log("Fetching sent friend requests");
-      const { data } = await apiClient.get("/user-connection/sent-list");
-      console.log("Sent requests data:", data);
-      return data;
+      const params = new URLSearchParams();
+
+      if (filters.search) params.append("search", filters.search);
+      if (filters.page) params.append("page", filters.page);
+      if (filters.limit) params.append("limit", filters.limit);
+
+      const query = params.toString() ? `?${params.toString()}` : "";
+      console.log("Fetching sent friend requests with query:", query);
+
+      const response = await apiClient.get(
+        `/user-connection/sent-list${query}`
+      );
+      return response;
+    },
+    onError: (error) => {
+      console.error("Error fetching sent requests:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to fetch sent requests"
+      );
     },
   });
 };
 
-// Get received friend requests
-export const useReceivedRequests = () => {
+// Get received friend requests (with search and pagination)
+export const useReceivedRequests = (filters = {}) => {
   return useQuery({
-    queryKey: CONNECTION_KEYS.receivedRequests(),
+    queryKey: CONNECTION_KEYS.receivedRequests(filters),
     queryFn: async () => {
-      console.log("Fetching received friend requests");
-      const { data } = await apiClient.get("/user-connection/request-list");
-      console.log("Received requests data:", data);
-      return data;
+      const params = new URLSearchParams();
+
+      if (filters.search) params.append("search", filters.search);
+      if (filters.page) params.append("page", filters.page);
+      if (filters.limit) params.append("limit", filters.limit);
+
+      const query = params.toString() ? `?${params.toString()}` : "";
+      console.log("Fetching received friend requests with query:", query);
+
+      const response = await apiClient.get(
+        `/user-connection/request-list${query}`
+      );
+      return response;
+    },
+    onError: (error) => {
+      console.error("Error fetching received requests:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to fetch received requests"
+      );
     },
   });
 };
@@ -79,19 +137,20 @@ export const useSendFriendRequest = () => {
   return useMutation({
     mutationFn: async (userId) => {
       console.log("Sending friend request to:", userId);
-      const { data } = await apiClient.post("/user-connection/send-request", {
+      const response = await apiClient.post("/user-connection/send-request", {
         userId,
       });
-      console.log("Send friend request response:", data);
-      return data;
+      return response;
     },
-    onSuccess: () => {
-      toast.success("Friend request sent successfully");
+    onSuccess: (data) => {
+      toast.success(data?.message || "Friend request sent successfully");
       // Invalidate relevant queries
       queryClient.invalidateQueries({
         queryKey: CONNECTION_KEYS.sentRequests(),
       });
-      queryClient.invalidateQueries({ queryKey: CONNECTION_KEYS.users() });
+      queryClient.invalidateQueries({
+        queryKey: CONNECTION_KEYS.users(),
+      });
     },
     onError: (error) => {
       console.error("Send friend request error:", error);
@@ -109,20 +168,21 @@ export const useAcceptFriendRequest = () => {
   return useMutation({
     mutationFn: async (userId) => {
       console.log("Accepting friend request from:", userId);
-      const { data } = await apiClient.patch(
+      const response = await apiClient.patch(
         "/user-connection/accept-request",
         { userId }
       );
-      console.log("Accept friend request response:", data);
-      return data;
+      return response;
     },
-    onSuccess: () => {
-      toast.success("Friend request accepted");
+    onSuccess: (data) => {
+      toast.success(data?.message || "Friend request accepted successfully");
       // Invalidate relevant queries
       queryClient.invalidateQueries({
         queryKey: CONNECTION_KEYS.receivedRequests(),
       });
-      queryClient.invalidateQueries({ queryKey: CONNECTION_KEYS.friendList() });
+      queryClient.invalidateQueries({
+        queryKey: CONNECTION_KEYS.friendList(),
+      });
     },
     onError: (error) => {
       console.error("Accept friend request error:", error);
@@ -140,15 +200,14 @@ export const useRejectFriendRequest = () => {
   return useMutation({
     mutationFn: async (userId) => {
       console.log("Rejecting friend request from:", userId);
-      const { data } = await apiClient.patch(
+      const response = await apiClient.patch(
         "/user-connection/reject-request",
         { userId }
       );
-      console.log("Reject friend request response:", data);
-      return data;
+      return response;
     },
-    onSuccess: () => {
-      toast.success("Friend request rejected");
+    onSuccess: (data) => {
+      toast.success(data?.message || "Friend request rejected successfully");
       // Invalidate received requests
       queryClient.invalidateQueries({
         queryKey: CONNECTION_KEYS.receivedRequests(),
@@ -170,16 +229,20 @@ export const useRemoveFriend = () => {
   return useMutation({
     mutationFn: async (userId) => {
       console.log("Removing friend:", userId);
-      const { data } = await apiClient.patch("/user-connection/remove-friend", {
+      const response = await apiClient.patch("/user-connection/remove-friend", {
         userId,
       });
-      console.log("Remove friend response:", data);
-      return data;
+      return response;
     },
-    onSuccess: () => {
-      toast.success("Friend removed successfully");
+    onSuccess: (data) => {
+      toast.success(data?.message || "Friend removed successfully");
       // Invalidate friend list
-      queryClient.invalidateQueries({ queryKey: CONNECTION_KEYS.friendList() });
+      queryClient.invalidateQueries({
+        queryKey: CONNECTION_KEYS.friendList(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: CONNECTION_KEYS.users(),
+      });
     },
     onError: (error) => {
       console.error("Remove friend error:", error);
@@ -195,22 +258,23 @@ export const useCancelFriendRequest = () => {
   return useMutation({
     mutationFn: async (userId) => {
       console.log("Canceling friend request to:", userId);
-      const { data } = await apiClient.patch(
+      const response = await apiClient.patch(
         "/user-connection/cancel-request",
         {
           userId,
         }
       );
-      console.log("Cancel friend request response:", data);
-      return data;
+      return response;
     },
-    onSuccess: () => {
-      toast.success("Friend request canceled");
+    onSuccess: (data) => {
+      toast.success(data?.message || "Friend request canceled successfully");
       // Invalidate sent requests
       queryClient.invalidateQueries({
         queryKey: CONNECTION_KEYS.sentRequests(),
       });
-      queryClient.invalidateQueries({ queryKey: CONNECTION_KEYS.users() });
+      queryClient.invalidateQueries({
+        queryKey: CONNECTION_KEYS.users(),
+      });
     },
     onError: (error) => {
       console.error("Cancel friend request error:", error);

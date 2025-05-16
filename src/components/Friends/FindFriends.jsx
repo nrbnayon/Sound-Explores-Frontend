@@ -1,78 +1,130 @@
-// src\components\Friends\FindFriends.jsx - Updated
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import { X } from "lucide-react";
+import { useSendFriendRequest } from "../../hooks/useConnections";
 
-const FindFriends = ({ friends, setFriends }) => {
+const FindFriends = ({
+  users,
+  friends,
+  sentRequests,
+  receivedRequests,
+  isLoading,
+}) => {
   const [pendingFriends, setPendingFriends] = useState([]);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-  const [friendToRemove, setFriendToRemove] = useState(null);
+  const [userToRemove, setUserToRemove] = useState(null);
+  const [hiddenUsers, setHiddenUsers] = useState([]);
 
-  // Handle initiating friend removal
-  const handleInitiateDelete = (friendId) => {
-    // Find the friend to remove and set it in state
-    const friend = friends.find((friend) => friend.id === friendId);
-    setFriendToRemove(friend);
+  // Extract data from prop
+  const allUsers = users?.data || [];
+
+  console.log("sasdf", allUsers);
+
+  // Filter users to show only:
+  // 1. Users with role "USER"
+  // 2. Not already friends with current user
+  // 3. No pending requests (sent or received)
+  // 4. Not hidden by user clicking "Remove"
+  const filteredUsers = allUsers.filter((user) => {
+    // Skip users that aren't role="USER"
+    if (user.role !== "USER") return false;
+
+    // Skip users that are hidden after clicking "Remove"
+    if (hiddenUsers.includes(user._id)) return false;
+
+    // Skip users that are already friends
+    const isFriend = friends.some((friend) => friend._id === user._id);
+    if (isFriend) return false;
+
+    // Skip users with pending sent requests
+    const hasSentRequest = sentRequests.some(
+      (request) => request.receiver?._id === user._id
+    );
+    if (hasSentRequest) return false;
+
+    // Skip users with pending received requests
+    const hasReceivedRequest = receivedRequests.some(
+      (request) => request.sender?._id === user._id
+    );
+    if (hasReceivedRequest) return false;
+
+    return true;
+  });
+
+  // Use the hook for sending friend requests
+  const { mutate: sendFriendRequest, isLoading: isSending } =
+    useSendFriendRequest();
+
+  // Handle initiating suggestion removal
+  const handleInitiateDelete = (userId) => {
+    // Find the user to remove and set it in state
+    const user = allUsers.find((user) => user._id === userId);
+    setUserToRemove(user);
     setIsConfirmModalOpen(true);
   };
 
-  // Handle confirm friend removal
+  // Handle confirm suggestion removal
   const handleConfirmDelete = () => {
-    if (!friendToRemove) return;
+    if (!userToRemove) return;
 
-    // Remove from suggestion list
-    const updatedFriends = friends.filter(
-      (friend) => friend.id !== friendToRemove.id
-    );
+    // Update the hidden users list to remove from UI
+    setHiddenUsers((prev) => [...prev, userToRemove._id]);
 
-    // Here you would make an API call to remove the suggestion
-
-    // Update UI
-    setFriends(updatedFriends);
+    // Show success message
+    toast.success("User removed from suggestions");
 
     // Close modal and reset state
     setIsConfirmModalOpen(false);
-    setFriendToRemove(null);
-
-    toast.success("Friend removed from suggestions");
+    setUserToRemove(null);
   };
 
-  // Handle cancel friend removal
+  // Handle cancel suggestion removal
   const handleCancelDelete = () => {
     setIsConfirmModalOpen(false);
-    setFriendToRemove(null);
+    setUserToRemove(null);
   };
 
-  const handleAddFriend = (friend) => {
-    // Add to pending friends list
-    setPendingFriends([...pendingFriends, friend.id]);
+  // Handle sending friend request
+  const handleAddFriend = (user) => {
+    // Add to pending friends list to disable the button
+    setPendingFriends((prev) => [...prev, user._id]);
 
-    // Here you would make an API call to send the friend request
-
-    // Show success message
-    toast.success(`Friend request sent to ${friend.name}`);
-
-    // Optional: Remove from suggestion list after a delay
-    setTimeout(() => {
-      setFriends(friends.filter((f) => f.id !== friend.id));
-      setPendingFriends(pendingFriends.filter((id) => id !== friend.id));
-    }, 2000);
+    // Send friend request using the hook
+    sendFriendRequest(user._id, {
+      onSuccess: () => {
+        // Show success message
+        toast.success(
+          `Friend request sent to ${user.profile?.fullName || user.email}`
+        );
+      },
+      onError: (error) => {
+        // Remove from pending on error
+        setPendingFriends((prev) => prev.filter((id) => id !== user._id));
+        toast.error(
+          error.response?.data?.message || "Failed to send friend request"
+        );
+      },
+    });
   };
 
   return (
     <div className="flex flex-col w-full">
       <div className="min-h-[200px]">
         <AnimatePresence>
-          {friends.length > 0 ? (
-            friends.map((friend) => (
+          {isLoading ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="loader"></div>
+            </div>
+          ) : filteredUsers.length > 0 ? (
+            filteredUsers.map((user) => (
               <motion.div
-                key={friend.id}
+                key={user._id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.3 }}
-                className="flex items-center bg-card rounded-lg p-3 mb-3 shadow-sm"
+                className="flex items-center bg-card rounded-lg p-1 mb-3 shadow-sm"
               >
                 <div className="flex-shrink-0 mr-3">
                   <motion.div
@@ -80,17 +132,21 @@ const FindFriends = ({ friends, setFriends }) => {
                     className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-gray-100"
                   >
                     <img
-                      src={friend.image}
-                      alt={friend.name}
+                      src={user.avatar || "/api/placeholder/48/48"}
+                      alt={user.profile?.fullName || user.email}
                       className="w-full h-full object-cover"
                     />
                   </motion.div>
                 </div>
 
                 <div className="flex-1">
-                  <h3 className="text-base font-medium">{friend.name}</h3>
+                  <h3 className="text-base font-medium">
+                    {user.profile?.fullName || user.email.split("@")[0]}
+                  </h3>
                   <p className="text-xs text-muted-foreground">
-                    Suggested for you
+                    {user.email.length > 20
+                      ? `${user.email.slice(0, 20)}...`
+                      : user.email}
                   </p>
                 </div>
 
@@ -98,15 +154,15 @@ const FindFriends = ({ friends, setFriends }) => {
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    disabled={pendingFriends.includes(friend.id)}
+                    disabled={pendingFriends.includes(user._id) || isSending}
                     className={`px-3 py-1.5 rounded-md text-sm font-medium ${
-                      pendingFriends.includes(friend.id)
+                      pendingFriends.includes(user._id)
                         ? "bg-gray-200 text-muted-foreground"
                         : "bg-primary text-white hover:bg-blue-600"
                     } transition-colors`}
-                    onClick={() => handleAddFriend(friend)}
+                    onClick={() => handleAddFriend(user)}
                   >
-                    {pendingFriends.includes(friend.id)
+                    {pendingFriends.includes(user._id)
                       ? "Pending"
                       : "Add Friend"}
                   </motion.button>
@@ -116,7 +172,7 @@ const FindFriends = ({ friends, setFriends }) => {
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       className="px-3 py-1.5 bg-destructive rounded-md text-sm font-medium hover:bg-red-600 transition-colors"
-                      onClick={() => handleInitiateDelete(friend.id)}
+                      onClick={() => handleInitiateDelete(user._id)}
                     >
                       Remove
                     </motion.button>
@@ -189,7 +245,11 @@ const FindFriends = ({ friends, setFriends }) => {
               <div className="mb-6">
                 <p className="text-gray-600">
                   Are you sure you want to remove{" "}
-                  <span className="font-medium">{friendToRemove?.name}</span>{" "}
+                  <span className="font-medium">
+                    {userToRemove?.profile?.fullName ||
+                      userToRemove?.email ||
+                      "this user"}
+                  </span>{" "}
                   from your suggestions?
                 </p>
               </div>
