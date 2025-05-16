@@ -23,8 +23,6 @@ const FindFriends = ({
   // Get all receivers from sent requests
   const [sentRequestReceiverIds, setSentRequestReceiverIds] = useState([]);
 
-console.log({ users, friends, sentRequests, receivedRequests, isLoading });
-
   const sentRequestIds = useMemo(
     () =>
       sentRequests
@@ -50,11 +48,22 @@ console.log({ users, friends, sentRequests, receivedRequests, isLoading });
     [receivedRequests, user._id]
   );
 
+  // Extract friend IDs from the friends array - FIXED
+  const friendIds = useMemo(() => {
+    return friends.flatMap((friend) => {
+      // Extract all user IDs from each friend connection's users array
+      return friend.users
+        ? friend.users.map((u) => u.user).filter((id) => id !== user._id) // Filter out current user
+        : [];
+    });
+  }, [friends, user._id]);
+
   // 3. Build a single exclusion set
   const excludedIds = useMemo(() => {
     const s = new Set();
     s.add(user._id);
-    friends.forEach((f) => s.add(f._id));
+    // Use friendIds instead of friends
+    friendIds.forEach((id) => s.add(id));
     sentRequestIds.forEach((id) => s.add(id));
     receivedRequestIds.forEach((id) => s.add(id));
     pendingFriends.forEach((id) => s.add(id));
@@ -62,7 +71,7 @@ console.log({ users, friends, sentRequests, receivedRequests, isLoading });
     return s;
   }, [
     user._id,
-    friends,
+    friendIds, // Changed from friends to friendIds
     sentRequestIds,
     receivedRequestIds,
     pendingFriends,
