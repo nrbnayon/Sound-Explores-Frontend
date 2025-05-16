@@ -19,7 +19,7 @@ const Friends = () => {
   const [selectedTab, setSelectedTab] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [limit, setLimit] = useState(10);
+  const [limit, setLimit] = useState(20);
   const contentRef = useRef(null);
 
   // Track content height to prevent scrollbar flashing
@@ -56,17 +56,15 @@ const Friends = () => {
   // Prepare data for components
   const friends = friendListData?.data?.data || [];
   const totalFriendsPages = friendListData?.data?.meta?.totalPage || 1;
-
   const allUsers = allUsersData?.data?.data || [];
   const totalUsersPages = allUsersData?.data?.meta?.totalPage || 1;
-
   const receivedRequests = receivedRequestsData?.data?.data || [];
   const sentRequests = sentRequestsData?.data?.data || [];
-  const requests = [...receivedRequests, ...sentRequests];
   const totalRequestsPages = Math.max(
     receivedRequestsData?.data?.meta?.totalPage || 1,
     sentRequestsData?.data?.meta?.totalPage || 1
   );
+  const requests = [...receivedRequests, ...sentRequests];
 
   // Handle search
   const handleSearch = (e) => {
@@ -226,6 +224,7 @@ const Friends = () => {
                   isSentRequestsLoading ||
                   isReceivedRequestsLoading
                 }
+                allRequest={requests}
               />
             )}
 

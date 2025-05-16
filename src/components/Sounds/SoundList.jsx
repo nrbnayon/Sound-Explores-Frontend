@@ -30,7 +30,6 @@ const SoundList = () => {
   const { user } = useAuth();
 
   const isAdmin = user?.role === "ADMIN";
-  console.log("Get logged user data in Sound list::", user);
 
   const {
     data: soundsData,

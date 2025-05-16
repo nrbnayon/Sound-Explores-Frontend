@@ -143,8 +143,6 @@ export const useSendFriendRequest = () => {
       return response;
     },
     onSuccess: (data) => {
-      toast.success(data?.message || "Friend request sent successfully");
-      // Invalidate relevant queries
       queryClient.invalidateQueries({
         queryKey: CONNECTION_KEYS.sentRequests(),
       });

@@ -26,7 +26,6 @@ export const useSounds = (filters = {}) => {
       console.log(`Fetching sounds with query:`, query);
 
       const { data } = await apiClient.get(`/sound/get-all-sound${query}`);
-      console.log("Sounds data:", data);
       return data;
     },
   });

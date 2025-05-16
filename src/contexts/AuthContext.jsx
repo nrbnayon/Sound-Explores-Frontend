@@ -42,7 +42,6 @@ export function AuthProvider({ children }) {
         try {
           // Get user profile from API
           const response = await apiClient.get("/user/me");
-          console.log("User profile data:", response.data);
           setUser(response.data.data);
         } catch (error) {
           console.error("Error fetching user profile:", error);

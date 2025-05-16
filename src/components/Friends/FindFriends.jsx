@@ -1,8 +1,10 @@
-import { useState } from "react";
+// src\components\Friends\FindFriends.jsx
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import { X } from "lucide-react";
 import { useSendFriendRequest } from "../../hooks/useConnections";
+import { useAuth } from "./../../contexts/AuthContext";
 
 const FindFriends = ({
   users,
@@ -10,71 +12,80 @@ const FindFriends = ({
   sentRequests,
   receivedRequests,
   isLoading,
+  allRequest,
 }) => {
   const [pendingFriends, setPendingFriends] = useState([]);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [userToRemove, setUserToRemove] = useState(null);
   const [hiddenUsers, setHiddenUsers] = useState([]);
-
-  // Extract data from prop
+  const { user } = useAuth();
   const allUsers = users?.data || [];
+  // Get all receivers from sent requests
+  const [sentRequestReceiverIds, setSentRequestReceiverIds] = useState([]);
 
-  console.log("sasdf", allUsers);
+  const sentRequestIds = useMemo(
+    () =>
+      sentRequests
+        .map((req) => {
+          const other = req.users?.find((u) => u.user !== user._id);
+          return other?.user;
+        })
+        .filter(Boolean),
+    [sentRequests, user._id]
+  );
 
-  // Filter users to show only:
-  // 1. Users with role "USER"
-  // 2. Not already friends with current user
-  // 3. No pending requests (sent or received)
-  // 4. Not hidden by user clicking "Remove"
-  const filteredUsers = allUsers.filter((user) => {
-    // Skip users that aren't role="USER"
-    if (user.role !== "USER") return false;
+  // 2. Extract who *sent* you (mirror logic if they come in req.users; or use req.senderId)
+  const receivedRequestIds = useMemo(
+    () =>
+      receivedRequests
+        .map((req) => {
+          // if you have req.senderId just use that; otherwise find in req.users
+          return (
+            req.senderId || req.users?.find((u) => u.user !== user._id)?.user
+          );
+        })
+        .filter(Boolean),
+    [receivedRequests, user._id]
+  );
 
-    // Skip users that are hidden after clicking "Remove"
-    if (hiddenUsers.includes(user._id)) return false;
+  // 3. Build a single exclusion set
+  const excludedIds = useMemo(() => {
+    const s = new Set();
+    s.add(user._id);
+    friends.forEach((f) => s.add(f._id));
+    sentRequestIds.forEach((id) => s.add(id));
+    receivedRequestIds.forEach((id) => s.add(id));
+    pendingFriends.forEach((id) => s.add(id));
+    hiddenUsers.forEach((id) => s.add(id));
+    return s;
+  }, [
+    user._id,
+    friends,
+    sentRequestIds,
+    receivedRequestIds,
+    pendingFriends,
+    hiddenUsers,
+  ]);
 
-    // Skip users that are already friends
-    const isFriend = friends.some((friend) => friend._id === user._id);
-    if (isFriend) return false;
+  // 4. Single-pass filter
+  const filteredUsers = useMemo(
+    () => allUsers.filter((u) => u.role === "USER" && !excludedIds.has(u._id)),
+    [allUsers, excludedIds]
+  );
 
-    // Skip users with pending sent requests
-    const hasSentRequest = sentRequests.some(
-      (request) => request.receiver?._id === user._id
-    );
-    if (hasSentRequest) return false;
-
-    // Skip users with pending received requests
-    const hasReceivedRequest = receivedRequests.some(
-      (request) => request.sender?._id === user._id
-    );
-    if (hasReceivedRequest) return false;
-
-    return true;
-  });
-
-  // Use the hook for sending friend requests
   const { mutate: sendFriendRequest, isLoading: isSending } =
     useSendFriendRequest();
 
-  // Handle initiating suggestion removal
   const handleInitiateDelete = (userId) => {
-    // Find the user to remove and set it in state
     const user = allUsers.find((user) => user._id === userId);
     setUserToRemove(user);
     setIsConfirmModalOpen(true);
   };
 
-  // Handle confirm suggestion removal
   const handleConfirmDelete = () => {
     if (!userToRemove) return;
-
-    // Update the hidden users list to remove from UI
     setHiddenUsers((prev) => [...prev, userToRemove._id]);
-
-    // Show success message
     toast.success("User removed from suggestions");
-
-    // Close modal and reset state
     setIsConfirmModalOpen(false);
     setUserToRemove(null);
   };
@@ -85,18 +96,17 @@ const FindFriends = ({
     setUserToRemove(null);
   };
 
-  // Handle sending friend request
   const handleAddFriend = (user) => {
-    // Add to pending friends list to disable the button
+    // Add to pending immediately for UI feedback
     setPendingFriends((prev) => [...prev, user._id]);
 
-    // Send friend request using the hook
     sendFriendRequest(user._id, {
       onSuccess: () => {
-        // Show success message
         toast.success(
           `Friend request sent to ${user.profile?.fullName || user.email}`
         );
+        // Update local state to reflect the new sent request
+        setSentRequestReceiverIds((prev) => [...prev, user._id]);
       },
       onError: (error) => {
         // Remove from pending on error

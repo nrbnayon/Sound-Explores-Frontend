@@ -10,7 +10,7 @@ import {
 } from "../../hooks/useConnections";
 
 const FriendRequests = ({ receivedRequests, sentRequests, isLoading }) => {
-  const [activeTab, setActiveTab] = useState(0); // 0 = Received, 1 = Sent
+  const [activeTab, setActiveTab] = useState(0);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [modalAction, setModalAction] = useState(""); // "reject", "cancel"
   const [requestToAction, setRequestToAction] = useState(null);
