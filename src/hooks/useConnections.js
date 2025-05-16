@@ -143,6 +143,7 @@ export const useSendFriendRequest = () => {
       return response;
     },
     onSuccess: (data) => {
+      // toast.success(data?.data?.message || "Friend request sent successfully");
       queryClient.invalidateQueries({
         queryKey: CONNECTION_KEYS.sentRequests(),
       });
@@ -152,9 +153,9 @@ export const useSendFriendRequest = () => {
     },
     onError: (error) => {
       console.error("Send friend request error:", error);
-      toast.error(
-        error.response?.data?.message || "Failed to send friend request"
-      );
+      // toast.error(
+      //   error.response?.data?.message || "Failed to send friend request"
+      // );
     },
   });
 };
@@ -164,29 +165,28 @@ export const useAcceptFriendRequest = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (userId) => {
-      console.log("Accepting friend request from:", userId);
+    mutationFn: async (connectionID) => {
+      console.log("Accepting friend request connectionID:", connectionID);
       const response = await apiClient.patch(
         "/user-connection/accept-request",
-        { userId }
+        { connectionID }
       );
       return response;
     },
     onSuccess: (data) => {
-      toast.success(data?.message || "Friend request accepted successfully");
-      // Invalidate relevant queries
+      // toast.success(
+      //   data?.data?.message || "Friend request accepted successfully"
+      // );
+      // Invalidate all relevant queries to update UI instantly
       queryClient.invalidateQueries({
-        queryKey: CONNECTION_KEYS.receivedRequests(),
-      });
-      queryClient.invalidateQueries({
-        queryKey: CONNECTION_KEYS.friendList(),
+        queryKey: CONNECTION_KEYS.all,
       });
     },
     onError: (error) => {
       console.error("Accept friend request error:", error);
-      toast.error(
-        error.response?.data?.message || "Failed to accept friend request"
-      );
+      // toast.error(
+      //   error.response?.data?.message || "Failed to accept friend request"
+      // );
     },
   });
 };
@@ -196,26 +196,28 @@ export const useRejectFriendRequest = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (userId) => {
-      console.log("Rejecting friend request from:", userId);
+    mutationFn: async (connectionID) => {
+      console.log("Rejecting friend request from connectionID:", connectionID);
       const response = await apiClient.patch(
         "/user-connection/reject-request",
-        { userId }
+        { connectionID }
       );
       return response;
     },
     onSuccess: (data) => {
-      toast.success(data?.message || "Friend request rejected successfully");
-      // Invalidate received requests
+      // toast.success(
+      //   data?.data?.message || "Friend request rejected successfully"
+      // );
+      // Invalidate all relevant queries to update UI instantly
       queryClient.invalidateQueries({
-        queryKey: CONNECTION_KEYS.receivedRequests(),
+        queryKey: CONNECTION_KEYS.all,
       });
     },
     onError: (error) => {
       console.error("Reject friend request error:", error);
-      toast.error(
-        error.response?.data?.message || "Failed to reject friend request"
-      );
+      // toast.error(
+      //   error.response?.data?.message || "Failed to reject friend request"
+      // );
     },
   });
 };
@@ -225,26 +227,23 @@ export const useRemoveFriend = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (userId) => {
-      console.log("Removing friend:", userId);
+    mutationFn: async (connectionID) => {
+      console.log("Removing friend:", connectionID);
       const response = await apiClient.patch("/user-connection/remove-friend", {
-        userId,
+        connectionID,
       });
       return response;
     },
     onSuccess: (data) => {
-      toast.success(data?.message || "Friend removed successfully");
-      // Invalidate friend list
+      // toast.success(data?.data?.message || "Friend removed successfully");
+      // Invalidate all relevant queries to update UI instantly
       queryClient.invalidateQueries({
-        queryKey: CONNECTION_KEYS.friendList(),
-      });
-      queryClient.invalidateQueries({
-        queryKey: CONNECTION_KEYS.users(),
+        queryKey: CONNECTION_KEYS.all,
       });
     },
     onError: (error) => {
       console.error("Remove friend error:", error);
-      toast.error(error.response?.data?.message || "Failed to remove friend");
+      // toast.error(error.response?.data?.message || "Failed to remove friend");
     },
   });
 };
@@ -254,31 +253,30 @@ export const useCancelFriendRequest = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (userId) => {
-      console.log("Canceling friend request to:", userId);
+    mutationFn: async (connectionID) => {
+      console.log("Canceling friend request to connectionID:", connectionID);
       const response = await apiClient.patch(
         "/user-connection/cancel-request",
         {
-          userId,
+          connectionID,
         }
       );
       return response;
     },
     onSuccess: (data) => {
-      toast.success(data?.message || "Friend request canceled successfully");
-      // Invalidate sent requests
+      // toast.success(
+      //   data?.data?.message || "Friend request canceled successfully"
+      // );
+      // Invalidate all relevant queries to update UI instantly
       queryClient.invalidateQueries({
-        queryKey: CONNECTION_KEYS.sentRequests(),
-      });
-      queryClient.invalidateQueries({
-        queryKey: CONNECTION_KEYS.users(),
+        queryKey: CONNECTION_KEYS.all,
       });
     },
     onError: (error) => {
       console.error("Cancel friend request error:", error);
-      toast.error(
-        error.response?.data?.message || "Failed to cancel friend request"
-      );
+      // toast.error(
+      //   error.response?.data?.message || "Failed to cancel friend request"
+      // );
     },
   });
 };

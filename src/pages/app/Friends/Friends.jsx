@@ -114,18 +114,16 @@ const Friends = () => {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="flex flex-col h-[calc(100vh-120px)] overflow-hidden "
+      className='flex flex-col h-[calc(100vh-120px)] overflow-hidden '
     >
       {/* Tabs - Fixed, doesn't scroll */}
-      <div className="sticky top-0 z-10 bg-background">
-        <div className="flex mb-4">
-          <div className="flex flex-row w-full border-b">
+      <div className='sticky top-0 z-10 bg-background'>
+        <div className='flex mb-4'>
+          <div className='flex flex-row w-full border-b'>
             <motion.button
               whileHover={{ backgroundColor: "#f9fafb" }}
               whileTap={{ scale: 0.95 }}
-              className={`${
-                pendingRequestsCount > 0 ? "w-1/3" : "w-1/2"
-              } py-3 text-center transition-colors ${
+              className={`w-1/3 py-3 text-center transition-colors ${
                 selectedTab === 0
                   ? "text-primary font-medium border-b-2 border-blue-500"
                   : "text-muted-foreground"
@@ -137,9 +135,7 @@ const Friends = () => {
             <motion.button
               whileHover={{ backgroundColor: "#f9fafb" }}
               whileTap={{ scale: 0.95 }}
-              className={`${
-                pendingRequestsCount > 0 ? "w-1/3" : "w-1/2"
-              } py-3 text-center transition-colors ${
+              className={`w-1/3 py-3 text-center transition-colors ${
                 selectedTab === 1
                   ? "text-primary font-medium border-b-2 border-blue-500"
                   : "text-muted-foreground"
@@ -149,31 +145,28 @@ const Friends = () => {
               Find Friends
             </motion.button>
 
-            {/* Only show Requests tab if there are pending requests */}
-            {pendingRequestsCount > 0 && (
-              <motion.button
-                whileHover={{ backgroundColor: "#f9fafb" }}
-                whileTap={{ scale: 0.95 }}
-                className={`w-1/3 py-3 text-center transition-colors relative ${
-                  selectedTab === 2
-                    ? "text-primary font-medium border-b-2 border-blue-500"
-                    : "text-muted-foreground"
-                }`}
-                onClick={() => handleTabChange(2)}
-              >
-                Requests
-                <span className="absolute top-2 right-8 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-500 rounded-full">
-                  {pendingRequestsCount}
-                </span>
-              </motion.button>
-            )}
+            <motion.button
+              whileHover={{ backgroundColor: "#f9fafb" }}
+              whileTap={{ scale: 0.95 }}
+              className={`w-1/3 py-3 text-center transition-colors relative ${
+                selectedTab === 2
+                  ? "text-primary font-medium border-b-2 border-blue-500"
+                  : "text-muted-foreground"
+              }`}
+              onClick={() => handleTabChange(2)}
+            >
+              Requests
+              <span className='absolute top-2 right-8 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-500 rounded-full'>
+                {pendingRequestsCount}
+              </span>
+            </motion.button>
           </div>
         </div>
 
         {/* Search Bar - Fixed, doesn't scroll */}
-        <div className="relative mb-4 px-1 text-black">
+        <div className='relative mb-4 px-1 text-black'>
           <input
-            type="text"
+            type='text'
             placeholder={
               selectedTab === 0
                 ? "Search your friends"
@@ -183,15 +176,15 @@ const Friends = () => {
             }
             value={searchTerm}
             onChange={handleSearch}
-            className="w-full p-3 pl-10 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className='w-full p-3 pl-10 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
           />
-          <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+          <Search className='absolute left-3 top-3 h-5 w-5 text-muted-foreground' />
         </div>
       </div>
 
       {/* Scrollable content with fixed scrollbar */}
       <div
-        className="flex-1 overflow-y-auto scroll-container relative"
+        className='flex-1 overflow-y-auto scroll-container relative'
         ref={contentRef}
         style={{
           minHeight: "300px",
@@ -199,14 +192,14 @@ const Friends = () => {
           transition: "height 0.3s ease",
         }}
       >
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode='wait'>
           <motion.div
             key={`tab-${selectedTab}`}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3 }}
-            className="w-full friends-list-container"
+            className='w-full friends-list-container'
           >
             {selectedTab === 0 && (
               <YourFriends friends={friends} isLoading={isFriendListLoading} />
@@ -241,7 +234,7 @@ const Friends = () => {
 
       {/* Pagination */}
       {getCurrentTabTotalPages() > 1 && (
-        <div className="mt-4 mb-2">
+        <div className='mt-4 mb-2'>
           <Pagination
             totalPages={getCurrentTabTotalPages()}
             currentPage={currentPage}

@@ -18,18 +18,15 @@ const Profile = () => {
   // Get the API URL from environment variables
   const API_URL = import.meta.env.VITE_ASSETS_URL || "";
 
-  // Set avatar with correct URL formatting
   useEffect(() => {
     if (user?.profile?.image) {
-      // Check if the image path already includes the full URL
       if (user.profile.image.startsWith("http")) {
         setAvatar(user.profile.image);
       } else {
-        // Otherwise, prepend the API URL
         setAvatar(`${API_URL}${user.profile.image}`);
       }
     } else {
-      setAvatar("/profile.png"); // Default image
+      setAvatar("/profile.png");
     }
   }, [user?.profile?.image, API_URL]);
 
