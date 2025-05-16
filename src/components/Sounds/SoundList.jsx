@@ -1,162 +1,223 @@
 // src\components\Sounds\SoundList.jsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Checkbox } from "../ui/checkbox";
 import { Button } from "../ui/button";
-import { Search } from "lucide-react";
+import { Search, Trash2, Plus } from "lucide-react";
+import {
+  useSounds,
+  useDeleteSound,
+  useDeleteMultipleSounds,
+} from "./../../hooks/useSound";
+import toast from "react-hot-toast";
+import { useAuth } from "../../contexts/AuthContext";
+import SoundModal from "./SoundModal";
+import Pagination from "../ui/pagination";
 
 const SoundList = () => {
-  const [sounds, setSounds] = useState([
-    {
-      id: 1,
-      name: "Relaxing Melody",
-      duration: "00:45",
-      selected: false,
-      isPlaying: false,
-    },
-    {
-      id: 2,
-      name: "Energetic Beat",
-      duration: "00:30",
-      selected: true,
-      isPlaying: false,
-    },
-    {
-      id: 3,
-      name: "Nature Ambience",
-      duration: "01:15",
-      selected: false,
-      isPlaying: false,
-    },
-    {
-      id: 4,
-      name: "Urban Rhythm",
-      duration: "00:50",
-      selected: false,
-      isPlaying: false,
-    },
-    {
-      id: 5,
-      name: "Acoustic Guitar",
-      duration: "00:38",
-      selected: false,
-      isPlaying: false,
-    },
-    {
-      id: 6,
-      name: "Soft Piano",
-      duration: "01:20",
-      selected: false,
-      isPlaying: false,
-    },
-    {
-      id: 7,
-      name: "Soft Piano",
-      duration: "01:20",
-      selected: false,
-      isPlaying: false,
-    },
-    {
-      id: 8,
-      name: "Soft Piano",
-      duration: "01:20",
-      selected: false,
-      isPlaying: false,
-    },
-    {
-      id: 9,
-      name: "Soft Piano",
-      duration: "01:20",
-      selected: false,
-      isPlaying: false,
-    },
-    {
-      id: 10,
-      name: "Soft Piano",
-      duration: "01:20",
-      selected: false,
-      isPlaying: false,
-    },
-    {
-      id: 11,
-      name: "Soft Piano",
-      duration: "01:20",
-      selected: false,
-      isPlaying: false,
-    },
-    {
-      id: 12,
-      name: "Soft Piano",
-      duration: "01:20",
-      selected: false,
-      isPlaying: false,
-    },
-    {
-      id: 13,
-      name: "Soft Piano",
-      duration: "01:20",
-      selected: false,
-      isPlaying: false,
-    },
-    {
-      id: 14,
-      name: "Soft Piano",
-      duration: "01:20",
-      selected: false,
-      isPlaying: false,
-    },
-    {
-      id: 15,
-      name: "Soft Piano",
-      duration: "01:20",
-      selected: false,
-      isPlaying: false,
-    },
-    {
-      id: 16,
-      name: "Soft Piano",
-      duration: "01:20",
-      selected: false,
-      isPlaying: false,
-    },
-  ]);
-
-  const [filteredSounds, setFilteredSounds] = useState(sounds);
+  const [sounds, setSounds] = useState([]);
+  const [filteredSounds, setFilteredSounds] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [currentlyPlayingId, setCurrentlyPlayingId] = useState(null);
+  const [selectedSounds, setSelectedSounds] = useState([]);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [limit] = useState(20);
+  const audioRef = useRef(null);
+  const { user } = useAuth();
 
-  // Toggle sound selection with ability to unselect
+  const isAdmin = user?.role === "ADMIN";
+  console.log("Get logged user data in Sound list::", user);
+
+  const {
+    data: soundsData,
+    isLoading: isFetchingData,
+    isError,
+  } = useSounds({
+    searchTerm: searchTerm,
+    page: currentPage,
+    limit: limit,
+  });
+
+  // Delete mutations
+  const deleteSoundMutation = useDeleteSound();
+  const deleteMultipleSoundsMutation = useDeleteMultipleSounds();
+
+  useEffect(() => {
+    if (soundsData && soundsData.data) {
+      const formattedSounds = soundsData.data.map((sound) => ({
+        id: sound._id,
+        name: sound.title,
+        description: sound.description,
+        category: sound.category,
+        isPremium: sound.isPremium,
+        link: sound.link,
+        duration: "00:00",
+        selected: false,
+        isPlaying: false,
+      }));
+
+      setSounds(formattedSounds);
+      setFilteredSounds(formattedSounds);
+      setIsLoading(false);
+
+      // Update pagination data
+      if (soundsData.meta) {
+        setTotalPages(soundsData.meta.totalPage);
+      }
+    }
+  }, [soundsData]);
+
+  useEffect(() => {
+    const selected = sounds
+      .filter((sound) => sound.selected)
+      .map((sound) => sound.id);
+    setSelectedSounds(selected);
+  }, [sounds]);
+
+  // Stop audio when component unmounts
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
+
+  // Toggle sound selection with ability to select multiple for admin
   const toggleSelect = (id) => {
-    const soundToUpdate = sounds.find((sound) => sound.id === id);
-
-    // If sound is already selected, unselect it, otherwise select it and unselect others
-    if (soundToUpdate && soundToUpdate.selected) {
+    if (isAdmin) {
+      // Admin can select multiple sounds
       const updatedSounds = sounds.map((sound) =>
-        sound.id === id ? { ...sound, selected: false } : sound
+        sound.id === id ? { ...sound, selected: !sound.selected } : sound
       );
       setSounds(updatedSounds);
       applySearch(searchTerm, updatedSounds);
     } else {
-      const updatedSounds = sounds.map((sound) =>
-        sound.id === id
-          ? { ...sound, selected: true }
-          : { ...sound, selected: false }
-      );
-      setSounds(updatedSounds);
-      applySearch(searchTerm, updatedSounds);
+      // Regular users can only select one sound at a time
+      const soundToUpdate = sounds.find((sound) => sound.id === id);
+
+      // If sound is already selected, unselect it, otherwise select it and unselect others
+      if (soundToUpdate && soundToUpdate.selected) {
+        const updatedSounds = sounds.map((sound) =>
+          sound.id === id ? { ...sound, selected: false } : sound
+        );
+        setSounds(updatedSounds);
+        applySearch(searchTerm, updatedSounds);
+      } else {
+        const updatedSounds = sounds.map((sound) =>
+          sound.id === id
+            ? { ...sound, selected: true }
+            : { ...sound, selected: false }
+        );
+        setSounds(updatedSounds);
+        applySearch(searchTerm, updatedSounds);
+      }
     }
   };
 
   // Play/pause sound function (only one at a time)
   const togglePlaySound = (id) => {
-    // Stop any currently playing sound and play the new one
+    // Find sound to play
+    const soundToPlay = sounds.find((sound) => sound.id === id);
+
+    if (!soundToPlay) return;
+
+    // Format audio URL
+    const audioUrl = `${import.meta.env.VITE_ASSETS_URL}${soundToPlay.link}`;
+
+    // If the sound is already playing, stop it
+    if (soundToPlay.isPlaying) {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+
+      // Update sounds state to reflect that nothing is playing
+      const updatedSounds = sounds.map((sound) => ({
+        ...sound,
+        isPlaying: false,
+      }));
+
+      setSounds(updatedSounds);
+      applySearch(searchTerm, updatedSounds);
+      setCurrentlyPlayingId(null);
+      return;
+    }
+
+    // If another sound is playing, stop it first
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+
+    // Create and play new audio element
+    const audio = new Audio(audioUrl);
+    audioRef.current = audio;
+
+    audio.onloadedmetadata = () => {
+      // Format duration
+      const minutes = Math.floor(audio.duration / 60);
+      const seconds = Math.floor(audio.duration % 60);
+      const formattedDuration = `${minutes
+        .toString()
+        .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+
+      // Update sound with actual duration
+      const updatedSounds = sounds.map((sound) =>
+        sound.id === id
+          ? { ...sound, duration: formattedDuration, isPlaying: true }
+          : { ...sound, isPlaying: false }
+      );
+
+      setSounds(updatedSounds);
+      applySearch(searchTerm, updatedSounds);
+    };
+
+    audio.onended = () => {
+      // Reset playing state when audio ends
+      const updatedSounds = sounds.map((sound) => ({
+        ...sound,
+        isPlaying: false,
+      }));
+
+      setSounds(updatedSounds);
+      applySearch(searchTerm, updatedSounds);
+      setCurrentlyPlayingId(null);
+      audioRef.current = null;
+    };
+
+    // Set initial playing state before we have duration
     const updatedSounds = sounds.map((sound) =>
       sound.id === id
-        ? { ...sound, isPlaying: !sound.isPlaying }
+        ? { ...sound, isPlaying: true }
         : { ...sound, isPlaying: false }
     );
 
     setSounds(updatedSounds);
     applySearch(searchTerm, updatedSounds);
+    setCurrentlyPlayingId(id);
+
+    // Start playing
+    audio.play().catch((error) => {
+      console.error("Error playing audio:", error);
+      toast.error("Failed to play audio");
+
+      // Reset state if play fails
+      const resetSounds = sounds.map((sound) => ({
+        ...sound,
+        isPlaying: false,
+      }));
+
+      setSounds(resetSounds);
+      applySearch(searchTerm, resetSounds);
+      setCurrentlyPlayingId(null);
+      audioRef.current = null;
+    });
   };
 
   // Send to friend function (only selected sound)
@@ -167,8 +228,27 @@ const SoundList = () => {
         id: selectedSound.id,
         name: selectedSound.name,
       });
+      toast.success(`Sending "${selectedSound.name}" to friend`);
       // Here you would implement the actual send functionality
     }
+  };
+
+  // Delete selected sounds
+  const openDeleteModal = () => {
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = () => {
+    // If only one sound is selected
+    if (selectedSounds.length === 1) {
+      deleteSoundMutation.mutate(selectedSounds[0]);
+    }
+    // If multiple sounds are selected
+    else if (selectedSounds.length > 1) {
+      deleteMultipleSoundsMutation.mutate(selectedSounds);
+    }
+
+    setIsDeleteModalOpen(false);
   };
 
   // Handle search
@@ -188,6 +268,11 @@ const SoundList = () => {
       );
       setFilteredSounds(filtered);
     }
+  };
+
+  // Handle page change
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
   };
 
   const AudioWave = ({ isPlaying }) => {
@@ -259,30 +344,111 @@ const SoundList = () => {
     );
   };
 
+  // Delete confirmation modal
+  const DeleteModal = () => {
+    if (!isDeleteModalOpen) return null;
+
+    const selectedCount = selectedSounds.length;
+    const selectedSoundNames = sounds
+      .filter((sound) => sound.selected)
+      .map((sound) => sound.name);
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <motion.div
+          initial={{ scale: 0.95, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="bg-white rounded-lg p-6 w-11/12 max-w-md shadow-lg"
+        >
+          <h3 className="text-lg font-bold mb-4">Confirm Delete</h3>
+
+          <p className="mb-4">
+            {selectedCount === 1
+              ? `Are you sure you want to delete "${selectedSoundNames[0]}"?`
+              : `Are you sure you want to delete ${selectedCount} selected sounds?`}
+          </p>
+
+          {selectedCount > 1 && (
+            <div className="max-h-32 overflow-y-auto mb-4 text-sm text-gray-600 bg-gray-50 p-2 rounded">
+              <ul className="list-disc pl-5">
+                {selectedSoundNames.map((name, index) => (
+                  <li key={index}>{name}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <div className="flex justify-end gap-3 mt-6">
+            <Button
+              onClick={() => setIsDeleteModalOpen(false)}
+              className="bg-gray-200 hover:bg-gray-300 text-gray-800"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={confirmDelete}
+              className="bg-red-500 hover:bg-red-600 text-white"
+            >
+              Delete
+            </Button>
+          </div>
+        </motion.div>
+      </div>
+    );
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="flex flex-col h-[calc(100vh-125px)] justify-between"
     >
-      {/* Search Bar */}
+      {/* Search Bar and Admin Add Button */}
       <div className="sticky top-0 z-10 bg-background pb-2">
-        <div className="relative text-black">
-          <input
-            type="text"
-            placeholder="Search sounds"
-            value={searchTerm}
-            onChange={handleSearch}
-            className="w-full p-3 pl-10 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+        <div className="flex items-center gap-2">
+          <div className="relative text-black flex-1">
+            <input
+              type="text"
+              placeholder="Search sounds"
+              value={searchTerm}
+              onChange={handleSearch}
+              className="w-full p-3 pl-10 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+          </div>
+
+          {isAdmin && (
+            <Button
+              onClick={() => setIsAddModalOpen(true)}
+              className="bg-primary hover:bg-blue-600 text-white p-3 rounded-lg h-auto flex items-center gap-2"
+            >
+              <Plus size={18} />
+              <span className="hidden sm:inline">Add Sound</span>
+            </Button>
+          )}
         </div>
       </div>
 
       {/* Sound List - Only this section scrolls */}
       <div className="overflow-y-auto scroll-container flex-1 my-2">
         <AnimatePresence>
-          {filteredSounds.length > 0 ? (
+          {isLoading || isFetchingData ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex flex-col items-center justify-center h-64"
+            >
+              <p className="text-muted-foreground">Loading sounds...</p>
+            </motion.div>
+          ) : isError ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex flex-col items-center justify-center h-64"
+            >
+              <p className="text-red-500">Error loading sounds</p>
+            </motion.div>
+          ) : filteredSounds.length > 0 ? (
             <motion.div className="space-y-2">
               {filteredSounds.map((sound) => (
                 <motion.div
@@ -311,6 +477,11 @@ const SoundList = () => {
                       <p className="text-sm font-medium">{sound.name}</p>
                       <p className="text-xs text-muted-foreground">
                         {sound.duration}
+                        {sound.isPremium && (
+                          <span className="ml-2 text-amber-500 font-medium">
+                            Premium
+                          </span>
+                        )}
                       </p>
                     </div>
                   </div>
@@ -347,13 +518,50 @@ const SoundList = () => {
         </AnimatePresence>
       </div>
 
-      {/* Bottom Action Button - Static, doesn't scroll */}
-      <div className="sticky bottom-5">
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="mt-4 mb-4">
+          <div className="flex justify-center">
+            <Pagination
+              totalPages={totalPages}
+              currentPage={currentPage}
+              onPageChange={handlePageChange}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Bottom Action Buttons - Static, doesn't scroll */}
+      <div className="sticky bottom-5 space-y-2">
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.2 }}
+          className="flex flex-col gap-2"
         >
+          {/* Delete button (only shown for admin when sounds are selected) */}
+          <AnimatePresence>
+            {isAdmin && selectedSounds.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+              >
+                <Button
+                  onClick={openDeleteModal}
+                  className="flex items-center justify-center gap-2 px-6 py-3 w-full bg-red-500 rounded-full h-auto hover:bg-red-600 text-white font-medium"
+                >
+                  <Trash2 size={18} />
+                  Delete{" "}
+                  {selectedSounds.length > 1
+                    ? `Selected Sounds (${selectedSounds.length})`
+                    : "Selected Sound"}
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Send to Friend button */}
           <Button
             onClick={sendToFriend}
             disabled={!sounds.some((sound) => sound.selected)}
@@ -363,6 +571,15 @@ const SoundList = () => {
           </Button>
         </motion.div>
       </div>
+
+      {/* Modals */}
+      <DeleteModal />
+      {isAddModalOpen && (
+        <SoundModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+        />
+      )}
     </motion.div>
   );
 };

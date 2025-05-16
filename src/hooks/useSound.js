@@ -18,7 +18,7 @@ export const useSounds = (filters = {}) => {
       const params = new URLSearchParams();
 
       if (filters.category) params.append("category", filters.category);
-      if (filters.search) params.append("searchTerm", filters.search);
+      if (filters.searchTerm) params.append("searchTerm", filters.searchTerm);
       if (filters.page) params.append("page", filters.page);
       if (filters.limit) params.append("limit", filters.limit);
 
@@ -85,6 +85,52 @@ export const useAddSound = () => {
     onError: (error) => {
       console.error("Add sound error:", error);
       toast.error(error.response?.data?.message || "Failed to add sound");
+    },
+  });
+};
+
+export const useDeleteSound = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (soundId) => {
+      console.log("Deleting sound:", soundId);
+      const { data } = await apiClient.delete(`/sound/delete-sound/${soundId}`);
+      return data;
+    },
+    onSuccess: () => {
+      toast.success("Sound deleted successfully");
+      // Invalidate sounds list to trigger refetch
+      queryClient.invalidateQueries({ queryKey: SOUND_KEYS.lists() });
+    },
+    onError: (error) => {
+      console.error("Delete sound error:", error);
+      toast.error(error.response?.data?.message || "Failed to delete sound");
+    },
+  });
+};
+
+export const useDeleteMultipleSounds = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (soundIds) => {
+      console.log("Deleting multiple sounds:", soundIds);
+      const { data } = await apiClient.delete(`/sound/delete-multiple-sounds`, {
+        data: { ids: soundIds },
+      });
+      return data;
+    },
+    onSuccess: () => {
+      toast.success("Selected sounds deleted successfully");
+      // Invalidate sounds list to trigger refetch
+      queryClient.invalidateQueries({ queryKey: SOUND_KEYS.lists() });
+    },
+    onError: (error) => {
+      console.error("Delete multiple sounds error:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to delete selected sounds"
+      );
     },
   });
 };

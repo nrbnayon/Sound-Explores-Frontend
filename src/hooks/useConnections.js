@@ -13,13 +13,13 @@ const CONNECTION_KEYS = {
 };
 
 // Get all users (with search)
-export const useUsers = (filters = {}) => {
+export const useGetAllUsers = (filters = {}) => {
   return useQuery({
     queryKey: CONNECTION_KEYS.users(filters),
     queryFn: async () => {
       const params = new URLSearchParams();
 
-      if (filters.search) params.append("searchTerm", filters.search);
+      if (filters.searchTerm) params.append("searchTerm", filters.searchTerm);
       if (filters.page) params.append("page", filters.page);
       if (filters.limit) params.append("limit", filters.limit);
 
@@ -184,6 +184,39 @@ export const useRemoveFriend = () => {
     onError: (error) => {
       console.error("Remove friend error:", error);
       toast.error(error.response?.data?.message || "Failed to remove friend");
+    },
+  });
+};
+
+// Cancel sent friend request
+export const useCancelFriendRequest = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (userId) => {
+      console.log("Canceling friend request to:", userId);
+      const { data } = await apiClient.patch(
+        "/user-connection/cancel-request",
+        {
+          userId,
+        }
+      );
+      console.log("Cancel friend request response:", data);
+      return data;
+    },
+    onSuccess: () => {
+      toast.success("Friend request canceled");
+      // Invalidate sent requests
+      queryClient.invalidateQueries({
+        queryKey: CONNECTION_KEYS.sentRequests(),
+      });
+      queryClient.invalidateQueries({ queryKey: CONNECTION_KEYS.users() });
+    },
+    onError: (error) => {
+      console.error("Cancel friend request error:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to cancel friend request"
+      );
     },
   });
 };

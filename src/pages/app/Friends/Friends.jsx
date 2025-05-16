@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Search } from "lucide-react";
 import FindFriends from "../../../components/Friends/FindFriends";
 import YourFriends from "../../../components/Friends/YourFriends";
+import { useGetAllUsers } from "../../../hooks/useConnections";
 
 const Friends = () => {
   const [selectedTab, setSelectedTab] = useState(false); // true = Find Friends, false = Your Friends
@@ -17,22 +18,17 @@ const Friends = () => {
     { id: 1, name: "Jane Cooper", image: "/profile.png" },
     { id: 2, name: "Savannah Nguyen", image: "/profile.png" },
     { id: 3, name: "Devon Lane", image: "/profile.png" },
-    { id: 4, name: "Annette Black", image: "/profile.png" },
-    { id: 5, name: "Floyd Miles", image: "/profile.png" },
-    { id: 6, name: "Theresa Webb", image: "/profile.png" },
-    { id: 7, name: "Floyd Miles", image: "/profile.png" },
-    { id: 8, name: "Theresa Webb", image: "/profile.png" },
-    { id: 9, name: "Floyd Miles", image: "/profile.png" },
-    { id: 10, name: "Theresa Webb", image: "/profile.png" },
-    { id: 11, name: "Floyd Miles", image: "/profile.png" },
-    { id: 12, name: "Theresa Webb", image: "/profile.png" },
-    { id: 13, name: "Floyd Miles", image: "/profile.png" },
-    { id: 14, name: "Theresa Webb", image: "/profile.png" },
-    { id: 15, name: "Floyd Miles", image: "/profile.png" },
-    { id: 16, name: "Theresa Webb", image: "/profile.png" },
   ]);
 
   const [filteredFriends, setFilteredFriends] = useState(initialFriends);
+
+  const {
+    data: allUser,
+    isLoading: isFetchingData,
+    isError,
+  } = useGetAllUsers({});
+
+  console.log("Get all user::", allUser);
 
   // Handle search
   const handleSearch = (e) => {
