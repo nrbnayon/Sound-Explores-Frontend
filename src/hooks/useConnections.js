@@ -143,7 +143,6 @@ export const useSendFriendRequest = () => {
       return response;
     },
     onSuccess: (data) => {
-      // toast.success(data?.data?.message || "Friend request sent successfully");
       queryClient.invalidateQueries({
         queryKey: CONNECTION_KEYS.sentRequests(),
       });
@@ -153,9 +152,6 @@ export const useSendFriendRequest = () => {
     },
     onError: (error) => {
       console.error("Send friend request error:", error);
-      // toast.error(
-      //   error.response?.data?.message || "Failed to send friend request"
-      // );
     },
   });
 };
@@ -174,9 +170,6 @@ export const useAcceptFriendRequest = () => {
       return response;
     },
     onSuccess: (data) => {
-      // toast.success(
-      //   data?.data?.message || "Friend request accepted successfully"
-      // );
       // Invalidate all relevant queries to update UI instantly
       queryClient.invalidateQueries({
         queryKey: CONNECTION_KEYS.all,
@@ -184,9 +177,6 @@ export const useAcceptFriendRequest = () => {
     },
     onError: (error) => {
       console.error("Accept friend request error:", error);
-      // toast.error(
-      //   error.response?.data?.message || "Failed to accept friend request"
-      // );
     },
   });
 };
@@ -205,9 +195,6 @@ export const useRejectFriendRequest = () => {
       return response;
     },
     onSuccess: (data) => {
-      // toast.success(
-      //   data?.data?.message || "Friend request rejected successfully"
-      // );
       // Invalidate all relevant queries to update UI instantly
       queryClient.invalidateQueries({
         queryKey: CONNECTION_KEYS.all,
@@ -215,9 +202,33 @@ export const useRejectFriendRequest = () => {
     },
     onError: (error) => {
       console.error("Reject friend request error:", error);
-      // toast.error(
-      //   error.response?.data?.message || "Failed to reject friend request"
-      // );
+    },
+  });
+};
+
+// Cancel sent friend request
+export const useCancelFriendRequest = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (connectionID) => {
+      console.log("Canceling friend request to connectionID:", connectionID);
+      const response = await apiClient.patch(
+        "/user-connection/cancel-request",
+        {
+          connectionID,
+        }
+      );
+      return response;
+    },
+    onSuccess: (data) => {
+      // Invalidate all relevant queries to update UI instantly
+      queryClient.invalidateQueries({
+        queryKey: CONNECTION_KEYS.all,
+      });
+    },
+    onError: (error) => {
+      console.error("Cancel friend request error:", error);
     },
   });
 };
@@ -244,39 +255,6 @@ export const useRemoveFriend = () => {
     onError: (error) => {
       console.error("Remove friend error:", error);
       // toast.error(error.response?.data?.message || "Failed to remove friend");
-    },
-  });
-};
-
-// Cancel sent friend request
-export const useCancelFriendRequest = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (connectionID) => {
-      console.log("Canceling friend request to connectionID:", connectionID);
-      const response = await apiClient.patch(
-        "/user-connection/cancel-request",
-        {
-          connectionID,
-        }
-      );
-      return response;
-    },
-    onSuccess: (data) => {
-      // toast.success(
-      //   data?.data?.message || "Friend request canceled successfully"
-      // );
-      // Invalidate all relevant queries to update UI instantly
-      queryClient.invalidateQueries({
-        queryKey: CONNECTION_KEYS.all,
-      });
-    },
-    onError: (error) => {
-      console.error("Cancel friend request error:", error);
-      // toast.error(
-      //   error.response?.data?.message || "Failed to cancel friend request"
-      // );
     },
   });
 };

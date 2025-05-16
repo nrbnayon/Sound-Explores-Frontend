@@ -2,7 +2,7 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
-import { X } from "lucide-react";
+import { UserSearch, X } from "lucide-react";
 import { useSendFriendRequest } from "../../hooks/useConnections";
 import { useAuth } from "./../../contexts/AuthContext";
 
@@ -19,8 +19,8 @@ const FindFriends = ({
   const [userToRemove, setUserToRemove] = useState(null);
   const [hiddenUsers, setHiddenUsers] = useState([]);
   const { user } = useAuth();
+  const API_URL = import.meta.env.VITE_ASSETS_URL || "";
   const allUsers = users?.data || [];
-  // Get all receivers from sent requests
   const [sentRequestReceiverIds, setSentRequestReceiverIds] = useState([]);
 
   const sentRequestIds = useMemo(
@@ -33,13 +33,10 @@ const FindFriends = ({
         .filter(Boolean),
     [sentRequests, user._id]
   );
-
-  // 2. Extract who *sent* you (mirror logic if they come in req.users; or use req.senderId)
   const receivedRequestIds = useMemo(
     () =>
       receivedRequests
         .map((req) => {
-          // if you have req.senderId just use that; otherwise find in req.users
           return (
             req.senderId || req.users?.find((u) => u.user !== user._id)?.user
           );
@@ -47,22 +44,16 @@ const FindFriends = ({
         .filter(Boolean),
     [receivedRequests, user._id]
   );
-
-  // Extract friend IDs from the friends array - FIXED
   const friendIds = useMemo(() => {
     return friends.flatMap((friend) => {
-      // Extract all user IDs from each friend connection's users array
       return friend.users
         ? friend.users.map((u) => u.user).filter((id) => id !== user._id) // Filter out current user
         : [];
     });
   }, [friends, user._id]);
-
-  // 3. Build a single exclusion set
   const excludedIds = useMemo(() => {
     const s = new Set();
     s.add(user._id);
-    // Use friendIds instead of friends
     friendIds.forEach((id) => s.add(id));
     sentRequestIds.forEach((id) => s.add(id));
     receivedRequestIds.forEach((id) => s.add(id));
@@ -71,22 +62,18 @@ const FindFriends = ({
     return s;
   }, [
     user._id,
-    friendIds, // Changed from friends to friendIds
+    friendIds, 
     sentRequestIds,
     receivedRequestIds,
     pendingFriends,
     hiddenUsers,
   ]);
-
-  // 4. Single-pass filter
   const filteredUsers = useMemo(
     () => allUsers.filter((u) => u.role === "USER" && !excludedIds.has(u._id)),
     [allUsers, excludedIds]
   );
-
   const { mutate: sendFriendRequest, isLoading: isSending } =
     useSendFriendRequest();
-
   const handleInitiateDelete = (userId) => {
     const user = allUsers.find((user) => user._id === userId);
     setUserToRemove(user);
@@ -100,27 +87,21 @@ const FindFriends = ({
     setIsConfirmModalOpen(false);
     setUserToRemove(null);
   };
-
-  // Handle cancel suggestion removal
   const handleCancelDelete = () => {
     setIsConfirmModalOpen(false);
     setUserToRemove(null);
   };
 
   const handleAddFriend = (user) => {
-    // Add to pending immediately for UI feedback
     setPendingFriends((prev) => [...prev, user._id]);
-
     sendFriendRequest(user._id, {
       onSuccess: () => {
         toast.success(
           `Friend request sent to ${user.profile?.fullName || user.email}`
         );
-        // Update local state to reflect the new sent request
         setSentRequestReceiverIds((prev) => [...prev, user._id]);
       },
       onError: (error) => {
-        // Remove from pending on error
         setPendingFriends((prev) => prev.filter((id) => id !== user._id));
         toast.error(
           error.response?.data?.message || "Failed to send friend request"
@@ -128,7 +109,6 @@ const FindFriends = ({
       },
     });
   };
-  const API_URL = import.meta.env.VITE_ASSETS_URL || "";
 
   return (
     <div className='flex flex-col w-full'>
@@ -211,20 +191,7 @@ const FindFriends = ({
               className='flex flex-col items-center justify-center h-64 text-center'
             >
               <div className='bg-gray-100 p-4 rounded-full mb-4'>
-                <svg
-                  xmlns='http://www.w3.org/2000/svg'
-                  className='h-8 w-8 text-muted-foreground'
-                  fill='none'
-                  viewBox='0 0 24 24'
-                  stroke='currentColor'
-                >
-                  <path
-                    strokeLinecap='round'
-                    strokeLinejoin='round'
-                    strokeWidth={2}
-                    d='M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z'
-                  />
-                </svg>
+                <UserSearch />
               </div>
               <p className='text-muted-foreground font-medium'>
                 No friend suggestions available

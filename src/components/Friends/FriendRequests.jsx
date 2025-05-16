@@ -1,7 +1,7 @@
 // src\components\Friends\FriendRequests.jsx
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Check, Clock } from "lucide-react";
+import { X, Check, Clock, UserX, UserPlus } from "lucide-react";
 import toast from "react-hot-toast";
 import {
   useAcceptFriendRequest,
@@ -17,8 +17,6 @@ const FriendRequests = ({ receivedRequests, sentRequests, isLoading }) => {
   const [requestToAction, setRequestToAction] = useState(null);
   const { user } = useAuth();
   const API_URL = import.meta.env.VITE_ASSETS_URL || "";
-
-  // Use the hooks for friend request actions
   const { mutate: acceptRequest, isLoading: isAccepting } =
     useAcceptFriendRequest();
   const { mutate: rejectRequest, isLoading: isRejecting } =
@@ -43,31 +41,24 @@ const FriendRequests = ({ receivedRequests, sentRequests, isLoading }) => {
         image: "/profile.png",
       };
     }
-
     return {
       fullName: otherUser.fullName || "Unknown User",
       email: otherUser.email || "unknown@example.com",
       image: otherUser.image || "/profile.png",
     };
   };
-
-  // Handle accepting friend request
   const handleAcceptRequest = (connectionID) => {
     acceptRequest(connectionID, {
       onSuccess: () => {
         toast.success("Friend request accepted");
       },
       onError: (error) => {
-        toast.error(
-          error?.response?.data?.message || "Failed to accept friend request"
+        toast.error(          error?.response?.data?.message || "Failed to accept friend request"
         );
       },
     });
   };
-
-  // Handle initiating reject or cancel request actions
   const handleInitiateAction = (action, connectionID) => {
-    // Find the request in the appropriate list
     const request =
       action === "reject"
         ? receivedRequests.find((req) => req._id === connectionID)
@@ -78,10 +69,8 @@ const FriendRequests = ({ receivedRequests, sentRequests, isLoading }) => {
     setIsConfirmModalOpen(true);
   };
 
-  // Handle confirming the action
   const handleConfirmAction = () => {
     if (!requestToAction) return;
-
     if (modalAction === "reject") {
       rejectRequest(requestToAction._id, {
         onSuccess: () => {
@@ -114,8 +103,6 @@ const FriendRequests = ({ receivedRequests, sentRequests, isLoading }) => {
       });
     }
   };
-
-  // Handle canceling the action
   const handleCancelAction = () => {
     setIsConfirmModalOpen(false);
     setRequestToAction(null);
@@ -123,7 +110,6 @@ const FriendRequests = ({ receivedRequests, sentRequests, isLoading }) => {
 
   return (
     <div className='flex flex-col w-full'>
-      {/* Tab Navigation */}
       <div className='flex mb-4 border-b'>
         <button
           className={`w-1/2 py-2 text-center ${
@@ -154,7 +140,6 @@ const FriendRequests = ({ receivedRequests, sentRequests, isLoading }) => {
               <div className='loader'></div>
             </div>
           ) : activeTab === 0 ? (
-            // Received Requests
             receivedRequests?.length > 0 ? (
               <motion.div
                 key='received'
@@ -236,20 +221,7 @@ const FriendRequests = ({ receivedRequests, sentRequests, isLoading }) => {
                 className='flex flex-col items-center justify-center h-64 text-center'
               >
                 <div className='bg-gray-100 p-4 rounded-full mb-4'>
-                  <svg
-                    xmlns='http://www.w3.org/2000/svg'
-                    className='h-8 w-8 text-muted-foreground'
-                    fill='none'
-                    viewBox='0 0 24 24'
-                    stroke='currentColor'
-                  >
-                    <path
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                      strokeWidth={2}
-                      d='M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z'
-                    />
-                  </svg>
+                  <UserX />
                 </div>
                 <p className='text-muted-foreground font-medium'>
                   No friend requests received
@@ -334,20 +306,7 @@ const FriendRequests = ({ receivedRequests, sentRequests, isLoading }) => {
               className='flex flex-col items-center justify-center h-64 text-center'
             >
               <div className='bg-gray-100 p-4 rounded-full mb-4'>
-                <svg
-                  xmlns='http://www.w3.org/2000/svg'
-                  className='h-8 w-8 text-muted-foreground'
-                  fill='none'
-                  viewBox='0 0 24 24'
-                  stroke='currentColor'
-                >
-                  <path
-                    strokeLinecap='round'
-                    strokeLinejoin='round'
-                    strokeWidth={2}
-                    d='M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122'
-                  />
-                </svg>
+                <UserPlus />
               </div>
               <p className='text-muted-foreground font-medium'>
                 No friend requests sent

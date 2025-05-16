@@ -2,17 +2,14 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
-import { X, UserMinus, Mail } from "lucide-react";
+import { X, UserMinus, Mail, UsersRound } from "lucide-react";
 import { useCancelFriendRequest } from "../../hooks/useConnections";
 import { useAuth } from "../../contexts/AuthContext";
 import { Link } from "react-router-dom";
 
-// Custom hook for swipe gestures
 const useSwipe = (onSwipeLeft, onSwipeRight) => {
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
-
-  // Minimum distance required for swipe
   const minSwipeDistance = 50;
 
   const onTouchStart = (e) => {
@@ -34,8 +31,6 @@ const useSwipe = (onSwipeLeft, onSwipeRight) => {
     if (isLeftSwipe && onSwipeLeft) onSwipeLeft();
     if (isRightSwipe && onSwipeRight) onSwipeRight();
   };
-
-  // Mouse event handlers for desktop testing
   const [mouseStart, setMouseStart] = useState(null);
   const [mouseDown, setMouseDown] = useState(false);
 
@@ -64,8 +59,6 @@ const useSwipe = (onSwipeLeft, onSwipeRight) => {
 
     setMouseDown(false);
   };
-
-  // Clean up mouse events if component unmounts while mouse is down
   useEffect(() => {
     if (mouseDown) {
       document.addEventListener("mouseup", onMouseUp);
@@ -91,12 +84,8 @@ const YourFriends = ({ friends, isLoading }) => {
   const [friendToRemove, setFriendToRemove] = useState(null);
   const { user } = useAuth();
   const API_URL = import.meta.env.VITE_ASSETS_URL || "";
-
-  // Use the hook for removing a friend
   const { mutate: removeFriend, isLoading: isRemoving } =
     useCancelFriendRequest();
-
-  // Helper function to get friend info from the connection
   const getFriendInfo = (connection) => {
     if (!connection?.users || connection.users.length < 2) {
       return {
@@ -129,26 +118,16 @@ const YourFriends = ({ friends, isLoading }) => {
       nickname: friendUser.nickname || "",
     };
   };
-
-  // Handle initiating friend removal
   const handleInitiateRemove = (id) => {
-    // Find the friend connection to remove
     const friendConnection = friends.find((friend) => friend._id === id);
     setFriendToRemove(friendConnection);
     setIsConfirmModalOpen(true);
   };
-
-  // Handle confirm friend removal
   const handleConfirmRemove = () => {
     if (!friendToRemove) return;
-
-    // Call the API to remove the friend
     removeFriend(friendToRemove._id, {
       onSuccess: () => {
-        // Show success message
         toast.success("Friend removed successfully");
-
-        // Close modal and reset state
         setIsConfirmModalOpen(false);
         setFriendToRemove(null);
       },
@@ -162,20 +141,17 @@ const YourFriends = ({ friends, isLoading }) => {
     });
   };
 
-  // Handle cancel friend removal
   const handleCancelRemove = () => {
     setIsConfirmModalOpen(false);
     setFriendToRemove(null);
   };
-
-  // Render swipeable friend item component
   const SwipeableFriendItem = ({ connection, onRemove }) => {
     const [isOpen, setIsOpen] = useState(false);
     const friendInfo = getFriendInfo(connection);
 
     const swipeHandlers = useSwipe(
-      () => setIsOpen(true), // onSwipeLeft
-      () => setIsOpen(false) // onSwipeRight
+      () => setIsOpen(true), 
+      () => setIsOpen(false) 
     );
 
     return (
@@ -288,20 +264,7 @@ const YourFriends = ({ friends, isLoading }) => {
               className='flex flex-col items-center justify-center h-64 text-center'
             >
               <div className='bg-gray-100 p-4 rounded-full mb-4'>
-                <svg
-                  xmlns='http://www.w3.org/2000/svg'
-                  className='h-8 w-8 text-muted-foreground'
-                  fill='none'
-                  viewBox='0 0 24 24'
-                  stroke='currentColor'
-                >
-                  <path
-                    strokeLinecap='round'
-                    strokeLinejoin='round'
-                    strokeWidth={2}
-                    d='M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z'
-                  />
-                </svg>
+                <UsersRound />
               </div>
               <p className='text-muted-foreground font-medium'>
                 You don't have any friends yet
