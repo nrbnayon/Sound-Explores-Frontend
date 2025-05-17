@@ -1,5 +1,5 @@
 // src\pages\app\Friends\Friends.jsx
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search } from "lucide-react";
 import FindFriends from "../../../components/Friends/FindFriends";
@@ -12,6 +12,7 @@ import {
   useSentRequests,
   useReceivedRequests,
 } from "../../../hooks/useConnections";
+import { useQueryClient } from "@tanstack/react-query";
 
 const Friends = () => {
   // Tab management
@@ -21,6 +22,7 @@ const Friends = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [limit, setLimit] = useState(20);
   const contentRef = useRef(null);
+  const queryClient = useQueryClient();
 
   // Track content height to prevent scrollbar flashing
   const [contentHeight, setContentHeight] = useState("auto");
@@ -52,6 +54,19 @@ const Friends = () => {
       page: currentPage,
       limit,
     });
+
+  // Refetch data when tab changes
+  useEffect(() => {
+    // Force refetch data when switching to the "Requests" tab to ensure data is fresh
+    if (selectedTab === 2) {
+      queryClient.invalidateQueries({
+        queryKey: ["connections", "list", "sent"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["connections", "list", "received"],
+      });
+    }
+  }, [selectedTab, queryClient]);
 
   // Prepare data for components
   const friends = friendListData?.data?.data || [];
@@ -114,12 +129,12 @@ const Friends = () => {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className='flex flex-col h-[calc(100vh-120px)] overflow-hidden '
+      className="flex flex-col h-[calc(100vh-120px)] overflow-hidden "
     >
       {/* Tabs - Fixed, doesn't scroll */}
-      <div className='sticky top-0 z-10 bg-background'>
-        <div className='flex mb-4'>
-          <div className='flex flex-row w-full border-b'>
+      <div className="sticky top-0 z-10 bg-background">
+        <div className="flex mb-4">
+          <div className="flex flex-row w-full border-b">
             <motion.button
               whileHover={{ backgroundColor: "#f9fafb" }}
               whileTap={{ scale: 0.95 }}
@@ -156,7 +171,7 @@ const Friends = () => {
               onClick={() => handleTabChange(2)}
             >
               Requests
-              <span className='absolute top-2 right-8 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-500 rounded-full'>
+              <span className="absolute top-2 right-8 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-500 rounded-full">
                 {pendingRequestsCount}
               </span>
             </motion.button>
@@ -164,9 +179,9 @@ const Friends = () => {
         </div>
 
         {/* Search Bar - Fixed, doesn't scroll */}
-        <div className='relative mb-4 px-1 text-black'>
+        <div className="relative mb-4 px-1 text-black">
           <input
-            type='text'
+            type="text"
             placeholder={
               selectedTab === 0
                 ? "Search your friends"
@@ -176,15 +191,15 @@ const Friends = () => {
             }
             value={searchTerm}
             onChange={handleSearch}
-            className='w-full p-3 pl-10 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
+            className="w-full p-3 pl-10 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          <Search className='absolute left-3 top-3 h-5 w-5 text-muted-foreground' />
+          <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
         </div>
       </div>
 
       {/* Scrollable content with fixed scrollbar */}
       <div
-        className='flex-1 overflow-y-auto scroll-container relative'
+        className="flex-1 overflow-y-auto scroll-container relative"
         ref={contentRef}
         style={{
           minHeight: "300px",
@@ -192,14 +207,14 @@ const Friends = () => {
           transition: "height 0.3s ease",
         }}
       >
-        <AnimatePresence mode='wait'>
+        <AnimatePresence mode="wait">
           <motion.div
             key={`tab-${selectedTab}`}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3 }}
-            className='w-full friends-list-container'
+            className="w-full friends-list-container"
           >
             {selectedTab === 0 && (
               <YourFriends friends={friends} isLoading={isFriendListLoading} />
@@ -218,6 +233,11 @@ const Friends = () => {
                   isReceivedRequestsLoading
                 }
                 allRequest={requests}
+                refreshSentRequests={() =>
+                  queryClient.invalidateQueries({
+                    queryKey: ["connections", "list", "sent"],
+                  })
+                }
               />
             )}
 
@@ -234,7 +254,7 @@ const Friends = () => {
 
       {/* Pagination */}
       {getCurrentTabTotalPages() > 1 && (
-        <div className='mt-4 mb-2'>
+        <div className="mt-4 mb-2">
           <Pagination
             totalPages={getCurrentTabTotalPages()}
             currentPage={currentPage}

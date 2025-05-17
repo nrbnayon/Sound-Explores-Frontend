@@ -93,6 +93,8 @@ export const useSentRequests = (filters = {}) => {
       );
       return response;
     },
+    // Setting a shorter staleTime to refresh more frequently
+    staleTime: 1000 * 30, // 30 seconds
     onError: (error) => {
       console.error("Error fetching sent requests:", error);
       toast.error(
@@ -121,6 +123,8 @@ export const useReceivedRequests = (filters = {}) => {
       );
       return response;
     },
+    // Setting a shorter staleTime to refresh more frequently
+    staleTime: 1000 * 30, // 30 seconds
     onError: (error) => {
       console.error("Error fetching received requests:", error);
       toast.error(
@@ -143,11 +147,9 @@ export const useSendFriendRequest = () => {
       return response;
     },
     onSuccess: (data) => {
+      // More aggressive cache invalidation - invalidate all connection-related queries
       queryClient.invalidateQueries({
-        queryKey: CONNECTION_KEYS.sentRequests(),
-      });
-      queryClient.invalidateQueries({
-        queryKey: CONNECTION_KEYS.users(),
+        queryKey: CONNECTION_KEYS.all,
       });
     },
     onError: (error) => {
@@ -246,7 +248,6 @@ export const useRemoveFriend = () => {
       return response;
     },
     onSuccess: (data) => {
-      // toast.success(data?.data?.message || "Friend removed successfully");
       // Invalidate all relevant queries to update UI instantly
       queryClient.invalidateQueries({
         queryKey: CONNECTION_KEYS.all,
@@ -254,7 +255,6 @@ export const useRemoveFriend = () => {
     },
     onError: (error) => {
       console.error("Remove friend error:", error);
-      // toast.error(error.response?.data?.message || "Failed to remove friend");
     },
   });
 };
