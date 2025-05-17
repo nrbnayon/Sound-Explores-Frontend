@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { LogOut } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "../../contexts/AuthContext";
-import { useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
 
 const SideBar = ({ onTitleChange, onSoundListChange, onClose, activeView }) => {
@@ -11,7 +10,6 @@ const SideBar = ({ onTitleChange, onSoundListChange, onClose, activeView }) => {
     activeView === "friends" ? 2 : 1
   );
   const { signOut } = useAuth();
-  const location = useLocation();
 
   // Update activeButton when activeView prop changes
   useEffect(() => {
