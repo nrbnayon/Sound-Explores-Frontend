@@ -1,13 +1,11 @@
-// src\pages\app\Friends\index.jsx
 import { useState, useRef, useEffect } from "react";
-import { Menu, CircleUserRound, ChevronLeft } from "lucide-react";
+import { Menu, CircleUserRound } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import SideBar from "../../../components/common/SideBar";
 import SoundList from "../../../components/Sounds/SoundList";
 import { StatusBar } from "../../../components/common/StatusBar";
 import Friends from "./Friends";
-import { useQueryClient } from "@tanstack/react-query";
 
 const FriendList = () => {
   // State for sidebar visibility and active section
@@ -15,7 +13,6 @@ const FriendList = () => {
   const [isSoundSelected, setIsSoundSelected] = useState(false);
   const [title, setTitle] = useState("Friends");
   const [scrolled, setScrolled] = useState(false);
-  const queryClient = useQueryClient();
 
   // Refs for detecting clicks outside sidebar
   const sidebarRef = useRef(null);
@@ -61,24 +58,38 @@ const FriendList = () => {
     };
   }, [sidebarOpen]);
 
-  // When switching to sounds view, invalidate the sounds query cache
-  useEffect(() => {
-    if (isSoundSelected) {
-      // Invalidate the sounds queries when switching to sounds view
-      queryClient.invalidateQueries({ queryKey: ["sounds"] });
-    } else {
-      // Invalidate the connections queries when switching to friends view
-      queryClient.invalidateQueries({ queryKey: ["connections"] });
-    }
-  }, [isSoundSelected, queryClient]);
+  // Create a key that changes when view changes to force remount of components
+  const contentKey = isSoundSelected ? "sounds" : "friends";
 
   return (
-    <div className="bg-background flex flex-row justify-center w-full min-h-screen">
+    <div className="bg-background flex flex-row justify-center w-full min-h-screen ">
       <div
         className="bg-card w-full max-w-md relative shadow-md"
         ref={mainContentRef}
       >
         <StatusBar />
+
+        {/* Sidebar - FIXED ANIMATION HERE */}
+        <AnimatePresence>
+          {sidebarOpen && (
+            <motion.div
+              ref={sidebarRef}
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="fixed top-0 z-40 bg-card w-56 h-full shadow-lg"
+            >
+              <SideBar
+                onTitleChange={setTitle}
+                onSoundListChange={setIsSoundSelected}
+                onClose={toggleSidebar}
+                activeView={isSoundSelected ? "sounds" : "friends"}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Header */}
         <motion.div
           initial={{ y: -20, opacity: 0 }}
@@ -88,16 +99,14 @@ const FriendList = () => {
             scrolled ? "shadow-md" : ""
           }`}
         >
-          <Link to="/sound-library">
-            <motion.div
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              className="p-2 rounded-full hover:bg-background transition-colors"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </motion.div>
-          </Link>
-
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            className="p-2 rounded-full hover:bg-background transition-colors"
+            onClick={toggleSidebar}
+          >
+            <Menu className="w-5 h-5" />
+          </motion.button>
           <h1 className="text-xl font-bold">{title}</h1>
           <Link to="/profile">
             <motion.div
@@ -114,7 +123,7 @@ const FriendList = () => {
         <div className="h-[calc(100vh-56px)] overflow-hidden">
           <AnimatePresence mode="wait">
             <motion.div
-              key={isSoundSelected ? "sounds" : "friends"}
+              key={contentKey}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}

@@ -433,7 +433,7 @@ const SoundList = () => {
         <AnimatePresence>
           {isLoading || isFetchingData ? (
             <motion.div
-              initial={{ opacity: 0 }}
+              initial={{ opacity: 1 }}
               animate={{ opacity: 1 }}
               className="flex flex-col items-center justify-center h-64"
             >
@@ -448,11 +448,11 @@ const SoundList = () => {
               <p className="text-red-500">Error loading sounds</p>
             </motion.div>
           ) : filteredSounds.length > 0 ? (
-            <motion.div className="space-y-2">
+            <motion.div className="space-y-2 opacity-100">
               {filteredSounds.map((sound) => (
                 <motion.div
                   key={sound.id}
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 1, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.2 }}
@@ -531,9 +531,9 @@ const SoundList = () => {
       )}
 
       {/* Bottom Action Buttons - Static, doesn't scroll */}
-      <div className="sticky bottom-5 space-y-2">
+      <div className="sticky bottom-5 space-y-2 opacity-100">
         <motion.div
-          initial={{ y: 20, opacity: 0 }}
+          initial={{ y: 20, opacity: 1 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.2 }}
           className="flex flex-col gap-2"

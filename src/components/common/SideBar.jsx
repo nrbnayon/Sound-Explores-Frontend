@@ -1,3 +1,4 @@
+// src\components\common\SideBar.jsx
 import { useState, useEffect } from "react";
 import { LogOut } from "lucide-react";
 import { motion } from "framer-motion";
@@ -5,32 +6,18 @@ import { useAuth } from "../../contexts/AuthContext";
 import toast from "react-hot-toast";
 
 const SideBar = ({ onTitleChange, onSoundListChange, onClose, activeView }) => {
-  // Initialize activeButton based on the activeView prop
   const [activeButton, setActiveButton] = useState(
     activeView === "friends" ? 2 : 1
   );
   const { signOut } = useAuth();
-
-  // Update activeButton when activeView prop changes
   useEffect(() => {
     setActiveButton(activeView === "friends" ? 2 : 1);
   }, [activeView]);
 
-  // const handleSoundButtonClick = () => {
-  //   onTitleChange("Sound Library");
-  //   onSoundListChange(true);
-  //   setActiveButton(1);
-  //   if (onClose) onClose();
-  // };
-
   const handleSoundButtonClick = () => {
-    if (activeButton !== 1 || activeButton === 1) {
-      window.location.reload();
-    } else {
-      onTitleChange("Sound Library");
-      onSoundListChange(true);
-      setActiveButton(1);
-    }
+    onTitleChange("Sound Library");
+    onSoundListChange(true);
+    setActiveButton(1);
     if (onClose) onClose();
   };
 
