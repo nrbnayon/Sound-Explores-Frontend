@@ -87,20 +87,15 @@ const SoundList = () => {
     };
   }, []);
 
-  // Toggle sound selection with ability to select multiple for admin
   const toggleSelect = (id) => {
     if (isAdmin) {
-      // Admin can select multiple sounds
       const updatedSounds = sounds.map((sound) =>
         sound.id === id ? { ...sound, selected: !sound.selected } : sound
       );
       setSounds(updatedSounds);
       applySearch(searchTerm, updatedSounds);
     } else {
-      // Regular users can only select one sound at a time
       const soundToUpdate = sounds.find((sound) => sound.id === id);
-
-      // If sound is already selected, unselect it, otherwise select it and unselect others
       if (soundToUpdate && soundToUpdate.selected) {
         const updatedSounds = sounds.map((sound) =>
           sound.id === id ? { ...sound, selected: false } : sound
@@ -119,24 +114,15 @@ const SoundList = () => {
     }
   };
 
-  // Play/pause sound function (only one at a time)
   const togglePlaySound = (id) => {
-    // Find sound to play
     const soundToPlay = sounds.find((sound) => sound.id === id);
-
     if (!soundToPlay) return;
-
-    // Format audio URL
     const audioUrl = `${import.meta.env.VITE_ASSETS_URL}${soundToPlay.link}`;
-
-    // If the sound is already playing, stop it
     if (soundToPlay.isPlaying) {
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current = null;
       }
-
-      // Update sounds state to reflect that nothing is playing
       const updatedSounds = sounds.map((sound) => ({
         ...sound,
         isPlaying: false,
@@ -357,7 +343,7 @@ const SoundList = () => {
         <motion.div
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="bg-white rounded-lg p-6 w-11/12 max-w-md shadow-lg"
+          className="bg-white  rounded-lg p-6 w-11/12 max-w-md shadow-lg"
         >
           <h3 className="text-lg font-bold mb-4">Confirm Delete</h3>
 
@@ -400,7 +386,7 @@ const SoundList = () => {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="flex flex-col h-[calc(100vh-125px)] justify-between"
+      className="flex flex-col h-[calc(100vh-125px)] justify-between "
     >
       {/* Search Bar and Admin Add Button */}
       <div className="sticky top-0 z-10 bg-background pb-2">

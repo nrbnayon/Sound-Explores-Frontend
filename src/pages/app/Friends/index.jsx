@@ -7,6 +7,7 @@ import SideBar from "../../../components/common/SideBar";
 import SoundList from "../../../components/Sounds/SoundList";
 import { StatusBar } from "../../../components/common/StatusBar";
 import Friends from "./Friends";
+import { useQueryClient } from "@tanstack/react-query";
 
 const FriendList = () => {
   // State for sidebar visibility and active section
@@ -14,6 +15,7 @@ const FriendList = () => {
   const [isSoundSelected, setIsSoundSelected] = useState(false);
   const [title, setTitle] = useState("Friends");
   const [scrolled, setScrolled] = useState(false);
+  const queryClient = useQueryClient();
 
   // Refs for detecting clicks outside sidebar
   const sidebarRef = useRef(null);
@@ -59,15 +61,26 @@ const FriendList = () => {
     };
   }, [sidebarOpen]);
 
+  // When switching to sounds view, invalidate the sounds query cache
+  useEffect(() => {
+    if (isSoundSelected) {
+      // Invalidate the sounds queries when switching to sounds view
+      queryClient.invalidateQueries({ queryKey: ["sounds"] });
+    } else {
+      // Invalidate the connections queries when switching to friends view
+      queryClient.invalidateQueries({ queryKey: ["connections"] });
+    }
+  }, [isSoundSelected, queryClient]);
+
   return (
-    <div className="bg-background flex flex-row justify-center w-full min-h-screen ">
+    <div className="bg-background flex flex-row justify-center w-full min-h-screen">
       <div
         className="bg-card w-full max-w-md relative shadow-md"
         ref={mainContentRef}
       >
         <StatusBar />
 
-        {/* Sidebar - FIXED ANIMATION HERE */}
+        {/* Sidebar with fixed animation */}
         <AnimatePresence>
           {sidebarOpen && (
             <motion.div
@@ -82,6 +95,7 @@ const FriendList = () => {
                 onTitleChange={setTitle}
                 onSoundListChange={setIsSoundSelected}
                 onClose={toggleSidebar}
+                activeView={isSoundSelected ? "sounds" : "friends"}
               />
             </motion.div>
           )}
@@ -140,7 +154,7 @@ const FriendList = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed inset-0  bg-opacity-60 z-30"
+              className="fixed inset-0 bg-opacity-60 z-30"
               onClick={() => setSidebarOpen(false)}
             />
           )}

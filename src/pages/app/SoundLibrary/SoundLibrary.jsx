@@ -7,6 +7,7 @@ import SideBar from "../../../components/common/SideBar";
 import SoundList from "../../../components/Sounds/SoundList";
 import { StatusBar } from "../../../components/common/StatusBar";
 import Friends from "../Friends/Friends";
+import { useQueryClient } from "@tanstack/react-query";
 
 const SoundLibrary = () => {
   // State for sidebar visibility and active section
@@ -14,6 +15,7 @@ const SoundLibrary = () => {
   const [isSoundSelected, setIsSoundSelected] = useState(true);
   const [title, setTitle] = useState("Sound Library");
   const [scrolled, setScrolled] = useState(false);
+  const queryClient = useQueryClient();
 
   // Refs for detecting clicks outside sidebar
   const sidebarRef = useRef(null);
@@ -59,6 +61,14 @@ const SoundLibrary = () => {
     };
   }, [sidebarOpen]);
 
+  // When switching to sounds view, invalidate the sounds query cache
+  useEffect(() => {
+    if (isSoundSelected) {
+      // Invalidate the sounds queries when switching to sounds view
+      queryClient.invalidateQueries({ queryKey: ["sounds"] });
+    }
+  }, [isSoundSelected, queryClient]);
+
   return (
     <div className="bg-background flex flex-row justify-center w-full h-screen overflow-hidden">
       <div
@@ -67,7 +77,7 @@ const SoundLibrary = () => {
       >
         <StatusBar />
 
-        {/* Sidebar - FIXED ANIMATION HERE */}
+        {/* Sidebar with fixed animation */}
         <AnimatePresence>
           {sidebarOpen && (
             <motion.div
@@ -82,6 +92,7 @@ const SoundLibrary = () => {
                 onTitleChange={setTitle}
                 onSoundListChange={setIsSoundSelected}
                 onClose={toggleSidebar}
+                activeView={isSoundSelected ? "sounds" : "friends"}
               />
             </motion.div>
           )}
@@ -117,7 +128,7 @@ const SoundLibrary = () => {
         </motion.div>
 
         {/* Content Area */}
-        <div className="h-[calc(100vh-56px)] overflow-hidden">
+        <div className="h-[calc(100vh-56px)] overflow-hidden border-2 border-red-500 z-50">
           <AnimatePresence mode="wait">
             <motion.div
               key={isSoundSelected ? "sounds" : "friends"}
@@ -140,7 +151,7 @@ const SoundLibrary = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed inset-0  bg-opacity-60 z-30"
+              className="fixed inset-0 bg-opacity-60 z-30"
               onClick={() => setSidebarOpen(false)}
             />
           )}
