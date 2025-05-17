@@ -28,6 +28,7 @@ const SoundList = () => {
   const [limit] = useState(20);
   const audioRef = useRef(null);
   const { user } = useAuth();
+  const API_URL = import.meta.env.VITE_ASSETS_URL || "";
 
   const isAdmin = user?.role === "ADMIN";
 
@@ -288,8 +289,9 @@ const SoundList = () => {
     const selectedSound = sounds.find((sound) => sound.selected);
     if (selectedSound) {
       console.log("Sending sound to friend:", {
-        id: selectedSound.id,
-        name: selectedSound.name,
+        // id: selectedSound.id,
+        link: `${API_URL}${selectedSound?.link}`,
+        soundTitle: selectedSound.name,
       });
       toast.success(`Sending "${selectedSound.name}" to friend`);
       // Here you would implement the actual send functionality
