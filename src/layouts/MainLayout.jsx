@@ -1,16 +1,9 @@
 // src\layouts\MainLayout.jsx
 import { Outlet, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { useAuth } from "../contexts/AuthContext";
 
 const MainLayout = () => {
-  const { loading } = useAuth();
   const location = useLocation();
-
-  // if (loading) {
-  //   return <LoadingScreen />;
-  // }
-
   return (
     <motion.div
       key={location.pathname}

@@ -1,5 +1,4 @@
-// Modified SoundLibrary.jsx with Fixed Sidebar Animation
-
+// src\pages\app\Friends\index.jsx
 import { useState, useRef, useEffect } from "react";
 import { Menu, CircleUserRound } from "lucide-react";
 import { Link } from "react-router-dom";

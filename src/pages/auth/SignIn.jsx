@@ -24,7 +24,6 @@ const loginSchema = z.object({
 const SignIn = () => {
   const { signIn } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
 
   // React Hook Form
   const {
