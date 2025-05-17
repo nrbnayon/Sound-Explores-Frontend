@@ -1,6 +1,6 @@
 // src\pages\app\Friends\index.jsx
 import { useState, useRef, useEffect } from "react";
-import { Menu, CircleUserRound } from "lucide-react";
+import { Menu, CircleUserRound, ChevronLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import SideBar from "../../../components/common/SideBar";
@@ -79,28 +79,6 @@ const FriendList = () => {
         ref={mainContentRef}
       >
         <StatusBar />
-
-        {/* Sidebar with fixed animation */}
-        <AnimatePresence>
-          {sidebarOpen && (
-            <motion.div
-              ref={sidebarRef}
-              initial={{ x: "-100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "-100%" }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="fixed top-0 z-40 bg-card w-56 h-full shadow-lg"
-            >
-              <SideBar
-                onTitleChange={setTitle}
-                onSoundListChange={setIsSoundSelected}
-                onClose={toggleSidebar}
-                activeView={isSoundSelected ? "sounds" : "friends"}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
-
         {/* Header */}
         <motion.div
           initial={{ y: -20, opacity: 0 }}
@@ -110,14 +88,16 @@ const FriendList = () => {
             scrolled ? "shadow-md" : ""
           }`}
         >
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            className="p-2 rounded-full hover:bg-background transition-colors"
-            onClick={toggleSidebar}
-          >
-            <Menu className="w-5 h-5" />
-          </motion.button>
+          <Link to="/sound-library">
+            <motion.div
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              className="p-2 rounded-full hover:bg-background transition-colors"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </motion.div>
+          </Link>
+
           <h1 className="text-xl font-bold">{title}</h1>
           <Link to="/profile">
             <motion.div

@@ -24,7 +24,7 @@ const SideBar = ({ onTitleChange, onSoundListChange, onClose, activeView }) => {
   // };
 
   const handleSoundButtonClick = () => {
-    if (activeButton !== 1) {
+    if (activeButton !== 1 || activeButton === 1) {
       window.location.reload();
     } else {
       onTitleChange("Sound Library");
