@@ -16,23 +16,23 @@ const SideBar = ({ onTitleChange, onSoundListChange, onClose, activeView }) => {
     setActiveButton(activeView === "friends" ? 2 : 1);
   }, [activeView]);
 
-  const handleSoundButtonClick = () => {
-    onTitleChange("Sound Library");
-    onSoundListChange(true);
-    setActiveButton(1);
-    if (onClose) onClose();
-  };
-
   // const handleSoundButtonClick = () => {
-  //   if (activeButton !== 1) {
-  //     window.location.reload();
-  //   } else {
-  //     onTitleChange("Sound Library");
-  //     onSoundListChange(true);
-  //     setActiveButton(1);
-  //   }
+  //   onTitleChange("Sound Library");
+  //   onSoundListChange(true);
+  //   setActiveButton(1);
   //   if (onClose) onClose();
   // };
+
+  const handleSoundButtonClick = () => {
+    if (activeButton !== 1) {
+      window.location.reload();
+    } else {
+      onTitleChange("Sound Library");
+      onSoundListChange(true);
+      setActiveButton(1);
+    }
+    if (onClose) onClose();
+  };
 
   const handleFriendButtonClick = () => {
     onTitleChange("Friends");

@@ -1,6 +1,8 @@
+// For SoundLibrary.jsx - Add localStorage support
+
 import { useState, useRef, useEffect } from "react";
 import { Menu, CircleUserRound } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom"; // Add useLocation
 import { motion, AnimatePresence } from "framer-motion";
 import SideBar from "../../../components/common/SideBar";
 import SoundList from "../../../components/Sounds/SoundList";
@@ -9,12 +11,21 @@ import Friends from "../Friends/Friends";
 import { useQueryClient } from "@tanstack/react-query";
 
 const SoundLibrary = () => {
-  // State for sidebar visibility and active section
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isSoundSelected, setIsSoundSelected] = useState(true);
-  const [title, setTitle] = useState("Sound Library");
-  const [scrolled, setScrolled] = useState(false);
+  // Get location for path-based view selection
+  const location = useLocation();
   const queryClient = useQueryClient();
+
+  // Initialize state with localStorage value if available
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isSoundSelected, setIsSoundSelected] = useState(() => {
+    const savedView = localStorage.getItem("activeView");
+    // Default to true for SoundLibrary component
+    return savedView ? savedView === "sounds" : true;
+  });
+  const [title, setTitle] = useState(
+    isSoundSelected ? "Sound Library" : "Friends"
+  );
+  const [scrolled, setScrolled] = useState(false);
 
   // Refs for detecting clicks outside sidebar
   const sidebarRef = useRef(null);
@@ -38,6 +49,12 @@ const SoundLibrary = () => {
     }
   };
 
+  // Save view state when it changes and update title
+  useEffect(() => {
+    localStorage.setItem("activeView", isSoundSelected ? "sounds" : "friends");
+    setTitle(isSoundSelected ? "Sound Library" : "Friends");
+  }, [isSoundSelected]);
+
   // Track scroll for shadow effect
   useEffect(() => {
     const handleScroll = () => {
@@ -60,16 +77,22 @@ const SoundLibrary = () => {
     };
   }, [sidebarOpen]);
 
-  // When switching to sounds view, invalidate the sounds query cache
+  // Invalidate queries based on view
   useEffect(() => {
     if (isSoundSelected) {
-      // Invalidate the sounds queries when switching to sounds view
       queryClient.invalidateQueries({ queryKey: ["sounds"] });
+    } else {
+      queryClient.invalidateQueries({ queryKey: ["connections"] });
     }
   }, [isSoundSelected, queryClient]);
 
   // Create a key that changes when view changes to force remount of components
   const contentKey = isSoundSelected ? "sounds" : "friends";
+
+  // Custom handler for view changes
+  const handleViewChange = (isSound) => {
+    setIsSoundSelected(isSound);
+  };
 
   return (
     <div className="bg-background flex flex-row justify-center w-full h-screen overflow-hidden">
@@ -92,7 +115,7 @@ const SoundLibrary = () => {
             >
               <SideBar
                 onTitleChange={setTitle}
-                onSoundListChange={setIsSoundSelected}
+                onSoundListChange={handleViewChange}
                 onClose={toggleSidebar}
                 activeView={isSoundSelected ? "sounds" : "friends"}
               />
@@ -143,7 +166,7 @@ const SoundLibrary = () => {
               {isSoundSelected ? (
                 <SoundList key={`sounds-${Date.now()}`} />
               ) : (
-                <Friends />
+                <Friends key={`friends-${Date.now()}`} />
               )}
             </motion.div>
           </AnimatePresence>
@@ -157,7 +180,7 @@ const SoundLibrary = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed inset-0 bg-opacity-60 z-30"
+              className="fixed inset-0 bg-black bg-opacity-60 z-30"
               onClick={() => setSidebarOpen(false)}
             />
           )}
