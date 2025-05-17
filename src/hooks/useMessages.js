@@ -19,7 +19,7 @@ export const useConversation = (userId) => {
       console.log("Conversation data:", data);
       return data;
     },
-    enabled: !!userId, // Only run if userId is provided
+    enabled: !!userId, 
   });
 };
 

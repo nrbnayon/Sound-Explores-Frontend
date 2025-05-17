@@ -55,6 +55,7 @@ export const useFriendList = (filters = {}) => {
     queryFn: async () => {
       const params = new URLSearchParams();
 
+      // Make sure search parameter is correctly formatted
       if (filters.search) params.append("search", filters.search);
       if (filters.page) params.append("page", filters.page);
       if (filters.limit) params.append("limit", filters.limit);

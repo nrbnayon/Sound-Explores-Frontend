@@ -86,6 +86,8 @@ const YourFriends = ({ friends, isLoading }) => {
   const API_URL = import.meta.env.VITE_ASSETS_URL || "";
   const { mutate: removeFriend, isLoading: isRemoving } =
     useCancelFriendRequest();
+
+  // Get friend info helper function
   const getFriendInfo = (connection) => {
     if (!connection?.users || connection.users.length < 2) {
       return {
@@ -118,11 +120,14 @@ const YourFriends = ({ friends, isLoading }) => {
       nickname: friendUser.nickname || "",
     };
   };
+
+  // Friend removal functions
   const handleInitiateRemove = (id) => {
     const friendConnection = friends.find((friend) => friend._id === id);
     setFriendToRemove(friendConnection);
     setIsConfirmModalOpen(true);
   };
+
   const handleConfirmRemove = () => {
     if (!friendToRemove) return;
     removeFriend(friendToRemove._id, {
@@ -145,13 +150,15 @@ const YourFriends = ({ friends, isLoading }) => {
     setIsConfirmModalOpen(false);
     setFriendToRemove(null);
   };
+
+  // Swipeable friend item component
   const SwipeableFriendItem = ({ connection, onRemove }) => {
     const [isOpen, setIsOpen] = useState(false);
     const friendInfo = getFriendInfo(connection);
 
     const swipeHandlers = useSwipe(
-      () => setIsOpen(true), 
-      () => setIsOpen(false) 
+      () => setIsOpen(true),
+      () => setIsOpen(false)
     );
 
     return (
@@ -264,7 +271,7 @@ const YourFriends = ({ friends, isLoading }) => {
               className='flex flex-col items-center justify-center h-64 text-center'
             >
               <div className='bg-gray-100 p-4 rounded-full mb-4'>
-                <UsersRound />
+                <UsersRound size={24} />
               </div>
               <p className='text-muted-foreground font-medium'>
                 You don't have any friends yet

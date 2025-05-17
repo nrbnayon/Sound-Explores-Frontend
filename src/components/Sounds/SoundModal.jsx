@@ -84,11 +84,14 @@ const SoundModal = ({ isOpen, onClose }) => {
 
   // Categories for sounds
   const categories = [
-    { value: "general", label: "General" },
-    { value: "nature", label: "Nature" },
-    { value: "ambient", label: "Ambient" },
-    { value: "music", label: "Music" },
-    { value: "effects", label: "Sound Effects" },
+    { value: "Scary", label: "Scary" },
+    { value: "Relaxing", label: "Relaxing" },
+    { value: "Futuristic", label: "Futuristic" },
+    { value: "Celebration", label: "Celebration" },
+    { value: "Action", label: "Action" },
+    { value: "Romantic", label: "Romantic" },
+    { value: "Educational", label: "Educational" },
+    { value: "Ambient", label: "Ambient" },
   ];
 
   if (!isOpen) return null;

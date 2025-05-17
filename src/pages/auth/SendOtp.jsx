@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { z } from "zod";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "../../components/ui/button";
 import { useAuth } from "../../contexts/AuthContext";
@@ -23,6 +23,7 @@ const SendOtp = () => {
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isResending, setIsResending] = useState(false);
   // Track if this is a password reset flow
   const [isPasswordReset, setIsPasswordReset] = useState(false);
 
@@ -172,8 +173,9 @@ const SendOtp = () => {
 
   // Handle resend code
   const handleResendCode = async () => {
-    if (!isTimerActive && email) {
+    if (!isTimerActive && email && !isResending) {
       try {
+        setIsResending(true);
         const success = await resendOtp(email);
 
         if (success) {
@@ -191,6 +193,8 @@ const SendOtp = () => {
       } catch (error) {
         console.error("Failed to resend code:", error);
         toast.error("Failed to resend verification code");
+      } finally {
+        setIsResending(false);
       }
     }
   };
@@ -301,16 +305,23 @@ const SendOtp = () => {
               <button
                 type='button'
                 onClick={handleResendCode}
-                disabled={isTimerActive}
-                className={`text-sm font-medium ${
-                  isTimerActive
+                disabled={isTimerActive || isResending}
+                className={`text-sm font-medium flex items-center justify-center mx-auto ${
+                  isTimerActive || isResending
                     ? "text-muted-foreground cursor-not-allowed"
                     : "text-blue-500 cursor-pointer"
                 }`}
               >
-                {isTimerActive
-                  ? `Resend Code (${formatTime(timer)})`
-                  : "Resend Code"}
+                {isResending ? (
+                  <>
+                    <Loader2 className='w-3 h-3 mr-2 animate-spin' />
+                    Sending...
+                  </>
+                ) : isTimerActive ? (
+                  `Resend Code (${formatTime(timer)})`
+                ) : (
+                  "Resend Code"
+                )}
               </button>
             </div>
 
@@ -321,7 +332,14 @@ const SendOtp = () => {
                 className='w-full py-3 bg-primary rounded-full text-white font-medium hover:bg-blue-600 transition-colors'
                 disabled={otp.join("").length !== 4 || isSubmitting}
               >
-                {isSubmitting ? "Verifying..." : "Verify Code"}
+                {isSubmitting ? (
+                  <div className='flex items-center justify-center'>
+                    <Loader2 className='w-4 h-4 mr-2 animate-spin' />
+                    Verifying...
+                  </div>
+                ) : (
+                  "Verify Code"
+                )}
               </Button>
             </motion.div>
           </div>

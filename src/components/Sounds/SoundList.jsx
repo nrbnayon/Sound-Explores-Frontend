@@ -45,6 +45,85 @@ const SoundList = () => {
   const deleteSoundMutation = useDeleteSound();
   const deleteMultipleSoundsMutation = useDeleteMultipleSounds();
 
+  // Helper function to format duration
+  const formatDuration = (seconds) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+    return `${minutes.toString().padStart(2, "0")}:${remainingSeconds
+      .toString()
+      .padStart(2, "0")}`;
+  };
+
+  // Load audio durations for all sounds
+  const loadAudioDurations = async (soundsList) => {
+    // Create a copy of the sounds list to update with durations
+    const soundsWithDurations = [...soundsList];
+
+    // Process sounds in batches to avoid overwhelming the browser
+    const BATCH_SIZE = 5;
+
+    for (let i = 0; i < soundsWithDurations.length; i += BATCH_SIZE) {
+      const batch = soundsWithDurations.slice(i, i + BATCH_SIZE);
+
+      // Create promises for each sound in the batch
+      const promises = batch.map((sound, batchIndex) => {
+        return new Promise((resolve) => {
+          const index = i + batchIndex;
+
+          // Skip if the sound already has a valid duration
+          if (sound.duration && sound.duration !== "00:00") {
+            resolve();
+            return;
+          }
+
+          const audioUrl = `${import.meta.env.VITE_ASSETS_URL}${sound.link}`;
+          const audio = new Audio();
+
+          // Set a timeout to avoid hanging indefinitely
+          const timeoutId = setTimeout(() => {
+            audio.removeEventListener("loadedmetadata", onLoaded);
+            audio.removeEventListener("error", onError);
+            soundsWithDurations[index].duration = "00:00"; // Fallback duration
+            resolve();
+          }, 5000);
+
+          const onLoaded = () => {
+            clearTimeout(timeoutId);
+            const duration = formatDuration(audio.duration);
+            soundsWithDurations[index].duration = duration;
+            audio.removeEventListener("loadedmetadata", onLoaded);
+            audio.removeEventListener("error", onError);
+            audio.src = "";
+            resolve();
+          };
+
+          const onError = () => {
+            clearTimeout(timeoutId);
+            console.error(`Error loading audio for ${sound.name}`);
+            soundsWithDurations[index].duration = "00:00"; // Fallback duration
+            audio.removeEventListener("loadedmetadata", onLoaded);
+            audio.removeEventListener("error", onError);
+            resolve();
+          };
+
+          audio.addEventListener("loadedmetadata", onLoaded);
+          audio.addEventListener("error", onError);
+          audio.src = audioUrl;
+          audio.preload = "metadata";
+        });
+      });
+
+      // Wait for this batch to complete
+      await Promise.all(promises);
+
+      // Update the sounds state after each batch to show progress
+      setSounds([...soundsWithDurations]);
+      setFilteredSounds([...soundsWithDurations]);
+    }
+
+    return soundsWithDurations;
+  };
+
   useEffect(() => {
     if (soundsData && soundsData.data) {
       const formattedSounds = soundsData.data.map((sound) => ({
@@ -61,6 +140,10 @@ const SoundList = () => {
 
       setSounds(formattedSounds);
       setFilteredSounds(formattedSounds);
+
+      // Load durations asynchronously for all sounds
+      loadAudioDurations(formattedSounds);
+
       setIsLoading(false);
 
       // Update pagination data
@@ -158,39 +241,7 @@ const SoundList = () => {
     const audio = new Audio(audioUrl);
     audioRef.current = audio;
 
-    audio.onloadedmetadata = () => {
-      // Format duration
-      const minutes = Math.floor(audio.duration / 60);
-      const seconds = Math.floor(audio.duration % 60);
-      const formattedDuration = `${minutes
-        .toString()
-        .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
-
-      // Update sound with actual duration
-      const updatedSounds = sounds.map((sound) =>
-        sound.id === id
-          ? { ...sound, duration: formattedDuration, isPlaying: true }
-          : { ...sound, isPlaying: false }
-      );
-
-      setSounds(updatedSounds);
-      applySearch(searchTerm, updatedSounds);
-    };
-
-    audio.onended = () => {
-      // Reset playing state when audio ends
-      const updatedSounds = sounds.map((sound) => ({
-        ...sound,
-        isPlaying: false,
-      }));
-
-      setSounds(updatedSounds);
-      applySearch(searchTerm, updatedSounds);
-      setCurrentlyPlayingId(null);
-      audioRef.current = null;
-    };
-
-    // Set initial playing state before we have duration
+    // Update sound with playing state
     const updatedSounds = sounds.map((sound) =>
       sound.id === id
         ? { ...sound, isPlaying: true }
@@ -217,6 +268,19 @@ const SoundList = () => {
       setCurrentlyPlayingId(null);
       audioRef.current = null;
     });
+
+    audio.onended = () => {
+      // Reset playing state when audio ends
+      const updatedSounds = sounds.map((sound) => ({
+        ...sound,
+        isPlaying: false,
+      }));
+
+      setSounds(updatedSounds);
+      applySearch(searchTerm, updatedSounds);
+      setCurrentlyPlayingId(null);
+      audioRef.current = null;
+    };
   };
 
   // Send to friend function (only selected sound)
@@ -321,7 +385,7 @@ const SoundList = () => {
     }, [isPlaying, animationSpeed]);
 
     return (
-      <svg viewBox={`0 0 ${waveLines.length * 2} 24`} className="w-full h-8">
+      <svg viewBox={`0 0 ${waveLines.length * 2} 24`} className='w-full h-8'>
         {waveLines.map((height, index) => {
           const startY = 12 - height / 2;
           const endY = 12 + height / 2;
@@ -334,8 +398,8 @@ const SoundList = () => {
               x2={index * 2}
               y2={endY}
               stroke={isPlaying ? "#00ae34" : "#D1D5DB"}
-              strokeWidth="0.5"
-              strokeLinecap="round"
+              strokeWidth='0.5'
+              strokeLinecap='round'
             />
           );
         })}
@@ -353,23 +417,23 @@ const SoundList = () => {
       .map((sound) => sound.name);
 
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
         <motion.div
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="bg-white rounded-lg p-6 w-11/12 max-w-md shadow-lg"
+          className='bg-white rounded-lg p-6 w-11/12 max-w-md shadow-lg'
         >
-          <h3 className="text-lg font-bold mb-4">Confirm Delete</h3>
+          <h3 className='text-lg font-bold mb-4'>Confirm Delete</h3>
 
-          <p className="mb-4">
+          <p className='mb-4'>
             {selectedCount === 1
               ? `Are you sure you want to delete "${selectedSoundNames[0]}"?`
               : `Are you sure you want to delete ${selectedCount} selected sounds?`}
           </p>
 
           {selectedCount > 1 && (
-            <div className="max-h-32 overflow-y-auto mb-4 text-sm text-gray-600 bg-gray-50 p-2 rounded">
-              <ul className="list-disc pl-5">
+            <div className='max-h-32 overflow-y-auto mb-4 text-sm text-gray-600 bg-gray-50 p-2 rounded'>
+              <ul className='list-disc pl-5'>
                 {selectedSoundNames.map((name, index) => (
                   <li key={index}>{name}</li>
                 ))}
@@ -377,16 +441,16 @@ const SoundList = () => {
             </div>
           )}
 
-          <div className="flex justify-end gap-3 mt-6">
+          <div className='flex justify-end gap-3 mt-6'>
             <Button
               onClick={() => setIsDeleteModalOpen(false)}
-              className="bg-gray-200 hover:bg-gray-300 text-gray-800"
+              className='bg-gray-200 hover:bg-gray-300 text-gray-800'
             >
               Cancel
             </Button>
             <Button
               onClick={confirmDelete}
-              className="bg-red-500 hover:bg-red-600 text-white"
+              className='bg-red-500 hover:bg-red-600 text-white'
             >
               Delete
             </Button>
@@ -400,55 +464,55 @@ const SoundList = () => {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="flex flex-col h-[calc(100vh-125px)] justify-between"
+      className='flex flex-col h-[calc(100vh-125px)] justify-between'
     >
       {/* Search Bar and Admin Add Button */}
-      <div className="sticky top-0 z-10 bg-background pb-2">
-        <div className="flex items-center gap-2">
-          <div className="relative text-black flex-1">
+      <div className='sticky top-0 z-10 bg-background pb-2'>
+        <div className='flex items-center gap-2'>
+          <div className='relative text-black flex-1'>
             <input
-              type="text"
-              placeholder="Search sounds"
+              type='text'
+              placeholder='Search sounds'
               value={searchTerm}
               onChange={handleSearch}
-              className="w-full p-3 pl-10 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className='w-full p-3 pl-10 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
             />
-            <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+            <Search className='absolute left-3 top-3 h-5 w-5 text-muted-foreground' />
           </div>
 
           {isAdmin && (
             <Button
               onClick={() => setIsAddModalOpen(true)}
-              className="bg-primary hover:bg-blue-600 text-white p-3 rounded-lg h-auto flex items-center gap-2"
+              className='bg-primary hover:bg-blue-600 text-white p-3 rounded-lg h-auto flex items-center gap-2'
             >
               <Plus size={18} />
-              <span className="hidden sm:inline">Add Sound</span>
+              <span className='hidden sm:inline'>Add Sound</span>
             </Button>
           )}
         </div>
       </div>
 
       {/* Sound List - Only this section scrolls */}
-      <div className="overflow-y-auto scroll-container flex-1 my-2">
+      <div className='overflow-y-auto scroll-container flex-1 my-2'>
         <AnimatePresence>
           {isLoading || isFetchingData ? (
             <motion.div
               initial={{ opacity: 1 }}
               animate={{ opacity: 1 }}
-              className="flex flex-col items-center justify-center h-64"
+              className='flex flex-col items-center justify-center h-64'
             >
-              <p className="text-muted-foreground">Loading sounds...</p>
+              <p className='text-muted-foreground'>Loading sounds...</p>
             </motion.div>
           ) : isError ? (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="flex flex-col items-center justify-center h-64"
+              className='flex flex-col items-center justify-center h-64'
             >
-              <p className="text-red-500">Error loading sounds</p>
+              <p className='text-red-500'>Error loading sounds</p>
             </motion.div>
           ) : filteredSounds.length > 0 ? (
-            <motion.div className="space-y-2 opacity-100">
+            <motion.div className='space-y-2 opacity-100'>
               {filteredSounds.map((sound) => (
                 <motion.div
                   key={sound.id}
@@ -463,21 +527,21 @@ const SoundList = () => {
                   } hover:bg-gray-50 hover:text-black transition-colors`}
                 >
                   <div
-                    className="flex items-center cursor-pointer"
+                    className='flex items-center cursor-pointer'
                     onClick={() => toggleSelect(sound.id)}
                   >
                     <Checkbox
                       id={`sound-${sound.id}`}
                       checked={sound.selected}
                       onCheckedChange={() => toggleSelect(sound.id)}
-                      className="w-5 h-5 border-2 border-gray-300 rounded mr-3"
+                      className='w-5 h-5 border-2 border-gray-300 rounded mr-3'
                     />
-                    <div className="mr-3">
-                      <p className="text-sm font-medium">{sound.name}</p>
-                      <p className="text-xs text-muted-foreground">
+                    <div className='mr-3'>
+                      <p className='text-sm font-medium'>{sound.name}</p>
+                      <p className='text-xs text-muted-foreground'>
                         {sound.duration}
                         {sound.isPremium && (
-                          <span className="ml-2 text-amber-500 font-medium">
+                          <span className='ml-2 text-amber-500 font-medium'>
                             Premium
                           </span>
                         )}
@@ -485,7 +549,7 @@ const SoundList = () => {
                     </div>
                   </div>
 
-                  <div className="flex-1 mx-2">
+                  <div className='flex-1 mx-2'>
                     {/* Dynamic waveform */}
                     <AudioWave isPlaying={sound.isPlaying} />
                   </div>
@@ -509,9 +573,9 @@ const SoundList = () => {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="flex flex-col items-center justify-center h-64"
+              className='flex flex-col items-center justify-center h-64'
             >
-              <p className="text-muted-foreground">No sounds found</p>
+              <p className='text-muted-foreground'>No sounds found</p>
             </motion.div>
           )}
         </AnimatePresence>
@@ -519,8 +583,8 @@ const SoundList = () => {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="mt-4 mb-4">
-          <div className="flex justify-center">
+        <div className='mt-4 mb-4'>
+          <div className='flex justify-center'>
             <Pagination
               totalPages={totalPages}
               currentPage={currentPage}
@@ -531,12 +595,12 @@ const SoundList = () => {
       )}
 
       {/* Bottom Action Buttons - Static, doesn't scroll */}
-      <div className="sticky bottom-5 space-y-2 opacity-100">
+      <div className='sticky bottom-5 space-y-2 opacity-100'>
         <motion.div
           initial={{ y: 20, opacity: 1 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="flex flex-col gap-2"
+          className='flex flex-col gap-2'
         >
           {/* Delete button (only shown for admin when sounds are selected) */}
           <AnimatePresence>
@@ -548,7 +612,7 @@ const SoundList = () => {
               >
                 <Button
                   onClick={openDeleteModal}
-                  className="flex items-center justify-center gap-2 px-6 py-3 w-full bg-red-500 rounded-full h-auto hover:bg-red-600 text-white font-medium"
+                  className='flex items-center justify-center gap-2 px-6 py-3 w-full bg-red-500 rounded-full h-auto hover:bg-red-600 text-white font-medium'
                 >
                   <Trash2 size={18} />
                   Delete{" "}
@@ -564,7 +628,7 @@ const SoundList = () => {
           <Button
             onClick={sendToFriend}
             disabled={!sounds.some((sound) => sound.selected)}
-            className="flex items-center justify-center gap-2.5 px-6 py-3 w-full bg-primary rounded-full h-auto hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium"
+            className='flex items-center justify-center gap-2.5 px-6 py-3 w-full bg-primary rounded-full h-auto hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium'
           >
             Send to Friend
           </Button>
