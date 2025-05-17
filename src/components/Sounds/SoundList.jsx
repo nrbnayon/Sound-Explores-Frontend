@@ -1,3 +1,4 @@
+// src\components\Sounds\SoundList.jsx
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Checkbox } from "../ui/checkbox";
@@ -27,10 +28,6 @@ const SoundList = () => {
   const [limit] = useState(20);
   const audioRef = useRef(null);
   const { user } = useAuth();
-  const isMounted = useRef(true);
-
-  // Add unique component instance ID for debugging
-  const instanceId = useRef(`sound-list-${Date.now()}`);
 
   const isAdmin = user?.role === "ADMIN";
 
@@ -38,7 +35,6 @@ const SoundList = () => {
     data: soundsData,
     isLoading: isFetchingData,
     isError,
-    refetch,
   } = useSounds({
     searchTerm: searchTerm,
     page: currentPage,
@@ -49,30 +45,8 @@ const SoundList = () => {
   const deleteSoundMutation = useDeleteSound();
   const deleteMultipleSoundsMutation = useDeleteMultipleSounds();
 
-  // Component mounted check with enhanced logging
   useEffect(() => {
-    isMounted.current = true;
-    console.log(`SoundList component mounted [${instanceId.current}]`);
-
-    // Force refetch when component mounts to ensure fresh data
-    refetch();
-
-    return () => {
-      console.log(`SoundList component unmounting [${instanceId.current}]`);
-      isMounted.current = false;
-      // Clean up audio
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
-    };
-  }, [refetch]);
-
-  useEffect(() => {
-    if (soundsData && soundsData.data && isMounted.current) {
-      console.log(
-        `Sound data received: ${soundsData.data.length} items [${instanceId.current}]`
-      );
+    if (soundsData && soundsData.data) {
       const formattedSounds = soundsData.data.map((sound) => ({
         id: sound._id,
         name: sound.title,
@@ -103,15 +77,30 @@ const SoundList = () => {
     setSelectedSounds(selected);
   }, [sounds]);
 
+  // Stop audio when component unmounts
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
+
+  // Toggle sound selection with ability to select multiple for admin
   const toggleSelect = (id) => {
     if (isAdmin) {
+      // Admin can select multiple sounds
       const updatedSounds = sounds.map((sound) =>
         sound.id === id ? { ...sound, selected: !sound.selected } : sound
       );
       setSounds(updatedSounds);
       applySearch(searchTerm, updatedSounds);
     } else {
+      // Regular users can only select one sound at a time
       const soundToUpdate = sounds.find((sound) => sound.id === id);
+
+      // If sound is already selected, unselect it, otherwise select it and unselect others
       if (soundToUpdate && soundToUpdate.selected) {
         const updatedSounds = sounds.map((sound) =>
           sound.id === id ? { ...sound, selected: false } : sound
@@ -130,20 +119,24 @@ const SoundList = () => {
     }
   };
 
+  // Play/pause sound function (only one at a time)
   const togglePlaySound = (id) => {
-    // For debugging - log the actual operation
-    console.log(
-      `Toggling sound playback for ID: ${id} [${instanceId.current}]`
-    );
-
+    // Find sound to play
     const soundToPlay = sounds.find((sound) => sound.id === id);
+
     if (!soundToPlay) return;
+
+    // Format audio URL
     const audioUrl = `${import.meta.env.VITE_ASSETS_URL}${soundToPlay.link}`;
+
+    // If the sound is already playing, stop it
     if (soundToPlay.isPlaying) {
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current = null;
       }
+
+      // Update sounds state to reflect that nothing is playing
       const updatedSounds = sounds.map((sound) => ({
         ...sound,
         isPlaying: false,
@@ -403,20 +396,11 @@ const SoundList = () => {
     );
   };
 
-  // Log for visibility debugging
-  console.log(
-    `SoundList rendering. Items: ${filteredSounds.length}, Loading: ${
-      isLoading || isFetchingData
-    }, Instance: ${instanceId.current}`
-  );
-
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="flex flex-col h-[calc(100vh-125px)] justify-between"
-      // Add data attribute for easy debugging with browser inspector
-      data-component-id={instanceId.current}
     >
       {/* Search Bar and Admin Add Button */}
       <div className="sticky top-0 z-10 bg-background pb-2">
@@ -462,9 +446,6 @@ const SoundList = () => {
               className="flex flex-col items-center justify-center h-64"
             >
               <p className="text-red-500">Error loading sounds</p>
-              <Button onClick={() => refetch()} className="mt-2">
-                Retry
-              </Button>
             </motion.div>
           ) : filteredSounds.length > 0 ? (
             <motion.div className="space-y-2">

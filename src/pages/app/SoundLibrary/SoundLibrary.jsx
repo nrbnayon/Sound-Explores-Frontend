@@ -1,4 +1,3 @@
-// src\pages\app\SoundLibrary\SoundLibrary.jsx
 import { useState, useRef, useEffect } from "react";
 import { Menu, CircleUserRound } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -69,6 +68,9 @@ const SoundLibrary = () => {
     }
   }, [isSoundSelected, queryClient]);
 
+  // Create a key that changes when view changes to force remount of components
+  const contentKey = isSoundSelected ? "sounds" : "friends";
+
   return (
     <div className="bg-background flex flex-row justify-center w-full h-screen overflow-hidden">
       <div
@@ -127,18 +129,22 @@ const SoundLibrary = () => {
           </Link>
         </motion.div>
 
-        {/* Content Area */}
+        {/* Content Area - using key to force remount */}
         <div className="h-[calc(100vh-56px)] overflow-hidden">
           <AnimatePresence mode="wait">
             <motion.div
-              key={isSoundSelected ? "sounds" : "friends"}
+              key={contentKey}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3 }}
               className="h-full overflow-y-auto p-4"
             >
-              {isSoundSelected ? <SoundList /> : <Friends />}
+              {isSoundSelected ? (
+                <SoundList key={`sounds-${Date.now()}`} />
+              ) : (
+                <Friends />
+              )}
             </motion.div>
           </AnimatePresence>
         </div>

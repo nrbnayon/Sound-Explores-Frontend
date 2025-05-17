@@ -23,6 +23,17 @@ const SideBar = ({ onTitleChange, onSoundListChange, onClose, activeView }) => {
     if (onClose) onClose();
   };
 
+  // const handleSoundButtonClick = () => {
+  //   if (activeButton !== 1) {
+  //     window.location.reload();
+  //   } else {
+  //     onTitleChange("Sound Library");
+  //     onSoundListChange(true);
+  //     setActiveButton(1);
+  //   }
+  //   if (onClose) onClose();
+  // };
+
   const handleFriendButtonClick = () => {
     onTitleChange("Friends");
     onSoundListChange(false);
