@@ -31,7 +31,6 @@ const SideBar = ({ onTitleChange, onSoundListChange, onClose, activeView }) => {
   const handleLogout = async () => {
     try {
       await signOut();
-      toast.success("Logout Successful");
     } catch (error) {
       toast.error("Logout failed");
       console.error("Logout error:", error);
