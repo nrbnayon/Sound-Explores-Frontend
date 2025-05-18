@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { ThemeToggle } from "./ThemeToggle";
 
 const Header = ({ backHref, title, onLogoutClick }) => {
   const [showOptions, setShowOptions] = useState(false);
@@ -66,6 +67,7 @@ const Header = ({ backHref, title, onLogoutClick }) => {
             <ChevronLeft className="w-5 h-5" />
           </motion.div>
         </Link>
+        <ThemeToggle/>
       </div>
       <div>
         {" "}
