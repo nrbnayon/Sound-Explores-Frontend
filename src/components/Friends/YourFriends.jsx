@@ -1,15 +1,25 @@
+// src\components\Friends\YourFriends.jsx
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
-import { X, UserMinus, Mail, UsersRound } from "lucide-react";
+import {
+  X,
+  UserMinus,
+  Mail,
+  UsersRound,
+  CheckCircle,
+  Loader2,
+} from "lucide-react";
 import { useCancelFriendRequest } from "../../hooks/useConnections";
 import { useAuth } from "../../contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useSelectedSound } from "../../contexts/SelectedSoundContext";
 import { useSendSoundMessage } from "../../hooks/useMessages";
 
 const useSwipe = (onSwipeLeft, onSwipeRight) => {
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
+
   const minSwipeDistance = 50;
 
   const onTouchStart = (e) => {
@@ -23,13 +33,14 @@ const useSwipe = (onSwipeLeft, onSwipeRight) => {
 
   const onTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
+
     const distance = touchStart - touchEnd;
     const isLeftSwipe = distance > minSwipeDistance;
     const isRightSwipe = distance < -minSwipeDistance;
+
     if (isLeftSwipe && onSwipeLeft) onSwipeLeft();
     if (isRightSwipe && onSwipeRight) onSwipeRight();
   };
-
   const [mouseStart, setMouseStart] = useState(null);
   const [mouseDown, setMouseDown] = useState(false);
 
@@ -48,19 +59,22 @@ const useSwipe = (onSwipeLeft, onSwipeRight) => {
       setMouseDown(false);
       return;
     }
+
     const distance = mouseStart - touchEnd;
     const isLeftSwipe = distance > minSwipeDistance;
     const isRightSwipe = distance < -minSwipeDistance;
+
     if (isLeftSwipe && onSwipeLeft) onSwipeLeft();
     if (isRightSwipe && onSwipeRight) onSwipeRight();
+
     setMouseDown(false);
   };
-
   useEffect(() => {
     if (mouseDown) {
       document.addEventListener("mouseup", onMouseUp);
       document.addEventListener("mousemove", onMouseMove);
     }
+
     return () => {
       document.removeEventListener("mouseup", onMouseUp);
       document.removeEventListener("mousemove", onMouseMove);
@@ -75,16 +89,33 @@ const useSwipe = (onSwipeLeft, onSwipeRight) => {
   };
 };
 
-const YourFriends = ({ friends, isLoading, selectedSound }) => {
+const YourFriends = ({ friends, isLoading }) => {
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [friendToRemove, setFriendToRemove] = useState(null);
+  // Track which friends have been sent the current sound
+  const [sentToFriends, setSentToFriends] = useState({});
+  // Track which friends are currently being sent a sound
+  const [sendingToFriends, setSendingToFriends] = useState({});
+
   const { user } = useAuth();
   const API_URL = import.meta.env.VITE_ASSETS_URL || "";
   const { mutate: removeFriend, isLoading: isRemoving } =
     useCancelFriendRequest();
-  const navigate = useNavigate();
-  const { mutate: sendSoundMessage } = useSendSoundMessage();
 
+  const { selectedSound, clearSelectedSound } = useSelectedSound();
+  const navigate = useNavigate();
+  const sendSoundMessage = useSendSoundMessage();
+  console.log("Selected sound in Your Friends Component::", selectedSound);
+
+  // Reset sent status when selected sound changes
+  useEffect(() => {
+    if (selectedSound) {
+      setSentToFriends({});
+      setSendingToFriends({});
+    }
+  }, [selectedSound]);
+
+  // Get friend info helper function
   const getFriendInfo = (connection) => {
     if (!connection?.users || connection.users.length < 2) {
       return {
@@ -121,6 +152,7 @@ const YourFriends = ({ friends, isLoading, selectedSound }) => {
     };
   };
 
+  // Friend removal functions
   const handleInitiateRemove = (id) => {
     const friendConnection = friends.find((friend) => friend._id === id);
     setFriendToRemove(friendConnection);
@@ -150,30 +182,68 @@ const YourFriends = ({ friends, isLoading, selectedSound }) => {
     setFriendToRemove(null);
   };
 
-  const handleSendMessage = (friendUserId) => {
+  const handleSendSound = (friendId) => {
     if (selectedSound) {
-      sendSoundMessage(
+      console.log(
+        "XXXXXXXXXSending sound to friend:",
+        selectedSound,
+        "friendId, ",
+        friendId
+      );
+
+      // Set sending state for this friend
+      setSendingToFriends((prev) => ({
+        ...prev,
+        [friendId]: true,
+      }));
+
+      sendSoundMessage.mutate(
         {
-          users: [friendUserId],
+          users: friendId,
           link: selectedSound.link,
           soundTitle: selectedSound.soundTitle,
         },
         {
           onSuccess: () => {
-            toast.success(`Sent "${selectedSound.soundTitle}" sound to friend`);
+            toast.success(
+              `Sound "${selectedSound.soundTitle}" sent successfully!`
+            );
+            // Mark this friend as having received the sound
+            setSentToFriends((prev) => ({
+              ...prev,
+              [friendId]: true,
+            }));
+            // Clear sending state
+            setSendingToFriends((prev) => ({
+              ...prev,
+              [friendId]: false,
+            }));
+          },
+          onError: (error) => {
+            toast.error(
+              "Failed to send sound: " + (error?.message || "Unknown error")
+            );
+            // Clear sending state on error
+            setSendingToFriends((prev) => ({
+              ...prev,
+              [friendId]: false,
+            }));
           },
         }
       );
     } else {
-      toast.error(`Any sound not selected to send`);
-
-      // navigate(`/chat-interface?friendId=${friendUserId}`);
+      toast.error("No sound selected. Please select a sound first!");
+      clearSelectedSound();
+      navigate("/sound-library"); // Navigate to sound library to select a sound
     }
   };
 
+  // Swipeable friend item component
   const SwipeableFriendItem = ({ connection, onRemove }) => {
     const [isOpen, setIsOpen] = useState(false);
     const friendInfo = getFriendInfo(connection);
+    const hasSentSound = sentToFriends[friendInfo.userId];
+    const isSending = sendingToFriends[friendInfo.userId];
 
     const swipeHandlers = useSwipe(
       () => setIsOpen(true),
@@ -207,6 +277,7 @@ const YourFriends = ({ friends, isLoading, selectedSound }) => {
                 />
               </motion.div>
             </div>
+
             <div>
               <h3 className='text-base font-medium'>
                 {friendInfo.fullName}
@@ -223,14 +294,39 @@ const YourFriends = ({ friends, isLoading, selectedSound }) => {
               </p>
             </div>
           </div>
+
           <button
-            onClick={() => handleSendMessage(friendInfo.userId)}
-            // disabled={!!selectedSound}
-            className='px-3 py-1.5 rounded-md text-sm font-medium bg-primary text-white hover:bg-blue-600 transition-colors flex items-center gap-1'
+            onClick={() =>
+              !hasSentSound && !isSending && handleSendSound(friendInfo.userId)
+            }
+            disabled={hasSentSound || isSending}
+            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1 ${
+              hasSentSound
+                ? "bg-green-100 text-green-700 cursor-default"
+                : isSending
+                ? "bg-blue-500 text-white cursor-not-allowed opacity-80"
+                : "bg-primary text-white hover:bg-blue-600"
+            }`}
           >
-            <Mail size={16} /> Message
+            {hasSentSound ? (
+              <>
+                <CheckCircle size={16} />
+                <span>Sent</span>
+              </>
+            ) : isSending ? (
+              <>
+                <Loader2 size={16} className='animate-spin' />
+                <span>Sending...</span>
+              </>
+            ) : (
+              <>
+                <Mail size={16} />
+                <span>{selectedSound ? "Send Sound" : "Message"}</span>
+              </>
+            )}
           </button>
         </div>
+
         <div
           className='absolute top-0 right-0 h-full flex items-center'
           style={{
@@ -300,6 +396,8 @@ const YourFriends = ({ friends, isLoading, selectedSound }) => {
           )}
         </AnimatePresence>
       </div>
+
+      {/* Confirmation Modal */}
       <AnimatePresence>
         {isConfirmModalOpen && friendToRemove && (
           <motion.div
@@ -327,6 +425,7 @@ const YourFriends = ({ friends, isLoading, selectedSound }) => {
                   <X size={20} />
                 </button>
               </div>
+
               <div className='mb-6'>
                 <p className='text-gray-600'>
                   Are you sure you want to remove{" "}
@@ -336,6 +435,7 @@ const YourFriends = ({ friends, isLoading, selectedSound }) => {
                   from your friends?
                 </p>
               </div>
+
               <div className='flex justify-end gap-3'>
                 <motion.button
                   whileHover={{ scale: 1.05 }}

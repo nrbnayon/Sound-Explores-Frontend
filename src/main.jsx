@@ -9,6 +9,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import AppRoutes from "./routes";
 import { HelmetProvider } from "react-helmet-async";
+import { SelectedSoundProvider } from "./contexts/SelectedSoundContext";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -27,32 +28,34 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
       >
         <QueryClientProvider client={queryClient}>
-          <ThemeProvider>
-            <AuthProvider>
-              <Toaster
-                position='top-center'
-                toastOptions={{
-                  duration: 3000,
-                  style: {
-                    background: "#fff",
-                    color: "#333",
-                  },
-                  success: {
+          <SelectedSoundProvider>
+            <ThemeProvider>
+              <AuthProvider>
+                <Toaster
+                  position='top-center'
+                  toastOptions={{
+                    duration: 3000,
                     style: {
-                      border: "1px solid #00AE34",
+                      background: "#fff",
+                      color: "#333",
                     },
-                  },
-                  error: {
-                    style: {
-                      border: "1px solid #ff4b4b",
+                    success: {
+                      style: {
+                        border: "1px solid #00AE34",
+                      },
                     },
-                  },
-                }}
-              />
-              <AppRoutes />
-              <ReactQueryDevtools initialIsOpen={false} />
-            </AuthProvider>
-          </ThemeProvider>
+                    error: {
+                      style: {
+                        border: "1px solid #ff4b4b",
+                      },
+                    },
+                  }}
+                />
+                <AppRoutes />
+                <ReactQueryDevtools initialIsOpen={false} />
+              </AuthProvider>
+            </ThemeProvider>
+          </SelectedSoundProvider>
         </QueryClientProvider>
       </BrowserRouter>
     </React.StrictMode>

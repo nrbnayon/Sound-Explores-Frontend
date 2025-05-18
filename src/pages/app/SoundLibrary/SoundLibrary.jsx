@@ -1,23 +1,25 @@
 import { useState, useRef, useEffect } from "react";
 import { Menu, CircleUserRound } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import SideBar from "../../../components/common/SideBar";
 import SoundList from "../../../components/Sounds/SoundList";
 import { StatusBar } from "../../../components/common/StatusBar";
 import Friends from "../Friends/Friends";
 import { useQueryClient } from "@tanstack/react-query";
+import { useSelectedSound } from "../../../contexts/SelectedSoundContext";
 
 const SoundLibrary = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isSoundSelected, setIsSoundSelected] = useState(true);
   const [title, setTitle] = useState("Sound Library");
   const [scrolled, setScrolled] = useState(false);
-  const [selectedSoundForSending, setSelectedSoundForSending] = useState(null);
   const queryClient = useQueryClient();
-
   const sidebarRef = useRef(null);
   const mainContentRef = useRef(null);
+
+  const location = useLocation();
+  const { clearSelectedSound } = useSelectedSound ();
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -61,10 +63,16 @@ const SoundLibrary = () => {
     }
   }, [isSoundSelected, queryClient]);
 
-  const handleSendToFriend = (sound) => {
-    setSelectedSoundForSending(sound);
-    setIsSoundSelected(false); // Switch to friends view
-  };
+  useEffect(() => {
+    // This will run when the location changes (e.g., when navigating back from friends)
+    const isReturningToSoundLibrary = location.pathname === "/sound-library";
+
+    if (isReturningToSoundLibrary && !isSoundSelected) {
+      // If we're returning to sound library but the view is still on friends
+      clearSelectedSound();
+      console.log("Returned to Sound Library: clearing selected sound");
+    }
+  }, [location, isSoundSelected, clearSelectedSound]);
 
   const contentKey = isSoundSelected ? "sounds" : "friends";
 
@@ -135,12 +143,9 @@ const SoundLibrary = () => {
               className='h-full overflow-y-auto p-4'
             >
               {isSoundSelected ? (
-                <SoundList
-                  key={`sounds-${Date.now()}`}
-                  onSendToFriend={handleSendToFriend}
-                />
+                <SoundList key={`sounds-${Date.now()}`} />
               ) : (
-                <Friends selectedSound={selectedSoundForSending} />
+                <Friends />
               )}
             </motion.div>
           </AnimatePresence>
