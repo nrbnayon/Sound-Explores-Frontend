@@ -10,6 +10,7 @@ const SoundModal = ({ isOpen, onClose }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("general");
+  const [isPremium, setIsPremium] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [fileName, setFileName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -29,7 +30,7 @@ const SoundModal = ({ isOpen, onClose }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Handle file selection
+  // Handle file change
   const handleFileChange = (e) => {
     const file = e.target.files[0];
 
@@ -65,6 +66,7 @@ const SoundModal = ({ isOpen, onClose }) => {
         title,
         description,
         category,
+        isPremium,
         soundFile: selectedFile,
       });
 
@@ -72,17 +74,20 @@ const SoundModal = ({ isOpen, onClose }) => {
       setTitle("");
       setDescription("");
       setCategory("general");
+      setIsPremium(false);
       setSelectedFile(null);
       setFileName("");
       onClose();
+      toast.success("Sound added successfully!");
     } catch (error) {
       console.error("Error adding sound:", error);
+      toast.error("Failed to add sound");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Categories for sounds
+  // Categories for sounds - matched with backend soundCategories
   const categories = [
     { value: "Scary", label: "Scary" },
     { value: "Relaxing", label: "Relaxing" },
@@ -97,18 +102,18 @@ const SoundModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4'>
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg"
+        className='bg-background border border-border rounded-lg p-6 w-full max-w-md shadow-lg'
       >
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold">Add New Sound</h2>
+        <div className='flex justify-between items-center mb-6'>
+          <h2 className='text-xl font-bold text-foreground'>Add New Sound</h2>
           <Button
             onClick={onClose}
-            variant="ghost"
-            className="p-1 rounded-full h-auto w-auto"
+            variant='ghost'
+            className='p-1 rounded-full h-auto w-auto text-foreground'
           >
             <X size={20} />
           </Button>
@@ -116,61 +121,66 @@ const SoundModal = ({ isOpen, onClose }) => {
 
         <form onSubmit={handleSubmit}>
           {/* Title input */}
-          <div className="mb-4">
-            <label htmlFor="title" className="block text-sm font-medium mb-1">
+          <div className='mb-4'>
+            <label
+              htmlFor='title'
+              className='block text-sm font-medium mb-1 text-foreground'
+            >
               Title
             </label>
             <input
-              type="text"
-              id="title"
+              type='text'
+              id='title'
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className={`w-full p-2 border rounded-md ${
-                errors.title ? "border-red-500" : "border-gray-300"
+              className={`w-full p-2 bg-background border rounded-md text-foreground ${
+                errors.title ? "border-destructive" : "border-input"
               }`}
-              placeholder="Enter sound title"
+              placeholder='Enter sound title'
             />
             {errors.title && (
-              <p className="text-red-500 text-xs mt-1">{errors.title}</p>
+              <p className='text-destructive text-xs mt-1'>{errors.title}</p>
             )}
           </div>
 
           {/* Description input */}
-          <div className="mb-4">
+          <div className='mb-4'>
             <label
-              htmlFor="description"
-              className="block text-sm font-medium mb-1"
+              htmlFor='description'
+              className='block text-sm font-medium mb-1 text-foreground'
             >
               Description
             </label>
             <textarea
-              id="description"
+              id='description'
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className={`w-full p-2 border rounded-md ${
-                errors.description ? "border-red-500" : "border-gray-300"
+              className={`w-full p-2 bg-background border rounded-md text-foreground ${
+                errors.description ? "border-destructive" : "border-input"
               }`}
-              placeholder="Enter sound description"
+              placeholder='Enter sound description'
               rows={3}
             />
             {errors.description && (
-              <p className="text-red-500 text-xs mt-1">{errors.description}</p>
+              <p className='text-destructive text-xs mt-1'>
+                {errors.description}
+              </p>
             )}
           </div>
 
           {/* Category select */}
-          <div className="mb-4">
+          <div className='mb-4'>
             <label
-              htmlFor="category"
-              className="block text-sm font-medium mb-1"
+              htmlFor='category'
+              className='block text-sm font-medium mb-1 text-foreground'
             >
               Category
             </label>
             <select
-              id="category"
+              id='category'
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md"
+              className='w-full p-2 bg-background border border-input rounded-md text-foreground'
             >
               {categories.map((cat) => (
                 <option key={cat.value} value={cat.value}>
@@ -180,58 +190,104 @@ const SoundModal = ({ isOpen, onClose }) => {
             </select>
           </div>
 
+          {/* Premium toggle */}
+          <div className='mb-4'>
+            <div className='flex items-center justify-between'>
+              <label
+                htmlFor='isPremium'
+                className='text-sm font-medium text-foreground'
+              >
+                Premium Content
+              </label>
+              <label
+                className='relative inline-flex items-center cursor-pointer'
+                htmlFor='isPremium'
+              >
+                <input
+                  type='checkbox'
+                  id='isPremium'
+                  checked={isPremium}
+                  onChange={() => setIsPremium(!isPremium)}
+                  className='sr-only'
+                />
+                <div
+                  className={`w-11 h-6 rounded-full transition-colors ${
+                    isPremium ? "bg-primary" : "bg-gray-300 dark:bg-gray-600"
+                  }`}
+                >
+                  <div
+                    className={`${
+                      isPremium ? "translate-x-6" : "translate-x-1"
+                    } inline-block w-4 h-4 transform bg-white rounded-full transition-transform`}
+                  ></div>
+                </div>
+              </label>
+            </div>
+            <p className='text-xs text-muted-foreground mt-1'>
+              Toggle on to make this sound available only to premium users
+            </p>
+          </div>
+
           {/* File upload */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium mb-1">Sound File</label>
+          <div className='mb-6'>
+            <label className='block text-sm font-medium mb-1 text-foreground'>
+              Sound File
+            </label>
             <div
-              className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:bg-gray-50 transition-colors ${
-                errors.file ? "border-red-500" : "border-gray-300"
+              className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:bg-accent/50 transition-colors ${
+                errors.file ? "border-destructive" : "border-input"
               }`}
               onClick={() => document.getElementById("soundFile").click()}
             >
               <input
-                type="file"
-                id="soundFile"
-                accept="audio/*"
+                type='file'
+                id='soundFile'
+                accept='audio/*'
                 onChange={handleFileChange}
-                className="hidden"
+                className='hidden'
               />
 
               {fileName ? (
-                <div className="flex items-center justify-center gap-2 text-sm">
-                  <Music size={20} className="text-primary" />
-                  <span className="truncate max-w-[200px]">{fileName}</span>
+                <div className='flex items-center justify-center gap-2 text-sm'>
+                  <Music size={20} className='text-primary' />
+                  <span className='truncate max-w-[200px] text-foreground'>
+                    {fileName}
+                  </span>
                 </div>
               ) : (
-                <div className="py-4">
-                  <Upload size={32} className="mx-auto mb-2 text-gray-400" />
-                  <p className="text-sm text-gray-500">
+                <div className='py-4'>
+                  <Upload
+                    size={32}
+                    className='mx-auto mb-2 text-muted-foreground'
+                  />
+                  <p className='text-sm text-muted-foreground'>
                     Click to upload or drag and drop
                   </p>
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className='text-xs text-muted-foreground mt-1'>
                     MP3, WAV, or OGG (max 10MB)
                   </p>
                 </div>
               )}
             </div>
             {errors.file && (
-              <p className="text-red-500 text-xs mt-1">{errors.file}</p>
+              <p className='text-destructive text-xs mt-1'>{errors.file}</p>
             )}
           </div>
 
           {/* Submit button */}
-          <div className="flex justify-end gap-3">
+          <div className='flex justify-end gap-3'>
             <Button
-              type="button"
+              type='button'
               onClick={onClose}
-              className="bg-gray-200 hover:bg-gray-300 text-gray-800"
+              variant='secondary'
+              className='text-secondary-foreground'
               disabled={isSubmitting}
             >
               Cancel
             </Button>
             <Button
-              type="submit"
-              className="bg-primary hover:bg-blue-600 text-white"
+              type='submit'
+              className='bg-primary hover:bg-primary/90 text-primary-foreground'
               disabled={isSubmitting}
             >
               {isSubmitting ? "Adding..." : "Add Sound"}
