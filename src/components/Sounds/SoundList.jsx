@@ -1,4 +1,3 @@
-// src\components\Sounds\SoundList.jsx
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Checkbox } from "../ui/checkbox";
@@ -14,7 +13,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import SoundModal from "./SoundModal";
 import Pagination from "../ui/pagination";
 
-const SoundList = () => {
+const SoundList = ({ onSendToFriend }) => {
   const [sounds, setSounds] = useState([]);
   const [filteredSounds, setFilteredSounds] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -42,11 +41,9 @@ const SoundList = () => {
     limit: limit,
   });
 
-  // Delete mutations
   const deleteSoundMutation = useDeleteSound();
   const deleteMultipleSoundsMutation = useDeleteMultipleSounds();
 
-  // Helper function to format duration
   const formatDuration = (seconds) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = Math.floor(seconds % 60);
@@ -55,23 +52,15 @@ const SoundList = () => {
       .padStart(2, "0")}`;
   };
 
-  // Load audio durations for all sounds
   const loadAudioDurations = async (soundsList) => {
-    // Create a copy of the sounds list to update with durations
     const soundsWithDurations = [...soundsList];
-
-    // Process sounds in batches to avoid overwhelming the browser
     const BATCH_SIZE = 5;
 
     for (let i = 0; i < soundsWithDurations.length; i += BATCH_SIZE) {
       const batch = soundsWithDurations.slice(i, i + BATCH_SIZE);
-
-      // Create promises for each sound in the batch
       const promises = batch.map((sound, batchIndex) => {
         return new Promise((resolve) => {
           const index = i + batchIndex;
-
-          // Skip if the sound already has a valid duration
           if (sound.duration && sound.duration !== "00:00") {
             resolve();
             return;
@@ -79,12 +68,10 @@ const SoundList = () => {
 
           const audioUrl = `${import.meta.env.VITE_ASSETS_URL}${sound.link}`;
           const audio = new Audio();
-
-          // Set a timeout to avoid hanging indefinitely
           const timeoutId = setTimeout(() => {
             audio.removeEventListener("loadedmetadata", onLoaded);
             audio.removeEventListener("error", onError);
-            soundsWithDurations[index].duration = "00:00"; // Fallback duration
+            soundsWithDurations[index].duration = "00:00";
             resolve();
           }, 5000);
 
@@ -101,7 +88,7 @@ const SoundList = () => {
           const onError = () => {
             clearTimeout(timeoutId);
             console.error(`Error loading audio for ${sound.name}`);
-            soundsWithDurations[index].duration = "00:00"; // Fallback duration
+            soundsWithDurations[index].duration = "00:00";
             audio.removeEventListener("loadedmetadata", onLoaded);
             audio.removeEventListener("error", onError);
             resolve();
@@ -114,10 +101,7 @@ const SoundList = () => {
         });
       });
 
-      // Wait for this batch to complete
       await Promise.all(promises);
-
-      // Update the sounds state after each batch to show progress
       setSounds([...soundsWithDurations]);
       setFilteredSounds([...soundsWithDurations]);
     }
@@ -141,13 +125,8 @@ const SoundList = () => {
 
       setSounds(formattedSounds);
       setFilteredSounds(formattedSounds);
-
-      // Load durations asynchronously for all sounds
       loadAudioDurations(formattedSounds);
-
       setIsLoading(false);
-
-      // Update pagination data
       if (soundsData.meta) {
         setTotalPages(soundsData.meta.totalPage);
       }
@@ -161,7 +140,6 @@ const SoundList = () => {
     setSelectedSounds(selected);
   }, [sounds]);
 
-  // Stop audio when component unmounts
   useEffect(() => {
     return () => {
       if (audioRef.current) {
@@ -171,20 +149,15 @@ const SoundList = () => {
     };
   }, []);
 
-  // Toggle sound selection with ability to select multiple for admin
   const toggleSelect = (id) => {
     if (isAdmin) {
-      // Admin can select multiple sounds
       const updatedSounds = sounds.map((sound) =>
         sound.id === id ? { ...sound, selected: !sound.selected } : sound
       );
       setSounds(updatedSounds);
       applySearch(searchTerm, updatedSounds);
     } else {
-      // Regular users can only select one sound at a time
       const soundToUpdate = sounds.find((sound) => sound.id === id);
-
-      // If sound is already selected, unselect it, otherwise select it and unselect others
       if (soundToUpdate && soundToUpdate.selected) {
         const updatedSounds = sounds.map((sound) =>
           sound.id === id ? { ...sound, selected: false } : sound
@@ -203,46 +176,34 @@ const SoundList = () => {
     }
   };
 
-  // Play/pause sound function (only one at a time)
   const togglePlaySound = (id) => {
-    // Find sound to play
     const soundToPlay = sounds.find((sound) => sound.id === id);
-
     if (!soundToPlay) return;
 
-    // Format audio URL
     const audioUrl = `${import.meta.env.VITE_ASSETS_URL}${soundToPlay.link}`;
 
-    // If the sound is already playing, stop it
     if (soundToPlay.isPlaying) {
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current = null;
       }
-
-      // Update sounds state to reflect that nothing is playing
       const updatedSounds = sounds.map((sound) => ({
         ...sound,
         isPlaying: false,
       }));
-
       setSounds(updatedSounds);
       applySearch(searchTerm, updatedSounds);
       setCurrentlyPlayingId(null);
       return;
     }
 
-    // If another sound is playing, stop it first
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current = null;
     }
 
-    // Create and play new audio element
     const audio = new Audio(audioUrl);
     audioRef.current = audio;
-
-    // Update sound with playing state
     const updatedSounds = sounds.map((sound) =>
       sound.id === id
         ? { ...sound, isPlaying: true }
@@ -253,17 +214,13 @@ const SoundList = () => {
     applySearch(searchTerm, updatedSounds);
     setCurrentlyPlayingId(id);
 
-    // Start playing
     audio.play().catch((error) => {
       console.error("Error playing audio:", error);
       toast.error("Failed to play audio");
-
-      // Reset state if play fails
       const resetSounds = sounds.map((sound) => ({
         ...sound,
         isPlaying: false,
       }));
-
       setSounds(resetSounds);
       applySearch(searchTerm, resetSounds);
       setCurrentlyPlayingId(null);
@@ -271,12 +228,10 @@ const SoundList = () => {
     });
 
     audio.onended = () => {
-      // Reset playing state when audio ends
       const updatedSounds = sounds.map((sound) => ({
         ...sound,
         isPlaying: false,
       }));
-
       setSounds(updatedSounds);
       applySearch(searchTerm, updatedSounds);
       setCurrentlyPlayingId(null);
@@ -284,46 +239,37 @@ const SoundList = () => {
     };
   };
 
-  // Send to friend function (only selected sound)
   const sendToFriend = () => {
     const selectedSound = sounds.find((sound) => sound.selected);
     if (selectedSound) {
-      console.log("Sending sound to friend:", {
-        // id: selectedSound.id,
-        link: `${API_URL}${selectedSound?.link}`,
+      onSendToFriend({
+        link: `${API_URL}${selectedSound.link}`,
         soundTitle: selectedSound.name,
       });
-      toast.success(`Sending "${selectedSound.name}" to friend`);
-      // Here you would implement the actual send functionality
+    } else {
+      toast.error("Please select a sound first");
     }
   };
 
-  // Delete selected sounds
   const openDeleteModal = () => {
     setIsDeleteModalOpen(true);
   };
 
   const confirmDelete = () => {
-    // If only one sound is selected
     if (selectedSounds.length === 1) {
       deleteSoundMutation.mutate(selectedSounds[0]);
-    }
-    // If multiple sounds are selected
-    else if (selectedSounds.length > 1) {
+    } else if (selectedSounds.length > 1) {
       deleteMultipleSoundsMutation.mutate(selectedSounds);
     }
-
     setIsDeleteModalOpen(false);
   };
 
-  // Handle search
   const handleSearch = (e) => {
     const term = e.target.value;
     setSearchTerm(term);
     applySearch(term, sounds);
   };
 
-  // Apply search filter
   const applySearch = (term, soundList) => {
     if (!term || !term.trim()) {
       setFilteredSounds(soundList);
@@ -335,7 +281,6 @@ const SoundList = () => {
     }
   };
 
-  // Handle page change
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
@@ -344,7 +289,6 @@ const SoundList = () => {
     const generateLines = () => {
       const lineCount = 67;
       const lines = [];
-
       for (let i = 0; i < lineCount; i++) {
         const minHeight = isPlaying ? 5 : 8;
         const maxHeight = isPlaying ? 18 : 14;
@@ -352,7 +296,6 @@ const SoundList = () => {
           Math.floor(Math.random() * (maxHeight - minHeight + 1)) + minHeight;
         lines.push(height);
       }
-
       return lines;
     };
 
@@ -361,7 +304,6 @@ const SoundList = () => {
 
     useEffect(() => {
       let animationTimer;
-
       if (isPlaying) {
         animationTimer = setInterval(() => {
           setWaveLines((prevLines) => {
@@ -378,7 +320,6 @@ const SoundList = () => {
           });
         }, animationSpeed);
       }
-
       return () => {
         if (animationTimer) {
           clearInterval(animationTimer);
@@ -391,7 +332,6 @@ const SoundList = () => {
         {waveLines.map((height, index) => {
           const startY = 12 - height / 2;
           const endY = 12 + height / 2;
-
           return (
             <line
               key={index}
@@ -409,10 +349,8 @@ const SoundList = () => {
     );
   };
 
-  // Delete confirmation modal
   const DeleteModal = () => {
     if (!isDeleteModalOpen) return null;
-
     const selectedCount = selectedSounds.length;
     const selectedSoundNames = sounds
       .filter((sound) => sound.selected)
@@ -426,13 +364,11 @@ const SoundList = () => {
           className='bg-white rounded-lg p-6 w-11/12 max-w-md shadow-lg'
         >
           <h3 className='text-lg font-bold mb-4'>Confirm Delete</h3>
-
           <p className='mb-4'>
             {selectedCount === 1
               ? `Are you sure you want to delete "${selectedSoundNames[0]}"?`
               : `Are you sure you want to delete ${selectedCount} selected sounds?`}
           </p>
-
           {selectedCount > 1 && (
             <div className='max-h-32 overflow-y-auto mb-4 text-sm text-gray-600 bg-gray-50 p-2 rounded'>
               <ul className='list-disc pl-5'>
@@ -442,7 +378,6 @@ const SoundList = () => {
               </ul>
             </div>
           )}
-
           <div className='flex justify-end gap-3 mt-6'>
             <Button
               onClick={() => setIsDeleteModalOpen(false)}
@@ -468,7 +403,6 @@ const SoundList = () => {
       animate={{ opacity: 1 }}
       className='flex flex-col h-[calc(100vh-125px)] justify-between'
     >
-      {/* Search Bar and Admin Add Button */}
       <div className='sticky top-0 z-10 bg-background pb-2'>
         <div className='flex items-center gap-2'>
           <div className='relative text-black flex-1'>
@@ -481,7 +415,6 @@ const SoundList = () => {
             />
             <Search className='absolute left-3 top-3 h-5 w-5 text-muted-foreground' />
           </div>
-
           {isAdmin && (
             <Button
               onClick={() => setIsAddModalOpen(true)}
@@ -494,7 +427,6 @@ const SoundList = () => {
         </div>
       </div>
 
-      {/* Sound List - Only this section scrolls */}
       <div className='overflow-y-auto scroll-container flex-1 my-2'>
         <AnimatePresence>
           {isLoading || isFetchingData ? (
@@ -550,12 +482,9 @@ const SoundList = () => {
                       </p>
                     </div>
                   </div>
-
                   <div className='flex-1 mx-2'>
-                    {/* Dynamic waveform */}
                     <AudioWave isPlaying={sound.isPlaying} />
                   </div>
-
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
@@ -583,7 +512,6 @@ const SoundList = () => {
         </AnimatePresence>
       </div>
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className='mt-4 mb-4'>
           <div className='flex justify-center'>
@@ -596,7 +524,6 @@ const SoundList = () => {
         </div>
       )}
 
-      {/* Bottom Action Buttons - Static, doesn't scroll */}
       <div className='sticky bottom-5 space-y-2 opacity-100'>
         <motion.div
           initial={{ y: 20, opacity: 1 }}
@@ -604,7 +531,6 @@ const SoundList = () => {
           transition={{ delay: 0.2 }}
           className='flex flex-col gap-2'
         >
-          {/* Delete button (only shown for admin when sounds are selected) */}
           <AnimatePresence>
             {isAdmin && selectedSounds.length > 0 && (
               <motion.div
@@ -625,8 +551,6 @@ const SoundList = () => {
               </motion.div>
             )}
           </AnimatePresence>
-
-          {/* Send to Friend button */}
           <Button
             onClick={sendToFriend}
             disabled={!sounds.some((sound) => sound.selected)}
@@ -637,7 +561,6 @@ const SoundList = () => {
         </motion.div>
       </div>
 
-      {/* Modals */}
       <DeleteModal />
       {isAddModalOpen && (
         <SoundModal

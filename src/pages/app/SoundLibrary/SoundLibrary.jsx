@@ -9,23 +9,20 @@ import Friends from "../Friends/Friends";
 import { useQueryClient } from "@tanstack/react-query";
 
 const SoundLibrary = () => {
-  // State for sidebar visibility and active section
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isSoundSelected, setIsSoundSelected] = useState(true);
   const [title, setTitle] = useState("Sound Library");
   const [scrolled, setScrolled] = useState(false);
+  const [selectedSoundForSending, setSelectedSoundForSending] = useState(null);
   const queryClient = useQueryClient();
 
-  // Refs for detecting clicks outside sidebar
   const sidebarRef = useRef(null);
   const mainContentRef = useRef(null);
 
-  // Toggle sidebar
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
 
-  // Close sidebar when clicking outside
   const handleOutsideClick = (e) => {
     if (
       sidebarOpen &&
@@ -38,7 +35,6 @@ const SoundLibrary = () => {
     }
   };
 
-  // Track scroll for shadow effect
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 10) {
@@ -52,7 +48,6 @@ const SoundLibrary = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Add event listener for clicks
   useEffect(() => {
     document.addEventListener("mousedown", handleOutsideClick);
     return () => {
@@ -60,26 +55,27 @@ const SoundLibrary = () => {
     };
   }, [sidebarOpen]);
 
-  // When switching to sounds view, invalidate the sounds query cache
   useEffect(() => {
     if (isSoundSelected) {
-      // Invalidate the sounds queries when switching to sounds view
       queryClient.invalidateQueries({ queryKey: ["sounds"] });
     }
   }, [isSoundSelected, queryClient]);
 
-  // Create a key that changes when view changes to force remount of components
+  const handleSendToFriend = (sound) => {
+    setSelectedSoundForSending(sound);
+    setIsSoundSelected(false); // Switch to friends view
+  };
+
   const contentKey = isSoundSelected ? "sounds" : "friends";
 
   return (
-    <div className="bg-background flex flex-row justify-center w-full h-screen overflow-hidden">
+    <div className='bg-background flex flex-row justify-center w-full h-screen overflow-hidden'>
       <div
-        className="bg-card w-full max-w-md relative shadow-md"
+        className='bg-card w-full max-w-md relative shadow-md'
         ref={mainContentRef}
       >
         <StatusBar />
 
-        {/* Sidebar with fixed animation */}
         <AnimatePresence>
           {sidebarOpen && (
             <motion.div
@@ -88,7 +84,7 @@ const SoundLibrary = () => {
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="fixed top-0 z-40 bg-card w-56 h-full shadow-lg"
+              className='fixed top-0 z-40 bg-card w-56 h-full shadow-lg'
             >
               <SideBar
                 onTitleChange={setTitle}
@@ -100,7 +96,6 @@ const SoundLibrary = () => {
           )}
         </AnimatePresence>
 
-        {/* Header */}
         <motion.div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -112,44 +107,45 @@ const SoundLibrary = () => {
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            className="p-2 rounded-full hover:bg-background transition-colors"
+            className='p-2 rounded-full hover:bg-background transition-colors'
             onClick={toggleSidebar}
           >
-            <Menu className="w-5 h-5" />
+            <Menu className='w-5 h-5' />
           </motion.button>
-          <h1 className="text-xl font-bold">{title}</h1>
-          <Link to="/profile">
+          <h1 className='text-xl font-bold'>{title}</h1>
+          <Link to='/profile'>
             <motion.div
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
-              className="p-2 rounded-full hover:bg-background transition-colors"
+              className='p-2 rounded-full hover:bg-background transition-colors'
             >
-              <CircleUserRound className="w-5 h-5" />
+              <CircleUserRound className='w-5 h-5' />
             </motion.div>
           </Link>
         </motion.div>
 
-        {/* Content Area - using key to force remount */}
-        <div className="h-[calc(100vh-56px)] overflow-hidden">
-          <AnimatePresence mode="wait">
+        <div className='h-[calc(100vh-56px)] overflow-hidden'>
+          <AnimatePresence mode='wait'>
             <motion.div
               key={contentKey}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3 }}
-              className="h-full overflow-y-auto p-4"
+              className='h-full overflow-y-auto p-4'
             >
               {isSoundSelected ? (
-                <SoundList key={`sounds-${Date.now()}`} />
+                <SoundList
+                  key={`sounds-${Date.now()}`}
+                  onSendToFriend={handleSendToFriend}
+                />
               ) : (
-                <Friends />
+                <Friends selectedSound={selectedSoundForSending} />
               )}
             </motion.div>
           </AnimatePresence>
         </div>
 
-        {/* Overlay for mobile when sidebar is open */}
         <AnimatePresence>
           {sidebarOpen && (
             <motion.div
@@ -157,7 +153,7 @@ const SoundLibrary = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed inset-0 bg-opacity-60 z-30"
+              className='fixed inset-0 bg-opacity-60 z-30'
               onClick={() => setSidebarOpen(false)}
             />
           )}

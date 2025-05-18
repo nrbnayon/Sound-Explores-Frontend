@@ -44,8 +44,6 @@ export const useSendSoundMessage = () => {
         });
       });
       queryClient.invalidateQueries({ queryKey: MESSAGE_KEYS.lists() });
-
-      toast.success("Message sent successfully");
     },
     onError: (error) => {
       console.error("Send sound message error:", error);

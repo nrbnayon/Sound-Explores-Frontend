@@ -14,9 +14,7 @@ import {
 } from "../../../hooks/useConnections";
 import { useQueryClient } from "@tanstack/react-query";
 
-const Friends = () => {
-  // Tab management
-  // 0 = Your Friends, 1 = Find Friends, 2 = Friend Requests
+const Friends = ({ selectedSound }) => {
   const [selectedTab, setSelectedTab] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -24,10 +22,8 @@ const Friends = () => {
   const contentRef = useRef(null);
   const queryClient = useQueryClient();
 
-  // Track content height to prevent scrollbar flashing
   const [contentHeight, setContentHeight] = useState("auto");
 
-  // Get friend data using hooks
   const { data: friendListData, isLoading: isFriendListLoading } =
     useFriendList({
       search: searchTerm,
@@ -55,9 +51,7 @@ const Friends = () => {
       limit,
     });
 
-  // Refetch data when tab changes
   useEffect(() => {
-    // Force refetch data when switching to the "Requests" tab to ensure data is fresh
     if (selectedTab === 2) {
       queryClient.invalidateQueries({
         queryKey: ["connections", "list", "sent"],
@@ -68,10 +62,8 @@ const Friends = () => {
     }
   }, [selectedTab, queryClient]);
 
-  // Prepare data for components
   const friends = friendListData?.data?.data?.data || [];
   const totalFriendsPages = friendListData?.data?.data?.meta?.totalPage || 1;
-  console.log("total friends", totalFriendsPages, friends);
   const allUsers = allUsersData?.data?.data || [];
   const totalUsersPages = allUsersData?.data?.meta?.totalPage || 1;
   const receivedRequests = receivedRequestsData?.data?.data || [];
@@ -82,14 +74,12 @@ const Friends = () => {
   );
   const requests = [...receivedRequests, ...sentRequests];
 
-  // Handle search
   const handleSearch = (e) => {
     const term = e.target.value;
     setSearchTerm(term);
     setCurrentPage(1);
   };
 
-  // Handle page change
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
@@ -102,24 +92,21 @@ const Friends = () => {
       setSelectedTab(newTabState);
       setCurrentPage(1);
       setSearchTerm("");
-
       setTimeout(() => {
         setContentHeight("auto");
       }, 350);
     }
   };
 
-  // Count of pending friend requests (for badge)
   const pendingRequestsCount = receivedRequests.length;
 
-  // Get current tab pagination count
   const getCurrentTabTotalPages = () => {
     switch (selectedTab) {
-      case 0: // Your Friends
+      case 0:
         return totalFriendsPages;
-      case 1: // Find Friends
+      case 1:
         return totalUsersPages;
-      case 2: // Friend Requests
+      case 2:
         return totalRequestsPages;
       default:
         return 1;
@@ -132,7 +119,6 @@ const Friends = () => {
       animate={{ opacity: 1 }}
       className='flex flex-col h-[calc(100vh-120px)] overflow-hidden '
     >
-      {/* Tabs - Fixed, doesn't scroll */}
       <div className='sticky top-0 z-10 bg-background'>
         <div className='flex mb-4'>
           <div className='flex flex-row w-full border-b'>
@@ -160,7 +146,6 @@ const Friends = () => {
             >
               Find Friends
             </motion.button>
-
             <motion.button
               whileHover={{ backgroundColor: "#f9fafb" }}
               whileTap={{ scale: 0.95 }}
@@ -179,7 +164,6 @@ const Friends = () => {
           </div>
         </div>
 
-        {/* Search Bar - Fixed, doesn't scroll */}
         <div className='relative mb-4 px-1 text-black'>
           <input
             type='text'
@@ -198,7 +182,6 @@ const Friends = () => {
         </div>
       </div>
 
-      {/* Scrollable content with fixed scrollbar */}
       <div
         className='flex-1 overflow-y-auto scroll-container relative'
         ref={contentRef}
@@ -218,9 +201,12 @@ const Friends = () => {
             className='w-full friends-list-container'
           >
             {selectedTab === 0 && (
-              <YourFriends friends={friends} isLoading={isFriendListLoading} />
+              <YourFriends
+                friends={friends}
+                isLoading={isFriendListLoading}
+                selectedSound={selectedSound}
+              />
             )}
-
             {selectedTab === 1 && (
               <FindFriends
                 users={allUsers}
@@ -241,7 +227,6 @@ const Friends = () => {
                 }
               />
             )}
-
             {selectedTab === 2 && (
               <FriendRequests
                 receivedRequests={receivedRequests}
@@ -253,7 +238,6 @@ const Friends = () => {
         </AnimatePresence>
       </div>
 
-      {/* Pagination */}
       {getCurrentTabTotalPages() > 1 && (
         <div className='mt-4 mb-2'>
           <Pagination
