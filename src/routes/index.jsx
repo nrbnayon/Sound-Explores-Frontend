@@ -25,6 +25,9 @@ const PrivacyPolicy = lazy(() => import("../pages/app/Profile/PrivacyPolicy"));
 const Payment = lazy(() => import("../pages/app/Profile/Payment"));
 const ChatInterface = lazy(() => import("../pages/app/Chat/ChatInterface"));
 const NotFound = lazy(() => import("../pages/errors/NotFound"));
+const AudioPlayerPage = lazy(() =>
+  import("../pages/app/AudioPlayer/AudioPlayerPage")
+);
 
 const AppRoutes = () => {
   const location = useLocation();
@@ -34,39 +37,40 @@ const AppRoutes = () => {
   }, [location.pathname]);
 
   return (
-    <AnimatePresence mode="wait">
+    <AnimatePresence mode='wait'>
       <Suspense fallback={<LoadingScreen />}>
         <Routes location={location} key={location.pathname}>
           {/* Public Auth Routes - Only accessible when NOT logged in */}
           <Route element={<PublicRoute />}>
             <Route element={<AuthLayout />}>
-              <Route path="/" element={<SignIn />} />
-              <Route path="/signin" element={<SignIn />} />
-              <Route path="/signup" element={<SignUp />} />
-              <Route path="/forget-password" element={<ForgetPassword />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path='/' element={<SignIn />} />
+              <Route path='/signin' element={<SignIn />} />
+              <Route path='/signup' element={<SignUp />} />
+              <Route path='/forget-password' element={<ForgetPassword />} />
+              <Route path='/reset-password' element={<ResetPassword />} />
             </Route>
           </Route>
           <Route element={<VerificationRoute />}>
-            <Route path="/send-code" element={<SendOtp />} />
+            <Route path='/send-code' element={<SendOtp />} />
           </Route>
           {/* Protected Routes - Only accessible when logged in */}
           <Route element={<ProtectedRoute />}>
             <Route element={<MainLayout />}>
-              <Route path="/sound-library" element={<SoundLibrary />} />
-              <Route path="/all-friends" element={<FriendList />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/edit-profile" element={<EditProfile />} />
-              <Route path="/payment" element={<Payment />} />
-              <Route path="/chat-interface" element={<ChatInterface />} />
+              <Route path='/sound-library' element={<SoundLibrary />} />
+              <Route path='/all-friends' element={<FriendList />} />
+              <Route path='/profile' element={<Profile />} />
+              <Route path='/edit-profile' element={<EditProfile />} />
+              <Route path='/payment' element={<Payment />} />
+              <Route path='/chat-interface' element={<ChatInterface />} />
             </Route>
           </Route>
 
           {/* Public routes accessible to all users */}
-          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path='/privacy-policy' element={<PrivacyPolicy />} />
+          <Route path='/play/audios/:audioPath' element={<AudioPlayerPage />} />
 
           {/* 404 Route */}
-          <Route path="*" element={<NotFound />} />
+          <Route path='*' element={<NotFound />} />
         </Routes>
       </Suspense>
     </AnimatePresence>

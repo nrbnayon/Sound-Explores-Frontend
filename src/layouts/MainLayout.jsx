@@ -1,9 +1,12 @@
 // src\layouts\MainLayout.jsx
 import { Outlet, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useAudioUrlDetector } from "../hooks/useAudioUrlDetector";
 
 const MainLayout = () => {
   const location = useLocation();
+  useAudioUrlDetector();
+
   return (
     <motion.div
       key={location.pathname}

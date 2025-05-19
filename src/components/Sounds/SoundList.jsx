@@ -30,12 +30,12 @@ const SoundList = () => {
   const [limit] = useState(20);
   const audioRef = useRef(null);
   const { user } = useAuth();
-  const API_URL = import.meta.env.VITE_ASSETS_URL || "";
+  const API_URL = import.meta.env.VITE_BASE_URL || "";
   // Get the setSelectedSound function from context
   const navigate = useNavigate();
-
+  
   const { setSelectedSound } = useSelectedSound();
-
+  
   const isAdmin = user?.role === "ADMIN";
 
   const {
@@ -218,6 +218,7 @@ const SoundList = () => {
 
     // Format audio URL
     const audioUrl = `${import.meta.env.VITE_ASSETS_URL}${soundToPlay.link}`;
+    // navigate(`/play${soundToPlay.link}`);
 
     // If the sound is already playing, stop it
     if (soundToPlay.isPlaying) {
@@ -439,7 +440,7 @@ const SoundList = () => {
         <motion.div
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className='bg-white rounded-lg p-6 w-11/12 max-w-md shadow-lg'
+          className='bg-white text-black rounded-lg p-6 w-11/12 max-w-md shadow-lg'
         >
           <h3 className='text-lg font-bold mb-4'>Confirm Delete</h3>
 
@@ -642,14 +643,16 @@ const SoundList = () => {
             )}
           </AnimatePresence>
 
-          {/* Send to Friend button */}
-          <Button
-            onClick={sendToFriend}
-            disabled={!sounds.some((sound) => sound.selected)}
-            className='flex items-center justify-center gap-2.5 px-6 py-3 w-full bg-primary rounded-full h-auto hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium'
-          >
-            Send to Friend
-          </Button>
+          {/* Send to Friend button (hidden for admin) */}
+          {!isAdmin && (
+            <Button
+              onClick={sendToFriend}
+              disabled={!sounds.some((sound) => sound.selected)}
+              className='flex items-center justify-center gap-2.5 px-6 py-3 w-full bg-primary rounded-full h-auto hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium'
+            >
+              Send to Friend
+            </Button>
+          )}
         </motion.div>
       </div>
 

@@ -9,7 +9,7 @@ import toast from "react-hot-toast";
 const SoundModal = ({ isOpen, onClose }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("general");
+  const [category, setCategory] = useState("Celebration");
   const [isPremium, setIsPremium] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [fileName, setFileName] = useState("");
@@ -61,6 +61,15 @@ const SoundModal = ({ isOpen, onClose }) => {
 
     setIsSubmitting(true);
 
+    console.log(
+      "Sound::",
+      title,
+      description,
+      category,
+      isPremium,
+      selectedFile
+    );
+
     try {
       await addSoundMutation.mutateAsync({
         title,
@@ -73,7 +82,7 @@ const SoundModal = ({ isOpen, onClose }) => {
       // Reset form and close modal on success
       setTitle("");
       setDescription("");
-      setCategory("general");
+      setCategory("Celebration");
       setIsPremium(false);
       setSelectedFile(null);
       setFileName("");

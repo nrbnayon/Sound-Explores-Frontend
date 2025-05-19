@@ -3,10 +3,12 @@ import { Outlet, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "../contexts/AuthContext";
 import LoadingScreen from "../components/ui/LoadingScreen";
+import { useAudioUrlDetector } from "../hooks/useAudioUrlDetector";
 
 const AuthLayout = () => {
   const { loading } = useAuth();
   const location = useLocation();
+  useAudioUrlDetector();
 
   if (loading) {
     return <LoadingScreen />;

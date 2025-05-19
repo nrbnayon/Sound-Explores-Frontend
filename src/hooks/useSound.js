@@ -60,6 +60,7 @@ export const useAddSound = () => {
         JSON.stringify({
           title: soundData.title,
           description: soundData.description,
+          isPremium: soundData.isPremium,
           category: soundData.category,
         })
       );
