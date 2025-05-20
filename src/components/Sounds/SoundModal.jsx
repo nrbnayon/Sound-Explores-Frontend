@@ -41,9 +41,9 @@ const SoundModal = ({ isOpen, onClose }) => {
         return;
       }
 
-      // Check file size (max 10MB)
-      if (file.size > 10 * 1024 * 1024) {
-        toast.error("File size should be less than 10MB");
+      // Check file size (max 200MB)
+      if (file.size > 200 * 1024 * 1024) {
+        toast.error("File size should be less than 200MB");
         return;
       }
 
@@ -273,7 +273,7 @@ const SoundModal = ({ isOpen, onClose }) => {
                     Click to upload or drag and drop
                   </p>
                   <p className='text-xs text-muted-foreground mt-1'>
-                    MP3, WAV, or OGG (max 10MB)
+                    MP3, WAV, or OGG
                   </p>
                 </div>
               )}
