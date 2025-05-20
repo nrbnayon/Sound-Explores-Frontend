@@ -33,7 +33,7 @@ const FriendList = () => {
         className='bg-card w-full max-w-md relative shadow-md'
         ref={mainContentRef}
       >
-        <StatusBar />
+        {/* <StatusBar /> */}
 
         {/* Header */}
         <motion.div

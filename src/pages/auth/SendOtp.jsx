@@ -210,7 +210,7 @@ const SendOtp = () => {
     <div className='bg-background flex flex-col w-full min-h-screen'>
       {/* StatusBar and Header - fixed at top */}
       <div className='bg-card shadow-md'>
-        <StatusBar />
+        {/* <StatusBar /> */}
         <motion.div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}

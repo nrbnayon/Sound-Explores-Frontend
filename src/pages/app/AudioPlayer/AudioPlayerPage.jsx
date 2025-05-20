@@ -25,7 +25,7 @@ const AudioPlayerPage = () => {
       {audioUrl && (
         <main className='md:container mx-auto flex justify-center'>
           <div className='w-full md:max-w-md'>
-            <StatusBar />
+            {/* <StatusBar /> */}
             <AudioPlayerModal audioUrl={audioUrl} onClose={handleClose} />
           </div>
         </main>

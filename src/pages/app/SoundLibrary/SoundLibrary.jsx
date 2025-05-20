@@ -82,7 +82,7 @@ const SoundLibrary = () => {
         className='bg-card w-full max-w-md relative shadow-md'
         ref={mainContentRef}
       >
-        <StatusBar />
+        {/* <StatusBar /> */}
 
         <AnimatePresence>
           {sidebarOpen && (

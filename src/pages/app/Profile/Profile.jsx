@@ -142,7 +142,7 @@ const Profile = () => {
           />
           <meta property='og:type' content='profile' />
         </Helmet>
-        <StatusBar />
+        {/* <StatusBar /> */}
 
         {/* Header */}
         <Header

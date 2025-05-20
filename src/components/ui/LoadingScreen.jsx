@@ -5,7 +5,7 @@ const LoadingScreen = () => {
   return (
     <div className='md:container mx-auto flex justify-center'>
       <div className='w-full md:max-w-md mx-auto z-20'>
-        <StatusBar />
+        {/* <StatusBar /> */}
       </div>
       <div className='fixed inset-0 flex items-center justify-center bg-card shadow-md z-10'>
         <motion.div

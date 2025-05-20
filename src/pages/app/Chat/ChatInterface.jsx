@@ -69,7 +69,7 @@ const ChatInterface = () => {
   return (
     <div className="flex flex-col h-screen bg-background w-full mx-auto relative overflow-hidden">
       {/* Status bar */}
-      <StatusBar />
+      {/* <StatusBar /> */}
 
       {/* Header */}
       <Link
