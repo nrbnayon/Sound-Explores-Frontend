@@ -143,7 +143,7 @@ const Payment = () => {
             </div>
           </motion.div>
         </motion.div>
-        <form onSubmit={handleSubmit} className='p-4'>
+        <form onSubmit={handleSubmit} className='p-4 text-black'>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

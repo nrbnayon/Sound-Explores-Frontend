@@ -383,7 +383,7 @@ const YourFriends = ({ friends, isLoading }) => {
               animate={{ opacity: 1 }}
               className='flex flex-col items-center justify-center h-64 text-center'
             >
-              <div className='bg-gray-100 p-4 rounded-full mb-4'>
+              <div className='bg-gray-100 p-4 rounded-full mb-4 text-black'>
                 <UsersRound size={24} />
               </div>
               <p className='text-muted-foreground font-medium'>
