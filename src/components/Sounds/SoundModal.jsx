@@ -87,7 +87,6 @@ const SoundModal = ({ isOpen, onClose }) => {
       setSelectedFile(null);
       setFileName("");
       onClose();
-      toast.success("Sound added successfully!");
     } catch (error) {
       console.error("Error adding sound:", error);
       toast.error("Failed to add sound");
@@ -227,7 +226,7 @@ const SoundModal = ({ isOpen, onClose }) => {
                   <div
                     className={`${
                       isPremium ? "translate-x-6" : "translate-x-1"
-                    } inline-block w-4 h-4 transform bg-white rounded-full transition-transform`}
+                    } inline-block mt-1 w-4 h-4 transform bg-white rounded-full transition-transform`}
                   ></div>
                 </div>
               </label>

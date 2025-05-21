@@ -9,10 +9,11 @@ import {
   UsersRound,
   CheckCircle,
   Loader2,
+  ChevronLeft,
 } from "lucide-react";
 import { useCancelFriendRequest } from "../../hooks/useConnections";
 import { useAuth } from "../../contexts/AuthContext";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useSelectedSound } from "../../contexts/SelectedSoundContext";
 import { useSendSoundMessage } from "../../hooks/useMessages";
 
@@ -96,6 +97,12 @@ const YourFriends = ({ friends, isLoading }) => {
   const [sentToFriends, setSentToFriends] = useState({});
   // Track which friends are currently being sent a sound
   const [sendingToFriends, setSendingToFriends] = useState({});
+  // Track if the swipe tutorial has been shown
+  const [showSwipeTutorial, setShowSwipeTutorial] = useState(false);
+  // Track tutorial animation state
+  const [tutorialStep, setTutorialStep] = useState(0);
+  // Track if user has swiped before
+  const [hasSwipedBefore, setHasSwipedBefore] = useState(false);
 
   const { user } = useAuth();
   const API_URL = import.meta.env.VITE_ASSETS_URL || "";
@@ -105,7 +112,34 @@ const YourFriends = ({ friends, isLoading }) => {
   const { selectedSound, clearSelectedSound } = useSelectedSound();
   const navigate = useNavigate();
   const sendSoundMessage = useSendSoundMessage();
-  console.log("Selected sound in Your Friends Component::", selectedSound);
+
+  // Check if user has swiped before and setup tutorial
+  useEffect(() => {
+    const hasUserSwipedBefore =
+      localStorage.getItem("hasSwipedFriend") === "true";
+    setHasSwipedBefore(hasUserSwipedBefore);
+
+    // Show tutorial if user has not swiped before and there are friends
+    if (!hasUserSwipedBefore && friends && friends.length > 0) {
+      setTimeout(() => {
+        setShowSwipeTutorial(true);
+
+        // Auto advance tutorial steps
+        const timeout1 = setTimeout(() => setTutorialStep(1), 2000);
+        const timeout2 = setTimeout(() => setTutorialStep(2), 4000);
+        const timeout3 = setTimeout(() => {
+          setTutorialStep(0);
+          setShowSwipeTutorial(false);
+        }, 6000);
+
+        return () => {
+          clearTimeout(timeout1);
+          clearTimeout(timeout2);
+          clearTimeout(timeout3);
+        };
+      }, 1000); // Delay to show tutorial after page loads
+    }
+  }, [friends]);
 
   // Reset sent status when selected sound changes
   useEffect(() => {
@@ -184,13 +218,6 @@ const YourFriends = ({ friends, isLoading }) => {
 
   const handleSendSound = (friendId) => {
     if (selectedSound) {
-      console.log(
-        "XXXXXXXXXSending sound to friend:",
-        selectedSound,
-        "friendId, ",
-        friendId
-      );
-
       // Set sending state for this friend
       setSendingToFriends((prev) => ({
         ...prev,
@@ -238,33 +265,74 @@ const YourFriends = ({ friends, isLoading }) => {
     }
   };
 
+  // Handle when user swipes
+  const handleSwipe = () => {
+    // Record that user has swiped
+    if (!hasSwipedBefore) {
+      localStorage.setItem("hasSwipedFriend", "true");
+      setHasSwipedBefore(true);
+    }
+    // Hide tutorial
+    setShowSwipeTutorial(false);
+  };
+
+  // Dismiss swipe tutorial
+  const dismissSwipeTutorial = () => {
+    setShowSwipeTutorial(false);
+    localStorage.setItem("hasSwipedFriend", "true");
+    setHasSwipedBefore(true);
+  };
+
   // Swipeable friend item component
-  const SwipeableFriendItem = ({ connection, onRemove }) => {
+  const SwipeableFriendItem = ({ connection, onRemove, index }) => {
     const [isOpen, setIsOpen] = useState(false);
     const friendInfo = getFriendInfo(connection);
     const hasSentSound = sentToFriends[friendInfo.userId];
     const isSending = sendingToFriends[friendInfo.userId];
+    const isFirstItem = index === 0;
+    const shouldHighlight = isFirstItem && showSwipeTutorial;
 
     const swipeHandlers = useSwipe(
-      () => setIsOpen(true),
-      () => setIsOpen(false)
+      () => {
+        setIsOpen(true);
+        handleSwipe();
+      },
+      () => {
+        setIsOpen(false);
+        handleSwipe();
+      }
     );
 
     return (
-      <div className='relative overflow-hidden rounded-lg mb-3 shadow-sm'>
+      <div className="relative overflow-hidden rounded-lg mb-3 shadow-sm">
+        {shouldHighlight && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: [0, 1, 0] }}
+            transition={{ repeat: Infinity, duration: 2 }}
+            className="absolute inset-0 z-10 rounded-lg"
+            style={{
+              background:
+                "linear-gradient(90deg, rgba(59,130,246,0) 0%, rgba(59,130,246,0.2) 50%, rgba(59,130,246,0) 100%)",
+              pointerEvents: "none",
+            }}
+          />
+        )}
         <div
           {...swipeHandlers}
-          className='flex justify-between items-center bg-card rounded-lg p-3 touch-pan-y'
+          className={`flex justify-between items-center bg-card rounded-lg p-3 touch-pan-y ${
+            shouldHighlight ? "ring-2 ring-blue-400" : ""
+          }`}
           style={{
             transform: isOpen ? "translateX(-80px)" : "translateX(0)",
             transition: "transform 0.3s ease-out",
           }}
         >
-          <div className='flex items-center'>
-            <div className='flex-shrink-0 mr-3'>
+          <div className="flex items-center">
+            <div className="flex-shrink-0 mr-3">
               <motion.div
                 whileHover={{ scale: 1.05 }}
-                className='w-10 h-10 rounded-full overflow-hidden ring-2 ring-gray-100'
+                className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-gray-100"
               >
                 <img
                   src={
@@ -273,21 +341,21 @@ const YourFriends = ({ friends, isLoading }) => {
                       : "/profile.png"
                   }
                   alt={friendInfo.fullName || friendInfo.email}
-                  className='w-full h-full object-cover'
+                  className="w-full h-full object-cover"
                 />
               </motion.div>
             </div>
 
             <div>
-              <h3 className='text-base font-medium'>
+              <h3 className="text-base font-medium">
                 {friendInfo.fullName}
                 {friendInfo.nickname && (
-                  <span className='text-sm text-muted-foreground ml-1'>
+                  <span className="text-sm text-muted-foreground ml-1">
                     ({friendInfo.nickname})
                   </span>
                 )}
               </h3>
-              <p className='text-xs text-muted-foreground'>
+              <p className="text-xs text-muted-foreground">
                 {friendInfo.email.length > 25
                   ? `${friendInfo.email.slice(0, 25)}...`
                   : friendInfo.email}
@@ -315,7 +383,7 @@ const YourFriends = ({ friends, isLoading }) => {
               </>
             ) : isSending ? (
               <>
-                <Loader2 size={16} className='animate-spin' />
+                <Loader2 size={16} className="animate-spin" />
                 <span>Sending...</span>
               </>
             ) : (
@@ -328,7 +396,7 @@ const YourFriends = ({ friends, isLoading }) => {
         </div>
 
         <div
-          className='absolute top-0 right-0 h-full flex items-center'
+          className="absolute top-0 right-0 h-full flex items-center"
           style={{
             transform: isOpen ? "translateX(0)" : "translateX(80px)",
             transition: "transform 0.3s ease-out",
@@ -338,7 +406,7 @@ const YourFriends = ({ friends, isLoading }) => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => onRemove(connection._id)}
-            className='h-full px-4 bg-destructive text-white flex items-center justify-center'
+            className="h-full px-4 bg-destructive text-white flex items-center justify-center"
           >
             <UserMinus size={20} />
           </motion.button>
@@ -348,21 +416,75 @@ const YourFriends = ({ friends, isLoading }) => {
   };
 
   return (
-    <div className='flex flex-col w-full'>
-      <div className='min-h-[200px]'>
+    <div className="flex flex-col w-full">
+      <div className="min-h-[200px] relative">
+        {/* Swipe Tutorial Overlay */}
+        <AnimatePresence>
+          {showSwipeTutorial && friends && friends.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 z-10 bg-black bg-opacity-30 flex items-center justify-center pointer-events-none"
+            >
+              {tutorialStep === 0 && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="bg-blue-500 text-white px-5 py-3 rounded-lg shadow-lg"
+                >
+                  <p className="text-center mb-1 font-medium">Quick Tip</p>
+                  <p className="text-center">
+                    Swipe left on a friend to see remove option
+                  </p>
+                </motion.div>
+              )}
+
+              {tutorialStep === 1 && (
+                <motion.div
+                  initial={{ x: 0, opacity: 0 }}
+                  animate={{ x: -60, opacity: 1 }}
+                  transition={{ duration: 1 }}
+                  className="flex items-center bg-blue-500 text-white px-5 py-3 rounded-lg shadow-lg"
+                >
+                  <span className="mr-2">Swipe left</span>
+                  <ChevronLeft size={24} />
+                </motion.div>
+              )}
+
+              {tutorialStep === 2 && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="flex flex-col items-center bg-white text-black px-5 py-3 rounded-lg shadow-lg"
+                >
+                  <div className="flex items-center justify-center mb-2">
+                    <UserMinus size={20} className="text-red-500 mr-2" />
+                    <span className="font-medium">Remove Friend</span>
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    Will appear when you swipe left
+                  </p>
+                </motion.div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <AnimatePresence>
           {isLoading ? (
-            <div className='flex items-center justify-center h-64'>
-              <div className='loader'></div>
+            <div className="flex items-center justify-center h-64">
+              <div className="loader"></div>
             </div>
           ) : friends && friends.length > 0 ? (
             <motion.div
-              key='friends-list'
+              key="friends-list"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
-              {friends.map((friend) => (
+              {friends.map((friend, index) => (
                 <motion.div
                   key={friend._id}
                   initial={{ opacity: 0, y: 20 }}
@@ -373,6 +495,7 @@ const YourFriends = ({ friends, isLoading }) => {
                   <SwipeableFriendItem
                     connection={friend}
                     onRemove={handleInitiateRemove}
+                    index={index}
                   />
                 </motion.div>
               ))}
@@ -381,15 +504,15 @@ const YourFriends = ({ friends, isLoading }) => {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className='flex flex-col items-center justify-center h-64 text-center'
+              className="flex flex-col items-center justify-center h-64 text-center"
             >
-              <div className='bg-gray-100 p-4 rounded-full mb-4 text-black'>
+              <div className="bg-gray-100 p-4 rounded-full mb-4 text-black">
                 <UsersRound size={24} />
               </div>
-              <p className='text-muted-foreground font-medium'>
+              <p className="text-muted-foreground font-medium">
                 You don't have any friends yet
               </p>
-              <p className='text-muted-foreground text-sm mt-1'>
+              <p className="text-muted-foreground text-sm mt-1">
                 Go to Find Friends to connect with others
               </p>
             </motion.div>
@@ -404,43 +527,43 @@ const YourFriends = ({ friends, isLoading }) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
             onClick={handleCancelRemove}
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className='bg-white rounded-lg p-5 w-80 mx-4 shadow-lg'
+              className="bg-white rounded-lg p-5 w-80 mx-4 shadow-lg"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className='flex justify-between items-center mb-4'>
-                <h3 className='text-lg text-black font-medium'>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg text-black font-medium">
                   Remove Friend
                 </h3>
                 <button
                   onClick={handleCancelRemove}
-                  className='text-gray-500 hover:text-gray-700'
+                  className="text-gray-500 hover:text-gray-700"
                 >
                   <X size={20} />
                 </button>
               </div>
 
-              <div className='mb-6'>
-                <p className='text-gray-600'>
+              <div className="mb-6">
+                <p className="text-gray-600">
                   Are you sure you want to remove{" "}
-                  <span className='font-medium'>
+                  <span className="font-medium">
                     {getFriendInfo(friendToRemove).fullName}
                   </span>{" "}
                   from your friends?
                 </p>
               </div>
 
-              <div className='flex justify-end gap-3'>
+              <div className="flex justify-end gap-3">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className='px-4 py-2 rounded-md text-sm font-medium bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors'
+                  className="px-4 py-2 rounded-md text-sm font-medium bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors"
                   onClick={handleCancelRemove}
                   disabled={isRemoving}
                 >
@@ -449,7 +572,7 @@ const YourFriends = ({ friends, isLoading }) => {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className='px-4 py-2 rounded-md text-sm font-medium bg-destructive text-white hover:bg-red-600 transition-colors'
+                  className="px-4 py-2 rounded-md text-sm font-medium bg-destructive text-white hover:bg-red-600 transition-colors"
                   onClick={handleConfirmRemove}
                   disabled={isRemoving}
                 >

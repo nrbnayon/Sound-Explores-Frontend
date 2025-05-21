@@ -42,6 +42,7 @@ export function AuthProvider({ children }) {
         try {
           // Get user profile from API
           const response = await apiClient.get("/user/me");
+          console.log("Get user:::", response);
           setUser(response.data.data);
         } catch (error) {
           console.error("Error fetching user profile:", error);
@@ -88,12 +89,17 @@ export function AuthProvider({ children }) {
       const response = await apiClient.post("/auth/login", credentials);
       console.log("Sign in response:", response.data);
 
+      if (response) {
+        const { accessToken, refreshToken } = response.data.data;
+        setAuthTokens(accessToken, refreshToken);
+        const userData = await apiClient.get("/user/me");
+        console.log("Get user check auth:::", response);
+        checkAuth();
+        setUser(userData.data.data);
+      }
       // Set auth tokens in cookies
-      const { accessToken, refreshToken } = response.data.data;
-      setAuthTokens(accessToken, refreshToken);
 
       // Store user data in state
-      setUser(response.data.data.userData);
 
       toast.success("Successfully signed in!");
       navigate(ROUTES.SOUND_LIBRARY);
