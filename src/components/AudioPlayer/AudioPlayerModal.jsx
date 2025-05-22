@@ -13,7 +13,6 @@ import {
   Repeat,
   RefreshCw,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import { Button } from "../ui/button";
 
 const AudioPlayerModal = ({ audioUrl, onClose, autoplay = true }) => {
@@ -27,22 +26,66 @@ const AudioPlayerModal = ({ audioUrl, onClose, autoplay = true }) => {
   const [error, setError] = useState(null);
   const [loop, setLoop] = useState(false);
   const [playbackRate, setPlaybackRate] = useState(1);
-  const [autoplayAttempted, setAutoplayAttempted] = useState(false);
   const [showAutoplayPrompt, setShowAutoplayPrompt] = useState(false);
+  const [userInteracted, setUserInteracted] = useState(false);
 
   // References
   const audioRef = useRef(null);
   const progressBarRef = useRef(null);
-  const navigate = useNavigate();
+  const autoplayTriesRef = useRef(0);
 
-  // Auto-play function
+  // Enhanced autoplay function with multiple strategies
   const attemptAutoplay = async () => {
-    if (!audioRef.current || autoplayAttempted) return;
-
-    setAutoplayAttempted(true);
+    if (!audioRef.current || userInteracted) return;
 
     try {
-      // Set audio properties for autoplay
+      // Strategy 1: Try muted autoplay first (usually allowed)
+      audioRef.current.muted = true;
+      audioRef.current.volume = 0;
+
+      const playPromise = audioRef.current.play();
+
+      if (playPromise !== undefined) {
+        await playPromise;
+
+        // If muted autoplay succeeds, try to unmute after a brief delay
+        setTimeout(() => {
+          if (audioRef.current && !audioRef.current.paused) {
+            audioRef.current.muted = false;
+            audioRef.current.volume = volume;
+            setIsMuted(false);
+            setIsPlaying(true);
+            setShowAutoplayPrompt(false);
+          }
+        }, 100);
+      }
+    } catch (error) {
+      // Strategy 2: Show user prompt but try background loading
+      setShowAutoplayPrompt(true);
+      setIsPlaying(false);
+
+      // Strategy 3: Listen for any user interaction to start audio
+      const startOnInteraction = () => {
+        if (!userInteracted && audioRef.current) {
+          setUserInteracted(true);
+          forcePlay();
+          document.removeEventListener("click", startOnInteraction, true);
+          document.removeEventListener("touchstart", startOnInteraction, true);
+          document.removeEventListener("keydown", startOnInteraction, true);
+        }
+      };
+
+      document.addEventListener("click", startOnInteraction, true);
+      document.addEventListener("touchstart", startOnInteraction, true);
+      document.addEventListener("keydown", startOnInteraction, true);
+    }
+  };
+
+  // Force play with full volume
+  const forcePlay = async () => {
+    if (!audioRef.current) return;
+
+    try {
       audioRef.current.muted = false;
       audioRef.current.volume = volume;
 
@@ -54,41 +97,45 @@ const AudioPlayerModal = ({ audioUrl, onClose, autoplay = true }) => {
         setShowAutoplayPrompt(false);
       }
     } catch (error) {
-      console.log("Autoplay prevented by browser:", error);
-      // Show a prompt to user to click play
+      console.error("Force play failed:", error);
       setShowAutoplayPrompt(true);
-      setIsPlaying(false);
     }
   };
 
   useEffect(() => {
-    const audio = new Audio(audioUrl);
+    const audio = new Audio();
     audioRef.current = audio;
+
+    // Set audio properties
+    audio.src = audioUrl;
     audio.volume = volume;
     audio.loop = loop;
     audio.playbackRate = playbackRate;
-
-    // Enable autoplay attributes
-    audio.autoplay = autoplay;
     audio.preload = "auto";
+
+    // Try to enable autoplay attributes (limited browser support)
+    audio.autoplay = true;
+    audio.defaultMuted = false;
 
     const onLoadedMetadata = () => {
       setDuration(audio.duration);
       setLoading(false);
 
-      // Attempt autoplay after metadata is loaded
+      // Attempt autoplay strategies
       if (autoplay) {
-        // Small delay to ensure audio is ready
         setTimeout(() => {
           attemptAutoplay();
-        }, 100);
+        }, 50);
       }
     };
 
-    const onCanPlayThrough = () => {
-      // Audio is ready to play through without buffering
-      if (autoplay && !autoplayAttempted) {
-        attemptAutoplay();
+    const onCanPlay = () => {
+      // Audio buffer is ready
+      if (autoplay && !userInteracted && autoplayTriesRef.current < 3) {
+        autoplayTriesRef.current++;
+        setTimeout(() => {
+          attemptAutoplay();
+        }, 100 * autoplayTriesRef.current);
       }
     };
 
@@ -118,26 +165,32 @@ const AudioPlayerModal = ({ audioUrl, onClose, autoplay = true }) => {
       setIsPlaying(false);
     };
 
+    const onLoadStart = () => {
+      setLoading(true);
+    };
+
     // Set up event listeners
     audio.addEventListener("loadedmetadata", onLoadedMetadata);
-    audio.addEventListener("canplaythrough", onCanPlayThrough);
+    audio.addEventListener("canplay", onCanPlay);
     audio.addEventListener("timeupdate", onTimeUpdate);
     audio.addEventListener("ended", onEnded);
     audio.addEventListener("error", onError);
     audio.addEventListener("play", onPlay);
     audio.addEventListener("pause", onPause);
+    audio.addEventListener("loadstart", onLoadStart);
 
     // Clean up
     return () => {
       audio.pause();
       audio.currentTime = 0;
       audio.removeEventListener("loadedmetadata", onLoadedMetadata);
-      audio.removeEventListener("canplaythrough", onCanPlayThrough);
+      audio.removeEventListener("canplay", onCanPlay);
       audio.removeEventListener("timeupdate", onTimeUpdate);
       audio.removeEventListener("ended", onEnded);
       audio.removeEventListener("error", onError);
       audio.removeEventListener("play", onPlay);
       audio.removeEventListener("pause", onPause);
+      audio.removeEventListener("loadstart", onLoadStart);
     };
   }, [audioUrl, loop, playbackRate, autoplay]);
 
@@ -148,36 +201,55 @@ const AudioPlayerModal = ({ audioUrl, onClose, autoplay = true }) => {
     }
   }, [volume, isMuted]);
 
-  // Handle any user interaction to enable autoplay
+  // Global interaction listener for autoplay
   useEffect(() => {
-    const handleUserInteraction = () => {
-      if (showAutoplayPrompt && !isPlaying) {
-        attemptAutoplay();
-      }
-    };
+    if (showAutoplayPrompt && !userInteracted) {
+      const handleGlobalInteraction = (e) => {
+        // Any click, touch, or key press enables autoplay
+        setUserInteracted(true);
+        forcePlay();
+      };
 
-    // Add event listeners for user interaction
-    document.addEventListener("click", handleUserInteraction);
-    document.addEventListener("touchstart", handleUserInteraction);
-    document.addEventListener("keydown", handleUserInteraction);
+      // Listen on document for any interaction
+      document.addEventListener("mousedown", handleGlobalInteraction, true);
+      document.addEventListener("touchstart", handleGlobalInteraction, true);
+      document.addEventListener("keydown", handleGlobalInteraction, true);
 
-    return () => {
-      document.removeEventListener("click", handleUserInteraction);
-      document.removeEventListener("touchstart", handleUserInteraction);
-      document.removeEventListener("keydown", handleUserInteraction);
-    };
-  }, [showAutoplayPrompt, isPlaying]);
+      return () => {
+        document.removeEventListener(
+          "mousedown",
+          handleGlobalInteraction,
+          true
+        );
+        document.removeEventListener(
+          "touchstart",
+          handleGlobalInteraction,
+          true
+        );
+        document.removeEventListener("keydown", handleGlobalInteraction, true);
+      };
+    }
+  }, [showAutoplayPrompt, userInteracted]);
 
   const handleClose = () => {
     if (audioRef.current) {
       audioRef.current.pause();
     }
     onClose();
-    navigate("/");
+  };
+
+  // Handle clicking outside the modal - start audio if paused
+  const handleBackdropClick = () => {
+    if (!isPlaying && !loading && !error && audioRef.current) {
+      setUserInteracted(true);
+      togglePlayPause();
+    }
   };
 
   const togglePlayPause = () => {
     if (!audioRef.current) return;
+
+    setUserInteracted(true);
 
     if (isPlaying) {
       audioRef.current.pause();
@@ -202,11 +274,13 @@ const AudioPlayerModal = ({ audioUrl, onClose, autoplay = true }) => {
 
   const toggleMute = () => {
     setIsMuted(!isMuted);
+    setUserInteracted(true);
   };
 
   const handleVolumeChange = (e) => {
     const newVolume = parseFloat(e.target.value);
     setVolume(newVolume);
+    setUserInteracted(true);
     if (newVolume > 0 && isMuted) {
       setIsMuted(false);
     }
@@ -272,6 +346,7 @@ const AudioPlayerModal = ({ audioUrl, onClose, autoplay = true }) => {
       const newTime = position * duration;
       setCurrentTime(newTime);
       audioRef.current.currentTime = newTime;
+      setUserInteracted(true);
     }
   };
 
@@ -326,10 +401,10 @@ const AudioPlayerModal = ({ audioUrl, onClose, autoplay = true }) => {
     }, [isPlaying]);
 
     return (
-      <div className="w-full relative h-32 flex items-center justify-center">
+      <div className='w-full relative h-32 flex items-center justify-center'>
         <svg
           viewBox={`0 0 ${waveLines.length * 2} 24`}
-          className="w-full h-full"
+          className='w-full h-full'
         >
           {waveLines.map((height, index) => {
             const x = index * 2;
@@ -348,52 +423,55 @@ const AudioPlayerModal = ({ audioUrl, onClose, autoplay = true }) => {
                 x2={x}
                 y2={endY}
                 stroke={isPlayed ? "#00ae34" : "#D1D5DB"}
-                strokeWidth="0.5"
-                strokeLinecap="round"
+                strokeWidth='0.5'
+                strokeLinecap='round'
               />
             );
           })}
         </svg>
 
-        {/* Autoplay prompt overlay */}
+        {/* Enhanced autoplay prompt overlay */}
         {showAutoplayPrompt && !error && !loading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-90 rounded-lg">
-            <div className="text-center p-4">
-              <div className="animate-pulse mb-3">
-                <Play size={24} className="mx-auto text-blue-600" />
+          <div className='absolute inset-0 flex items-center justify-center bg-white bg-opacity-50 rounded-lg'>
+            <div className='text-center p-4'>
+              <div className='animate-bounce mb-3'>
+                <Play size={32} className='mx-auto text-blue-600' />
               </div>
-              <p className="text-sm text-gray-600 mb-2">
-                Click anywhere to start playing
+              <p className='text-lg font-semibold text-gray-800 mb-2'>
+                Ready to Play!
               </p>
-              <Button
+              <p className='text-sm text-gray-600 mb-4'>
+                Click anywhere or press any key to start
+              </p>
+              {/* <Button
                 onClick={togglePlayPause}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full text-sm"
+                className='bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 mb-2 rounded-full text-sm font-medium shadow-lg transform hover:scale-105 transition-all'
               >
-                Start Playing
-              </Button>
+                ▶ Start Playing
+              </Button> */}
             </div>
           </div>
         )}
 
         {error ? (
-          <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-80">
-            <p className="text-red-500 text-sm font-medium p-2 rounded">
+          <div className='absolute inset-0 flex items-center justify-center bg-white bg-opacity-80'>
+            <p className='text-red-500 text-sm font-medium p-2 rounded'>
               {error}
             </p>
           </div>
         ) : loading ? (
-          <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-80">
-            <div className="flex items-center space-x-2">
+          <div className='absolute inset-0 flex items-center justify-center bg-white bg-opacity-80'>
+            <div className='flex items-center space-x-2'>
               <div
-                className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"
+                className='w-3 h-3 bg-blue-600 rounded-full animate-pulse'
                 style={{ animationDelay: "0ms" }}
               ></div>
               <div
-                className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"
+                className='w-3 h-3 bg-blue-600 rounded-full animate-pulse'
                 style={{ animationDelay: "300ms" }}
               ></div>
               <div
-                className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"
+                className='w-3 h-3 bg-blue-600 rounded-full animate-pulse'
                 style={{ animationDelay: "600ms" }}
               ></div>
             </div>
@@ -408,58 +486,55 @@ const AudioPlayerModal = ({ audioUrl, onClose, autoplay = true }) => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 text-black bg-black bg-opacity-75 flex items-center justify-center z-50"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) {
-          handleClose();
-        }
-      }}
+      className='fixed inset-0 text-black bg-black bg-opacity-75 flex items-center justify-center z-50'
+      onClick={handleBackdropClick}
     >
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
-        className="bg-white rounded-xl p-6 w-11/12 max-w-md shadow-2xl"
+        className='bg-white rounded-xl p-6 w-11/12 max-w-md shadow-2xl'
+        onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-bold">Sound Player</h3>
+        <div className='flex justify-between items-center mb-4'>
+          <h3 className='text-lg font-bold'>Sound Player</h3>
           <Button
             onClick={handleClose}
-            variant="ghost"
-            className="rounded-full h-8 w-8 p-0 hover:bg-gray-100"
+            variant='ghost'
+            className='rounded-full h-8 w-8 p-0 hover:bg-gray-100'
           >
             <X size={20} />
           </Button>
         </div>
 
-        <div className="space-y-4">
+        <div className='space-y-4'>
           {/* Waveform visualization */}
           <AudioWave />
 
           {/* Progress bar */}
-          <div className="mt-2 mb-4">
+          <div className='mt-2 mb-4'>
             <div
               ref={progressBarRef}
-              className="h-2 bg-gray-200 rounded-full overflow-hidden cursor-pointer relative"
+              className='h-2 bg-gray-200 rounded-full overflow-hidden cursor-pointer relative'
               onClick={handleProgressChange}
             >
               <div
-                className="h-full bg-blue-600 transition-all duration-100"
+                className='h-full bg-blue-600 transition-all duration-100'
                 style={{ width: `${progressPercentage}%` }}
               ></div>
             </div>
-            <div className="flex justify-between text-xs text-gray-500 mt-1">
+            <div className='flex justify-between text-xs text-gray-500 mt-1'>
               <span>{formatTime(currentTime)}</span>
               <span>{formatTime(duration)}</span>
             </div>
           </div>
 
           {/* Main controls */}
-          <div className="flex items-center justify-center space-x-4">
+          <div className='flex items-center justify-center space-x-4'>
             <Button
               onClick={() => skipTime(-10)}
-              variant="ghost"
-              className="rounded-full h-10 w-10 p-0 hover:bg-gray-100"
+              variant='ghost'
+              className='rounded-full h-10 w-10 p-0 hover:bg-gray-100'
               disabled={loading || !!error}
             >
               <SkipBack size={18} />
@@ -477,14 +552,14 @@ const AudioPlayerModal = ({ audioUrl, onClose, autoplay = true }) => {
               {isPlaying ? (
                 <Pause size={22} />
               ) : (
-                <Play size={22} className="ml-1" />
+                <Play size={22} className='ml-1' />
               )}
             </Button>
 
             <Button
               onClick={() => skipTime(10)}
-              variant="ghost"
-              className="rounded-full h-10 w-10 p-0 hover:bg-gray-100"
+              variant='ghost'
+              className='rounded-full h-10 w-10 p-0 hover:bg-gray-100'
               disabled={loading || !!error}
             >
               <SkipForward size={18} />
@@ -492,31 +567,31 @@ const AudioPlayerModal = ({ audioUrl, onClose, autoplay = true }) => {
           </div>
 
           {/* Secondary controls */}
-          <div className="flex items-center justify-between mt-6 border-t pt-4">
+          <div className='flex items-center justify-between mt-6 border-t pt-4'>
             {/* Volume control */}
-            <div className="flex items-center space-x-2">
+            <div className='flex items-center space-x-2'>
               <Button
                 onClick={toggleMute}
-                variant="ghost"
-                className="rounded-full h-8 w-8 p-0 hover:bg-gray-100"
+                variant='ghost'
+                className='rounded-full h-8 w-8 p-0 hover:bg-gray-100'
                 disabled={loading || !!error}
               >
                 {getVolumeIcon()}
               </Button>
               <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.01"
+                type='range'
+                min='0'
+                max='1'
+                step='0.01'
                 value={volume}
                 onChange={handleVolumeChange}
-                className="w-20 h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                className='w-20 h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer'
                 disabled={loading || !!error}
               />
             </div>
 
             {/* Loop and speed controls */}
-            <div className="flex items-center space-x-2">
+            <div className='flex items-center space-x-2'>
               <Button
                 onClick={toggleLoop}
                 variant={loop ? "secondary" : "ghost"}
@@ -530,12 +605,12 @@ const AudioPlayerModal = ({ audioUrl, onClose, autoplay = true }) => {
 
               <Button
                 onClick={changePlaybackRate}
-                variant="ghost"
-                className="rounded-full flex items-center justify-center text-xs font-medium hover:bg-gray-100 px-2 h-8"
+                variant='ghost'
+                className='rounded-full flex items-center justify-center text-xs font-medium hover:bg-gray-100 px-2 h-8'
                 disabled={loading || !!error}
-                title="Change playback speed"
+                title='Change playback speed'
               >
-                <RefreshCw size={14} className="mr-1" />
+                <RefreshCw size={14} className='mr-1' />
                 {playbackRate}x
               </Button>
             </div>
