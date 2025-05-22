@@ -309,7 +309,7 @@ const YourFriends = ({ friends, isLoading }) => {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: [0, 1, 0] }}
-            transition={{ repeat: Infinity, duration: 2 }}
+            transition={{ repeat: Infinity, duration: 1 }}
             className="absolute inset-0 z-10 rounded-lg"
             style={{
               background:
