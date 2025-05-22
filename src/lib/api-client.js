@@ -17,13 +17,13 @@ const apiClient = axios.create({
 // Request interceptor to add auth token from cookies if available
 apiClient.interceptors.request.use(
   (config) => {
-    console.log(`API Request: ${config.method.toUpperCase()} ${config.url}`);
+    // console.log(`API Request: ${config.method.toUpperCase()} ${config.url}`);
 
     // Get access token from cookie and add it to the Authorization header
     const accessToken = getCookie("accessToken");
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
-      console.log("Adding Authorization header with access token");
+      // console.log("Adding Authorization header with access token");
     }
 
     return config;
@@ -53,7 +53,7 @@ const processQueue = (error, token = null) => {
 // Response interceptor for handling common error scenarios
 apiClient.interceptors.response.use(
   (response) => {
-    console.log(`API Response: ${response.status} ${response.config.url}`);
+    // console.log(`API Response: ${response.status} ${response.config.url}`);
     return response;
   },
   async (error) => {
@@ -123,7 +123,7 @@ apiClient.interceptors.response.use(
 
 // Helper function to clear auth state
 function clearAuthState() {
-  console.log("Clearing authentication state");
+  // console.log("Clearing authentication state");
   removeAuthTokens();
 }
 

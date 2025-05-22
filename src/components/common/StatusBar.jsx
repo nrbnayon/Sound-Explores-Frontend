@@ -50,7 +50,7 @@ export const StatusBar = () => {
           };
         }
       } catch (error) {
-        console.log("Battery API not available:", error);
+        // console.log("Battery API not available:", error);
       }
     };
 

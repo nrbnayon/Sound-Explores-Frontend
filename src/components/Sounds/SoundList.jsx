@@ -45,7 +45,7 @@ const SoundList = () => {
     ? friends.map((friend) => friend._id)
     : [];
 
-  console.log("Total friends::", friendIds);
+  // console.log("Total friends::", friendIds);
 
   const isAdmin = user?.role === "ADMIN";
 

@@ -31,18 +31,18 @@ export function AuthProvider({ children }) {
   const checkAuth = useCallback(async () => {
     try {
       setLoading(true);
-      console.log("Checking authentication status");
+      // console.log("Checking authentication status");
 
       // Check for the authentication cookie
       if (
         hasCookie("isAuthenticated") &&
         (hasCookie("accessToken") || hasCookie("refreshToken"))
       ) {
-        console.log("Auth cookie found, fetching user profile");
+        // console.log("Auth cookie found, fetching user profile");
         try {
           // Get user profile from API
           const response = await apiClient.get("/user/me");
-          console.log("Get user:::", response);
+          // console.log("Get user:::", response);
           setUser(response.data.data);
         } catch (error) {
           console.error("Error fetching user profile:", error);
@@ -54,7 +54,7 @@ export function AuthProvider({ children }) {
           }
         }
       } else {
-        console.log("No auth cookie found, setting user to null");
+        // console.log("No auth cookie found, setting user to null");
         setUser(null);
       }
     } catch (error) {
@@ -72,9 +72,9 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     if (location.pathname === ROUTES.SEND_CODE) {
       if (!location.state?.email) {
-        console.log(
-          "No email provided for verification, redirecting to signup"
-        );
+        // console.log(
+        //   "No email provided for verification, redirecting to signup"
+        // );
         navigate(ROUTES.HOME);
       }
     }
@@ -84,16 +84,16 @@ export function AuthProvider({ children }) {
   const signIn = async (credentials) => {
     try {
       setLoading(true);
-      console.log("Signing in with:", credentials.email);
+      // console.log("Signing in with:", credentials.email);
 
       const response = await apiClient.post("/auth/login", credentials);
-      console.log("Sign in response:", response.data);
+      // console.log("Sign in response:", response.data);
 
       if (response) {
         const { accessToken, refreshToken } = response.data.data;
         setAuthTokens(accessToken, refreshToken);
         const userData = await apiClient.get("/user/me");
-        console.log("Get user check auth:::", response);
+        // console.log("Get user check auth:::", response);
         checkAuth();
         setUser(userData.data.data);
       }
@@ -117,10 +117,10 @@ export function AuthProvider({ children }) {
   const signUp = async (userData) => {
     try {
       setLoading(true);
-      console.log("Creating new user account:", userData.email);
+      // console.log("Creating new user account:", userData.email);
 
       const response = await apiClient.post("/user/create-user", userData);
-      console.log("Sign up response:", response.data);
+      // console.log("Sign up response:", response.data);
 
       // Start verification process
       if (response.data.success) {
@@ -169,7 +169,7 @@ export function AuthProvider({ children }) {
   // Sign out function
   const signOut = async () => {
     try {
-      console.log("Signing out user");
+      // console.log("Signing out user");
       removeAuthTokens();
       setUser(null);
       setVerificationInProgress(false);
@@ -186,12 +186,12 @@ export function AuthProvider({ children }) {
   const sendPasswordResetEmail = async (email) => {
     try {
       setLoading(true);
-      console.log("Requesting password reset for:", email);
+      // console.log("Requesting password reset for:", email);
 
       const response = await apiClient.patch("/auth/forgot-password-request", {
         email,
       });
-      console.log("Get response Forget Pass::", response);
+      // console.log("Get response Forget Pass::", response);
 
       // Based on your API response structure
       if (response?.data?.success) {
@@ -241,7 +241,7 @@ export function AuthProvider({ children }) {
   const verifyOtp = async (email, otp) => {
     try {
       setLoading(true);
-      console.log("Verifying OTP for:", email);
+      // console.log("Verifying OTP for:", email);
 
       if (!email || !otp) {
         throw new Error("Email and OTP are required");
@@ -251,7 +251,7 @@ export function AuthProvider({ children }) {
         email,
         otp,
       });
-      console.log("OTP verification response:", response.data);
+      // console.log("OTP verification response:", response.data);
 
       // Mark verification as complete
       setVerificationInProgress(false);
@@ -285,14 +285,14 @@ export function AuthProvider({ children }) {
   const resendOtp = async (email) => {
     try {
       setLoading(true);
-      console.log("Resending OTP for:", email);
+      // console.log("Resending OTP for:", email);
 
       if (!email) {
         throw new Error("Email is required");
       }
 
       const response = await apiClient.patch("/auth/resend-code", { email });
-      console.log("Resend OTP response:", response.data);
+      // console.log("Resend OTP response:", response.data);
 
       toast.success("Verification code resent successfully");
       return true;
@@ -309,7 +309,7 @@ export function AuthProvider({ children }) {
   const resetPassword = async (passwords, token) => {
     try {
       setLoading(true);
-      console.log("Resetting password with token");
+      // console.log("Resetting password with token");
 
       // Use the token in the Authorization header
       const response = await apiClient.patch(
@@ -322,7 +322,7 @@ export function AuthProvider({ children }) {
         }
       );
 
-      console.log("Reset password response:", response.data);
+      // console.log("Reset password response:", response.data);
 
       toast.success("Password reset successfully");
       navigate(ROUTES.SIGNIN);
@@ -340,13 +340,13 @@ export function AuthProvider({ children }) {
   const changePassword = async (passwords) => {
     try {
       setLoading(true);
-      console.log("Changing password");
+      // console.log("Changing password");
 
       const response = await apiClient.patch(
         "/auth/update-password",
         passwords
       );
-      console.log("Change password response:", response.data);
+      // console.log("Change password response:", response.data);
 
       toast.success("Password changed successfully");
       return true;
@@ -363,14 +363,14 @@ export function AuthProvider({ children }) {
   const updateProfile = async (profileData) => {
     try {
       setLoading(true);
-      console.log("Updating user profile:", profileData);
+      // console.log("Updating user profile:", profileData);
 
       const response = await apiClient.patch(
         "/user/update-profile-data",
         profileData
       );
 
-      console.log("Update profile response:", response.data);
+      // console.log("Update profile response:", response.data);
 
       if (response?.data?.success) {
         // Get the updated user data from the response

@@ -71,7 +71,7 @@ const Friends = () => {
   // Prepare data for components
   const friends = friendListData?.data?.data?.data || [];
   const totalFriendsPages = friendListData?.data?.data?.meta?.totalPage || 1;
-  console.log("total friends", totalFriendsPages, friends);
+  // console.log("total friends", totalFriendsPages, friends);
   const allUsers = allUsersData?.data?.data || [];
   const totalUsersPages = allUsersData?.data?.meta?.totalPage || 1;
   const receivedRequests = receivedRequestsData?.data?.data || [];

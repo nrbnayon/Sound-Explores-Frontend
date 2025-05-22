@@ -61,14 +61,14 @@ const SoundModal = ({ isOpen, onClose }) => {
 
     setIsSubmitting(true);
 
-    console.log(
-      "Sound::",
-      title,
-      description,
-      category,
-      isPremium,
-      selectedFile
-    );
+    // console.log(
+    //   "Sound::",
+    //   title,
+    //   description,
+    //   category,
+    //   isPremium,
+    //   selectedFile
+    // );
 
     try {
       await addSoundMutation.mutateAsync({

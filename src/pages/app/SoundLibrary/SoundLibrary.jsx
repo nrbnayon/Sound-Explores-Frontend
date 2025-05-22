@@ -70,7 +70,7 @@ const SoundLibrary = () => {
     if (isReturningToSoundLibrary && !isSoundSelected) {
       // If we're returning to sound library but the view is still on friends
       clearSelectedSound();
-      console.log("Returned to Sound Library: clearing selected sound");
+      // console.log("Returned to Sound Library: clearing selected sound");
     }
   }, [location, isSoundSelected, clearSelectedSound]);
 

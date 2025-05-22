@@ -16,20 +16,20 @@ export const useSendSoundMessage = () => {
 
   return useMutation({
     mutationFn: async ({ users, link, soundTitle }) => {
-      console.log(
-        "Sending sound message to users:",
-        users,
-        "with link:",
-        link,
-        "and title:",
-        soundTitle
-      );
+      // console.log(
+      //   "Sending sound message to users:",
+      //   users,
+      //   "with link:",
+      //   link,
+      //   "and title:",
+      //   soundTitle
+      // );
       const { data } = await apiClient.post("/message/send-sound", {
         users,
         link,
         soundTitle,
       });
-      console.log("Send sound message response:", data);
+      // console.log("Send sound message response:", data);
       return data;
     },
     onSuccess: (data, variables) => {
@@ -103,9 +103,9 @@ export const useConversation = (userId) => {
   return useQuery({
     queryKey: MESSAGE_KEYS.conversation(userId),
     queryFn: async () => {
-      console.log(`Fetching conversation with user:`, userId);
+      // console.log(`Fetching conversation with user:`, userId);
       const { data } = await apiClient.get(`/message/conversation/${userId}`);
-      console.log("Conversation data:", data);
+      // console.log("Conversation data:", data);
       return data;
     },
     enabled: !!userId,
@@ -117,9 +117,9 @@ export const useConversations = () => {
   return useQuery({
     queryKey: MESSAGE_KEYS.lists(),
     queryFn: async () => {
-      console.log("Fetching all conversations");
+      // console.log("Fetching all conversations");
       const { data } = await apiClient.get("/message/conversations");
-      console.log("All conversations data:", data);
+      // console.log("All conversations data:", data);
       return data;
     },
   });
@@ -131,12 +131,12 @@ export const useSendMessage = () => {
 
   return useMutation({
     mutationFn: async ({ users, link }) => {
-      console.log("Sending message to users:", users, "with link:", link);
+      // console.log("Sending message to users:", users, "with link:", link);
       const { data } = await apiClient.post("/message/send-message", {
         users,
         link,
       });
-      console.log("Send message response:", data);
+      // console.log("Send message response:", data);
       return data;
     },
     onSuccess: (data, variables) => {

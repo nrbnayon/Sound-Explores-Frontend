@@ -36,7 +36,7 @@ export const useGetAllUsers = (filters = {}) => {
       if (filters.limit) params.append("limit", filters.limit);
 
       const query = params.toString() ? `?${params.toString()}` : "";
-      console.log(`Fetching users with query:`, query);
+      // console.log(`Fetching users with query:`, query);
 
       const response = await apiClient.get(`/user/get-all-user${query}`);
       return response;
@@ -61,7 +61,7 @@ export const useFriendList = (filters = {}) => {
       if (filters.limit) params.append("limit", filters.limit);
 
       const query = params.toString() ? `?${params.toString()}` : "";
-      console.log("Fetching friend list with query:", query);
+      // console.log("Fetching friend list with query:", query);
 
       const response = await apiClient.get(
         `/user-connection/friend-list${query}`
@@ -87,7 +87,7 @@ export const useSentRequests = (filters = {}) => {
       if (filters.limit) params.append("limit", filters.limit);
 
       const query = params.toString() ? `?${params.toString()}` : "";
-      console.log("Fetching sent friend requests with query:", query);
+      // console.log("Fetching sent friend requests with query:", query);
 
       const response = await apiClient.get(
         `/user-connection/sent-list${query}`
@@ -117,7 +117,7 @@ export const useReceivedRequests = (filters = {}) => {
       if (filters.limit) params.append("limit", filters.limit);
 
       const query = params.toString() ? `?${params.toString()}` : "";
-      console.log("Fetching received friend requests with query:", query);
+      // console.log("Fetching received friend requests with query:", query);
 
       const response = await apiClient.get(
         `/user-connection/request-list${query}`
@@ -141,7 +141,7 @@ export const useSendFriendRequest = () => {
 
   return useMutation({
     mutationFn: async (userId) => {
-      console.log("Sending friend request to:", userId);
+      // console.log("Sending friend request to:", userId);
       const response = await apiClient.post("/user-connection/send-request", {
         userId,
       });
@@ -165,7 +165,7 @@ export const useAcceptFriendRequest = () => {
 
   return useMutation({
     mutationFn: async (connectionID) => {
-      console.log("Accepting friend request connectionID:", connectionID);
+      // console.log("Accepting friend request connectionID:", connectionID);
       const response = await apiClient.patch(
         "/user-connection/accept-request",
         { connectionID }
@@ -190,7 +190,7 @@ export const useRejectFriendRequest = () => {
 
   return useMutation({
     mutationFn: async (connectionID) => {
-      console.log("Rejecting friend request from connectionID:", connectionID);
+      // console.log("Rejecting friend request from connectionID:", connectionID);
       const response = await apiClient.patch(
         "/user-connection/reject-request",
         { connectionID }
@@ -215,7 +215,7 @@ export const useCancelFriendRequest = () => {
 
   return useMutation({
     mutationFn: async (connectionID) => {
-      console.log("Canceling friend request to connectionID:", connectionID);
+      // console.log("Canceling friend request to connectionID:", connectionID);
       const response = await apiClient.patch(
         "/user-connection/cancel-request",
         {
@@ -242,7 +242,7 @@ export const useRemoveFriend = () => {
 
   return useMutation({
     mutationFn: async (connectionID) => {
-      console.log("Removing friend:", connectionID);
+      // console.log("Removing friend:", connectionID);
       const response = await apiClient.patch("/user-connection/remove-friend", {
         connectionID,
       });

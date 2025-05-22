@@ -23,7 +23,7 @@ export const useSounds = (filters = {}) => {
       if (filters.limit) params.append("limit", filters.limit);
 
       const query = params.toString() ? `?${params.toString()}` : "";
-      console.log(`Fetching sounds with query:`, query);
+      // console.log(`Fetching sounds with query:`, query);
 
       const { data } = await apiClient.get(`/sound/get-all-sound${query}`);
       return data;
@@ -35,9 +35,9 @@ export const useSoundDetails = (soundId) => {
   return useQuery({
     queryKey: SOUND_KEYS.detail(soundId),
     queryFn: async () => {
-      console.log(`Fetching sound details for ID:`, soundId);
+      // console.log(`Fetching sound details for ID:`, soundId);
       const { data } = await apiClient.get(`/sound/${soundId}`);
-      console.log("Sound details data:", data);
+      // console.log("Sound details data:", data);
       return data;
     },
     enabled: !!soundId, // Only run if soundId is provided
@@ -49,7 +49,7 @@ export const useAddSound = () => {
 
   return useMutation({
     mutationFn: async (soundData) => {
-      console.log("Adding new sound:", soundData.title);
+      // console.log("Adding new sound:", soundData.title);
 
       // Create FormData for file upload
       const formData = new FormData();
@@ -74,7 +74,7 @@ export const useAddSound = () => {
         },
       });
 
-      console.log("Add sound response:", data);
+      // console.log("Add sound response:", data);
       return data;
     },
     onSuccess: () => {
@@ -94,7 +94,7 @@ export const useDeleteSound = () => {
 
   return useMutation({
     mutationFn: async (soundId) => {
-      console.log("Deleting sound:", soundId);
+      // console.log("Deleting sound:", soundId);
       const { data } = await apiClient.delete(`/sound/delete-sound/${soundId}`);
       return data;
     },
@@ -115,7 +115,7 @@ export const useDeleteMultipleSounds = () => {
 
   return useMutation({
     mutationFn: async (soundIds) => {
-      console.log("Deleting multiple sounds:", soundIds);
+      // console.log("Deleting multiple sounds:", soundIds);
       const { data } = await apiClient.delete(`/sound/delete-multiple-sounds`, {
         data: { ids: soundIds },
       });

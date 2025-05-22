@@ -12,7 +12,7 @@ export const SelectedSoundProvider = ({ children }) => {
     setSelectedSound(null);
   };
 
-  console.log("SelectedSoundProvider - selectedSound:", selectedSound);
+  // console.log("SelectedSoundProvider - selectedSound:", selectedSound);
 
   return (
     <SelectedSoundContext.Provider

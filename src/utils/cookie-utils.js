@@ -26,7 +26,7 @@ export const setCookie = (name, value, options = {}) => {
   }
 
   document.cookie = cookieString;
-  console.log(`Cookie set: ${name}`);
+  // console.log(`Cookie set: ${name}`);
 };
 
 /**
@@ -58,7 +58,7 @@ export const removeCookie = (name, options = {}) => {
     ...options,
     maxAge: -1, 
   });
-  console.log(`Cookie removed: ${name}`);
+  // console.log(`Cookie removed: ${name}`);
 };
 
 /**

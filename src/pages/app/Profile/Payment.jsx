@@ -82,7 +82,7 @@ const Payment = () => {
     e.preventDefault();
     if (validateForm()) {
       try {
-        console.log("Payment data:", formData);
+        // console.log("Payment data:", formData);
         toast.success("Payment information updated");
       } catch (error) {
         toast.error("Failed to update payment information");
