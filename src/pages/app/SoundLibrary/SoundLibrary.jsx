@@ -8,6 +8,7 @@ import { StatusBar } from "../../../components/common/StatusBar";
 import Friends from "../Friends/Friends";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSelectedSound } from "../../../contexts/SelectedSoundContext";
+import { useAuth } from "../../../contexts/AuthContext";
 
 const SoundLibrary = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -17,9 +18,12 @@ const SoundLibrary = () => {
   const queryClient = useQueryClient();
   const sidebarRef = useRef(null);
   const mainContentRef = useRef(null);
+  const { user } = useAuth();
+
+  const isAdmin = user?.role === "ADMIN";
 
   const location = useLocation();
-  const { clearSelectedSound } = useSelectedSound ();
+  const { clearSelectedSound } = useSelectedSound();
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -77,9 +81,9 @@ const SoundLibrary = () => {
   const contentKey = isSoundSelected ? "sounds" : "friends";
 
   return (
-    <div className='bg-background flex flex-row justify-center w-full h-screen overflow-hidden'>
+    <div className="bg-background flex flex-row justify-center w-full h-screen overflow-hidden">
       <div
-        className='bg-card w-full max-w-md relative shadow-md'
+        className="bg-card w-full max-w-md relative shadow-md"
         ref={mainContentRef}
       >
         {/* <StatusBar /> */}
@@ -92,7 +96,7 @@ const SoundLibrary = () => {
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ duration: 0.3, ease: "easeInOut" }}
-              className='fixed top-0 z-40 bg-card w-56 h-full shadow-lg'
+              className="fixed top-0 z-40 bg-card w-56 h-full shadow-lg"
             >
               <SideBar
                 onTitleChange={setTitle}
@@ -112,35 +116,37 @@ const SoundLibrary = () => {
             scrolled ? "shadow-md" : ""
           }`}
         >
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            className='p-2 rounded-full hover:bg-background transition-colors'
-            onClick={toggleSidebar}
-          >
-            <Menu className='w-5 h-5' />
-          </motion.button>
-          <h1 className='text-xl font-bold'>{title}</h1>
-          <Link to='/profile'>
+          {!isAdmin && (
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              className="p-2 rounded-full hover:bg-background transition-colors"
+              onClick={toggleSidebar}
+            >
+              <Menu className="w-5 h-5" />
+            </motion.button>
+          )}
+          <h1 className="text-xl font-bold">{title}</h1>
+          <Link to="/profile">
             <motion.div
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
-              className='p-2 rounded-full hover:bg-background transition-colors'
+              className="p-2 rounded-full hover:bg-background transition-colors"
             >
-              <CircleUserRound className='w-5 h-5' />
+              <CircleUserRound className="w-5 h-5" />
             </motion.div>
           </Link>
         </motion.div>
 
-        <div className='h-[calc(100vh-56px)] overflow-hidden'>
-          <AnimatePresence mode='wait'>
+        <div className="h-[calc(100vh-56px)] overflow-hidden">
+          <AnimatePresence mode="wait">
             <motion.div
               key={contentKey}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3 }}
-              className='h-full overflow-y-auto p-4'
+              className="h-full overflow-y-auto p-4"
             >
               {isSoundSelected ? (
                 <SoundList key={`sounds-${Date.now()}`} />
@@ -158,7 +164,7 @@ const SoundLibrary = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className='fixed inset-0 bg-opacity-60 z-30'
+              className="fixed inset-0 bg-opacity-60 z-30"
               onClick={() => setSidebarOpen(false)}
             />
           )}

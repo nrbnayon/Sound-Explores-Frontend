@@ -37,6 +37,7 @@ const SoundList = () => {
   const navigate = useNavigate();
   const { setSelectedSound, clearSelectedSound } = useSelectedSound();
   const sendSoundMessage = useSendSoundMessage();
+  
 
   const { data: friendListData, isLoading: isFriendListLoading } =
     useFriendList();
@@ -525,7 +526,7 @@ const SoundList = () => {
           {isAdmin && (
             <Button
               onClick={() => setIsAddModalOpen(true)}
-              className="bg-primary hover:bg-blue-600 text-white p-3 rounded-lg h-auto flex items-center gap-2"
+              className="bg-primary hover:bg-blue-600 text-white px-3 py-3.5 rounded-lg h-auto flex items-center gap-2"
             >
               <Plus size={18} />
               <span className="hidden sm:inline">Add Sound</span>

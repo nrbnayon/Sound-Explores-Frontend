@@ -11,11 +11,15 @@ import {
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ThemeToggle } from "./ThemeToggle";
+import { useAuth } from "../../contexts/AuthContext";
 
 const Header = ({ backHref, title, onLogoutClick }) => {
   const [showOptions, setShowOptions] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const menuRef = useRef(null);
+  const { user } = useAuth();
+
+  const isAdmin = user?.role === "ADMIN";
 
   // Toggle options menu
   const toggleOptions = () => {
@@ -67,7 +71,7 @@ const Header = ({ backHref, title, onLogoutClick }) => {
             <ChevronLeft className="w-5 h-5" />
           </motion.div>
         </Link>
-        <ThemeToggle/>
+        <ThemeToggle />
       </div>
       <div>
         {" "}
@@ -106,14 +110,16 @@ const Header = ({ backHref, title, onLogoutClick }) => {
                   <Music2Icon className="w-4 h-4 mr-3 text-muted-foreground" />
                   <span className="text-sm font-medium">Sound Library</span>
                 </Link>
-                <Link
-                  to="/all-friends"
-                  className="flex items-center px-4 py-3 hover:bg-background"
-                  onClick={() => setShowOptions(false)}
-                >
-                  <UsersRound className="w-4 h-4 mr-3 text-muted-foreground" />
-                  <span className="text-sm font-medium">Friends</span>
-                </Link>
+                {!isAdmin && (
+                  <Link
+                    to="/all-friends"
+                    className="flex items-center px-4 py-3 hover:bg-background"
+                    onClick={() => setShowOptions(false)}
+                  >
+                    <UsersRound className="w-4 h-4 mr-3 text-muted-foreground" />
+                    <span className="text-sm font-medium">Friends</span>
+                  </Link>
+                )}
                 <Link
                   to="/privacy-policy"
                   className="flex items-center px-4 py-3 hover:bg-background"
