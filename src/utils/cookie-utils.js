@@ -26,7 +26,7 @@ export const setCookie = (name, value, options = {}) => {
   }
 
   document.cookie = cookieString;
-  console.log(`Cookie set: ${name} with maxAge: ${cookieOptions.maxAge}`);
+  // console.log(`Cookie set: ${name} with maxAge: ${cookieOptions.maxAge}`);
 };
 
 /**
@@ -58,7 +58,7 @@ export const removeCookie = (name, options = {}) => {
     ...options,
     maxAge: -1,
   });
-  console.log(`Cookie removed: ${name}`);
+  // console.log(`Cookie removed: ${name}`);
 };
 
 /**
@@ -133,7 +133,7 @@ export const removeAuthTokens = () => {
   removeCookie("accessToken", { path: "/" });
   removeCookie("refreshToken", { path: "/" });
   removeCookie("isAuthenticated", { path: "/" });
-  console.log("All auth tokens removed");
+  // console.log("All auth tokens removed");
 };
 
 // Check if token is expired
