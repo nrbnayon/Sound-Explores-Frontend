@@ -4,7 +4,8 @@ import { Link } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { parsePhoneNumberFromString } from "libphonenumber-js";
+import PhoneInput from "react-phone-number-input";
+import { isValidPhoneNumber } from "react-phone-number-input";
 import { EyeIcon, EyeOffIcon, ArrowLeft } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent } from "../../components/ui/card";
@@ -14,7 +15,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { motion } from "framer-motion";
 import { StatusBar } from "../../components/common/StatusBar";
 import { Helmet } from "react-helmet-async";
-import toast from "react-hot-toast";
+import "react-phone-number-input/style.css";
 
 // Validation schema aligned with backend
 const signUpSchema = z.object({
@@ -24,11 +25,10 @@ const signUpSchema = z.object({
     .min(1, "Phone number is required")
     .refine(
       (val) => {
-        const phoneNumber = parsePhoneNumberFromString(val);
-        return phoneNumber?.isValid() ?? false;
+        return isValidPhoneNumber(val);
       },
       {
-        message: "Please enter a valid phone number",
+        message: "Please enter a valid phone number with country code",
       }
     ),
   email: z.string().email("Invalid email address"),
@@ -63,7 +63,7 @@ const SignUp = () => {
 
   // Handle form submission
   const onSubmit = async (data) => {
-    // console.log("Create new user::", data);
+    console.log("Create new user::", data);
     try {
       const res = await signUp(data);
       // if (res) {
@@ -192,20 +192,34 @@ const SignUp = () => {
               )}
             </div>
 
-            {/* Phone Field */}
+            {/* Phone Field with Country Code */}
             <div className="flex flex-col gap-2">
               <label className="font-medium text-base">
-                Enter Phone number<span className="text-red-400">*</span>
+                Phone Number<span className="text-red-400">*</span>
               </label>
               <Card className="p-0 w-full border border-solid border-gray-200 shadow-none">
                 <CardContent className="p-0">
-                  <Input
-                    {...register("phone")}
-                    type="tel"
-                    className={`border-none px-4 py-3 h-auto text-foreground text-sm ${
-                      errors.phone ? "border-red-500" : ""
-                    }`}
-                    placeholder="e.g. +880 1712345678"
+                  <Controller
+                    name="phone"
+                    control={control}
+                    render={({ field: { onChange, value } }) => (
+                      <PhoneInput
+                        value={value}
+                        onChange={onChange}
+                        defaultCountry="US" // Set default country (USA)
+                        international
+                        countryCallingCodeEditable={false}
+                        className={`phone-input-custom ${
+                          errors.phone ? "border-red-500" : ""
+                        }`}
+                        placeholder="Enter phone number"
+                        style={{
+                          "--PhoneInputCountryFlag-height": "1em",
+                          "--PhoneInputCountrySelectArrow-color": "#6b7280",
+                          "--PhoneInput-color--focus": "#3b82f6",
+                        }}
+                      />
+                    )}
                   />
                 </CardContent>
               </Card>
@@ -216,7 +230,7 @@ const SignUp = () => {
               )}
             </div>
 
-            {/* email Field */}
+            {/* Email Field */}
             <div className="flex flex-col gap-2">
               <label className="font-medium text-base">
                 Email<span className="text-red-400">*</span>
@@ -246,17 +260,17 @@ const SignUp = () => {
                 Password<span className="text-red-400">*</span>
               </label>
               <Card className="p-0 w-full border border-solid border-gray-200 shadow-none">
-                <CardContent className="p-0 flex items-center">
+                <CardContent className="p-0 flex items-center relative">
                   <Input
                     {...register("password")}
-                    className={`border-none px-4 py-3 h-auto text-foreground text-sm ${
+                    className={`border-none px-4 py-3 h-auto text-foreground text-sm pr-12 ${
                       errors.password ? "border-red-500" : ""
                     }`}
                     placeholder="Enter your Password..."
                     type={showPassword ? "text" : "password"}
                   />
                   <div
-                    className="absolute right-10 cursor-pointer"
+                    className="absolute right-4 cursor-pointer"
                     onClick={togglePasswordVisibility}
                   >
                     {showPassword ? (
@@ -330,6 +344,46 @@ const SignUp = () => {
             </div>
           </div>
         </form>
+
+        {/* Custom styles for PhoneInput */}
+        <style jsx>{`
+          .phone-input-custom {
+            padding: 12px 16px;
+            border: none;
+            outline: none;
+            width: 100%;
+            font-size: 14px;
+            background: transparent;
+          }
+
+          .phone-input-custom input {
+            border: none !important;
+            outline: none !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            background: transparent !important;
+            font-size: 14px;
+          }
+
+          .phone-input-custom .PhoneInputCountry {
+            margin-right: 8px;
+          }
+
+          .phone-input-custom .PhoneInputCountrySelect {
+            border: none;
+            background: transparent;
+            outline: none;
+          }
+
+          .phone-input-custom .PhoneInputCountrySelect:focus {
+            box-shadow: none;
+          }
+
+          .phone-input-custom .PhoneInputCountrySelectArrow {
+            margin-left: 4px;
+          }
+        `}</style>
       </div>
     </div>
   );
