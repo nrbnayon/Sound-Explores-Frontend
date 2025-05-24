@@ -111,9 +111,9 @@ const SignUp = () => {
           />
           <meta
             property="og:image"
-            content="https://example.com/og-image-signup.jpg"
+            content="https://poopalert.fun/og-image-signup.jpg"
           />
-          <meta property="og:url" content="https://example.com/signup" />
+          <meta property="og:url" content="https://poopalert.fun/signup" />
           <meta property="og:type" content="website" />
         </Helmet>
         {/* <StatusBar /> */}

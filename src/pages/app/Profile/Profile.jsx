@@ -145,11 +145,11 @@ const Profile = () => {
           />
           <meta
             property="og:image"
-            content={avatar || "https://example.com/default-og-image.jpg"}
+            content={avatar || "https://poopalert.fun/default-og-image.jpg"}
           />
           <meta
             property="og:url"
-            content={`https://example.com/profile/${user?.id || ""}`}
+            content={`https://poopalert.fun/profile/${user?.id || ""}`}
           />
           <meta property="og:type" content="profile" />
         </Helmet>

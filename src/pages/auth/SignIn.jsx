@@ -68,9 +68,9 @@ const SignIn = () => {
         />
         <meta
           property="og:image"
-          content="https://example.com/og-image-signin.jpg"
+          content="https://poopalert.fun/og-image-signin.jpg"
         />
-        <meta property="og:url" content="https://example.com/signin" />
+        <meta property="og:url" content="https://poopalert.fun/signin" />
         <meta property="og:type" content="website" />
       </Helmet>
 
