@@ -11,6 +11,10 @@ export default defineConfig({
     },
   },
   preview: {
-    allowedHosts: ['poopalert.fun']
-  }
+    allowedHosts: [
+      'poopalert.fun',
+      'api.poopalert.fun',
+      'www.poopalert.fun'
+    ],
+  },
 });
