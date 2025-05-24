@@ -10,4 +10,11 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  preview: {
+    allowedHosts: [
+      'poopalert.fun',
+      'api.poopalert.fun',
+      'www.poopalert.fun'
+    ],
+  },
 });
