@@ -172,7 +172,7 @@ const Friends = () => {
               onClick={() => handleTabChange(2)}
             >
               Requests
-              <span className='absolute top-2 right-8 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-500 rounded-full'>
+              <span className='absolute top-2 right-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-500 rounded-full'>
                 {pendingRequestsCount}
               </span>
             </motion.button>
