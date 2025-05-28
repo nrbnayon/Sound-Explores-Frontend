@@ -1,29 +1,47 @@
 // src\components\common\SideBar.jsx
 import { useState, useEffect } from "react";
-import { LogOut } from "lucide-react";
+import { LogOut, Music, Users, UserCog } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "../../contexts/AuthContext";
 import toast from "react-hot-toast";
 
-const SideBar = ({ onTitleChange, onSoundListChange, onClose, activeView }) => {
-  const [activeButton, setActiveButton] = useState(
-    activeView === "friends" ? 2 : 1
-  );
-  const { signOut } = useAuth();
+const SideBar = ({ onTitleChange, onViewChange, onClose, activeView }) => {
+  const [activeButton, setActiveButton] = useState(1);
+  const { user, signOut } = useAuth();
+  const isAdmin = user?.role === "ADMIN";
+
   useEffect(() => {
-    setActiveButton(activeView === "friends" ? 2 : 1);
+    // Set active button based on activeView
+    switch (activeView) {
+      case "sounds":
+        setActiveButton(1);
+        break;
+      case "friends":
+        setActiveButton(2);
+        break;
+      case "manageUsers":
+        setActiveButton(2); // Same button for admin
+        break;
+      default:
+        setActiveButton(1);
+    }
   }, [activeView]);
 
   const handleSoundButtonClick = () => {
     onTitleChange("Sound Library");
-    onSoundListChange(true);
+    onViewChange("sounds");
     setActiveButton(1);
     if (onClose) onClose();
   };
 
-  const handleFriendButtonClick = () => {
-    onTitleChange("Friends");
-    onSoundListChange(false);
+  const handleSecondButtonClick = () => {
+    if (isAdmin) {
+      onTitleChange("Manage Users");
+      onViewChange("manageUsers");
+    } else {
+      onTitleChange("Friends");
+      onViewChange("friends");
+    }
     setActiveButton(2);
     if (onClose) onClose();
   };
@@ -48,23 +66,39 @@ const SideBar = ({ onTitleChange, onSoundListChange, onClose, activeView }) => {
           <motion.li whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <button
               onClick={handleSoundButtonClick}
-              className={`px-4 py-2 rounded-md w-full text-left transition-colors duration-200
+              className={`px-4 py-2 rounded-md w-full text-left transition-colors duration-200 flex items-center gap-3
                 ${
-                  activeButton === 1 ? "bg-card text-foreground" : "text-white"
+                  activeButton === 1
+                    ? "bg-card text-foreground"
+                    : "text-white hover:bg-gray-600"
                 }`}
             >
+              <Music className="w-4 h-4" />
               Sounds
             </button>
           </motion.li>
+
           <motion.li whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <button
-              onClick={handleFriendButtonClick}
-              className={`px-4 py-2 rounded-md w-full text-left transition-colors duration-200
+              onClick={handleSecondButtonClick}
+              className={`px-4 py-2 rounded-md w-full text-left transition-colors duration-200 flex items-center gap-3
                 ${
-                  activeButton === 2 ? "bg-card text-foreground" : "text-white"
+                  activeButton === 2
+                    ? "bg-card text-foreground"
+                    : "text-white hover:bg-gray-600"
                 }`}
             >
-              Friends
+              {isAdmin ? (
+                <>
+                  <UserCog className="w-4 h-4" />
+                  Manage Users
+                </>
+              ) : (
+                <>
+                  <Users className="w-4 h-4" />
+                  Friends
+                </>
+              )}
             </button>
           </motion.li>
         </ul>

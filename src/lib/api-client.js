@@ -6,6 +6,7 @@ import { getCookie, setCookie, removeAuthTokens } from "../utils/cookie-utils";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4500/api";
 
 // Create axios instance with base URL
+console.log("API URL:", API_URL);
 const apiClient = axios.create({
   baseURL: API_URL,
   withCredentials: true,
@@ -17,13 +18,13 @@ const apiClient = axios.create({
 // Request interceptor to add auth token from cookies if available
 apiClient.interceptors.request.use(
   (config) => {
-    // console.log(`API Request: ${config.method.toUpperCase()} ${config.url}`);
+    console.log(`API Request: ${config.method.toUpperCase()} ${config.url}`);
 
     // Get access token from cookie and add it to the Authorization header
     const accessToken = getCookie("accessToken");
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
-      // console.log("Adding Authorization header with access token");
+      console.log("Adding Authorization header with access token");
     }
 
     return config;
@@ -53,7 +54,7 @@ const processQueue = (error, token = null) => {
 // Response interceptor for handling common error scenarios
 apiClient.interceptors.response.use(
   (response) => {
-    // console.log(`API Response: ${response.status} ${response.config.url}`);
+    console.log(`API Response: ${response.status} ${response.config.url}`);
     return response;
   },
   async (error) => {

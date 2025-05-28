@@ -84,10 +84,10 @@ export function AuthProvider({ children }) {
   const signIn = async (credentials) => {
     try {
       setLoading(true);
-      // console.log("Signing in with:", credentials.email);
+      console.log("Signing in with:", credentials);
 
       const response = await apiClient.post("/auth/login", credentials);
-      // console.log("Sign in response:", response.data);
+      console.log("Sign in response:", response.data);
 
       if (response) {
         const { accessToken, refreshToken } = response.data.data;

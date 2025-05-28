@@ -90,6 +90,81 @@ const useSwipe = (onSwipeLeft, onSwipeRight) => {
   };
 };
 
+// Avatar component with fallback to initials
+export const UserAvatar = ({ src, name, size = 40 }) => {
+  const [imageError, setImageError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Generate initials from name
+  const getInitials = (fullName) => {
+    if (!fullName || fullName.trim() === "") return "U";
+
+    const words = fullName
+      .trim()
+      .split(" ")
+      .filter((word) => word.length > 0);
+    if (words.length === 0) return "U";
+
+    if (words.length === 1) {
+      return words[0].charAt(0).toUpperCase();
+    }
+
+    return (
+      words[0].charAt(0) + words[words.length - 1].charAt(0)
+    ).toUpperCase();
+  };
+
+  const handleImageLoad = () => {
+    setIsLoading(false);
+    setImageError(false);
+  };
+
+  const handleImageError = () => {
+    setIsLoading(false);
+    setImageError(true);
+  };
+
+  const initials = getInitials(name);
+
+  return (
+    <div
+      className="relative flex items-center justify-center rounded-full overflow-hidden ring-2 ring-gray-100 bg-gray-200 hover:scale-105 transition-transform duration-200"
+      style={{ width: size, height: size }}
+    >
+      {!imageError && src && src !== "/profile.png" ? (
+        <>
+          {isLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-200">
+              <span
+                className="text-gray-600 font-medium"
+                style={{ fontSize: size * 0.4 }}
+              >
+                {initials}
+              </span>
+            </div>
+          )}
+          <img
+            src={src}
+            alt={name || "User"}
+            className={`w-full h-full rounded-full object-cover transition-opacity  duration-200 ${
+              isLoading ? "opacity-0" : "opacity-100"
+            }`}
+            onLoad={handleImageLoad}
+            onError={handleImageError}
+          />
+        </>
+      ) : (
+        <span
+          className="text-gray-600 font-medium select-none"
+          style={{ fontSize: size * 0.4 }}
+        >
+          {initials}
+        </span>
+      )}
+    </div>
+  );
+};
+
 const YourFriends = ({ friends, isLoading }) => {
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [friendToRemove, setFriendToRemove] = useState(null);
@@ -149,7 +224,7 @@ const YourFriends = ({ friends, isLoading }) => {
     }
   }, [selectedSound]);
 
-  // Get friend info helper function
+  // Get friend info helper function with improved image URL handling
   const getFriendInfo = (connection) => {
     if (!connection?.users || connection.users.length < 2) {
       return {
@@ -157,7 +232,7 @@ const YourFriends = ({ friends, isLoading }) => {
         userId: null,
         fullName: "Unknown User",
         email: "unknown@example.com",
-        image: "/profile.png",
+        image: null,
         nickname: "",
       };
     }
@@ -171,9 +246,28 @@ const YourFriends = ({ friends, isLoading }) => {
         userId: null,
         fullName: "Unknown User",
         email: "unknown@example.com",
-        image: "/profile.png",
+        image: null,
         nickname: "",
       };
+    }
+
+    // Improved image URL construction
+    let imageUrl = null;
+    if (
+      friendUser.image &&
+      friendUser.image.trim() !== "" &&
+      friendUser.image !== "/profile.png"
+    ) {
+      // If image starts with http/https, use as is (for external URLs)
+      if (friendUser.image.startsWith("http")) {
+        imageUrl = friendUser.image;
+      } else {
+        // For local images, construct the full URL
+        const cleanImage = friendUser.image.startsWith("/")
+          ? friendUser.image
+          : `/${friendUser.image}`;
+        imageUrl = `${API_URL}${cleanImage}`;
+      }
     }
 
     return {
@@ -181,7 +275,7 @@ const YourFriends = ({ friends, isLoading }) => {
       userId: friendUser.user,
       fullName: friendUser.fullName || "Unknown User",
       email: friendUser.email || "unknown@example.com",
-      image: friendUser.image || "/profile.png",
+      image: imageUrl,
       nickname: friendUser.nickname || "",
     };
   };
@@ -330,18 +424,11 @@ const YourFriends = ({ friends, isLoading }) => {
         >
           <div className="flex items-center">
             <div className="flex-shrink-0 mr-3">
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-gray-100"
-              >
-                <img
-                  src={
-                    friendInfo.image
-                      ? `${API_URL}${friendInfo.image}`
-                      : "/profile.png"
-                  }
-                  alt={friendInfo.fullName || friendInfo.email}
-                  className="w-full h-full object-cover"
+              <motion.div whileHover={{ scale: 1.05 }}>
+                <UserAvatar
+                  src={friendInfo.image}
+                  name={friendInfo.fullName}
+                  size={40}
                 />
               </motion.div>
             </div>

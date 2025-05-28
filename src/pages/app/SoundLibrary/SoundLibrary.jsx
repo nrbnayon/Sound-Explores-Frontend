@@ -1,25 +1,25 @@
+// src\pages\app\SoundLibrary\SoundLibrary.jsx
 import { useState, useRef, useEffect } from "react";
 import { Menu, CircleUserRound } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import SideBar from "../../../components/common/SideBar";
 import SoundList from "../../../components/Sounds/SoundList";
-import { StatusBar } from "../../../components/common/StatusBar";
 import Friends from "../Friends/Friends";
+import ManageUsers from "../ManageUsers/ManageUsers";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSelectedSound } from "../../../contexts/SelectedSoundContext";
 import { useAuth } from "../../../contexts/AuthContext";
 
 const SoundLibrary = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isSoundSelected, setIsSoundSelected] = useState(true);
+  const [activeView, setActiveView] = useState("sounds"); // "sounds", "friends", "manageUsers"
   const [title, setTitle] = useState("Sound Library");
   const [scrolled, setScrolled] = useState(false);
   const queryClient = useQueryClient();
   const sidebarRef = useRef(null);
   const mainContentRef = useRef(null);
   const { user } = useAuth();
-
   const isAdmin = user?.role === "ADMIN";
 
   const location = useLocation();
@@ -38,6 +38,23 @@ const SoundLibrary = () => {
       mainContentRef.current.contains(e.target)
     ) {
       setSidebarOpen(false);
+    }
+  };
+
+  const handleViewChange = (view) => {
+    setActiveView(view);
+    switch (view) {
+      case "sounds":
+        setTitle("Sound Library");
+        break;
+      case "friends":
+        setTitle("Friends");
+        break;
+      case "manageUsers":
+        setTitle("Manage Users");
+        break;
+      default:
+        setTitle("Sound Library");
     }
   };
 
@@ -62,23 +79,36 @@ const SoundLibrary = () => {
   }, [sidebarOpen]);
 
   useEffect(() => {
-    if (isSoundSelected) {
+    if (activeView === "sounds") {
       queryClient.invalidateQueries({ queryKey: ["sounds"] });
     }
-  }, [isSoundSelected, queryClient]);
+  }, [activeView, queryClient]);
 
   useEffect(() => {
     // This will run when the location changes (e.g., when navigating back from friends)
     const isReturningToSoundLibrary = location.pathname === "/sound-library";
 
-    if (isReturningToSoundLibrary && !isSoundSelected) {
-      // If we're returning to sound library but the view is still on friends
+    if (isReturningToSoundLibrary && activeView !== "sounds") {
+      // If we're returning to sound library but the view is still on friends/manageUsers
       clearSelectedSound();
       // console.log("Returned to Sound Library: clearing selected sound");
     }
-  }, [location, isSoundSelected, clearSelectedSound]);
+  }, [location, activeView, clearSelectedSound]);
 
-  const contentKey = isSoundSelected ? "sounds" : "friends";
+  const renderContent = () => {
+    switch (activeView) {
+      case "sounds":
+        return <SoundList key={`sounds-${Date.now()}`} />;
+      case "friends":
+        return <Friends />;
+      case "manageUsers":
+        return <ManageUsers />;
+      default:
+        return <SoundList key={`sounds-${Date.now()}`} />;
+    }
+  };
+
+  const contentKey = activeView;
 
   return (
     <div className="bg-background flex flex-row justify-center w-full h-screen overflow-hidden">
@@ -100,9 +130,9 @@ const SoundLibrary = () => {
             >
               <SideBar
                 onTitleChange={setTitle}
-                onSoundListChange={setIsSoundSelected}
+                onViewChange={handleViewChange}
                 onClose={toggleSidebar}
-                activeView={isSoundSelected ? "sounds" : "friends"}
+                activeView={activeView}
               />
             </motion.div>
           )}
@@ -116,16 +146,15 @@ const SoundLibrary = () => {
             scrolled ? "shadow-md" : ""
           }`}
         >
-          {!isAdmin && (
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              className="p-2 rounded-full hover:bg-background transition-colors"
-              onClick={toggleSidebar}
-            >
-              <Menu className="w-5 h-5" />
-            </motion.button>
-          )}
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            className="p-2 rounded-full hover:bg-background transition-colors"
+            onClick={toggleSidebar}
+          >
+            <Menu className="w-5 h-5" />
+          </motion.button>
+
           <h1 className="text-xl font-bold">{title}</h1>
           <Link to="/profile">
             <motion.div
@@ -148,11 +177,7 @@ const SoundLibrary = () => {
               transition={{ duration: 0.3 }}
               className="h-full overflow-y-auto p-4"
             >
-              {isSoundSelected ? (
-                <SoundList key={`sounds-${Date.now()}`} />
-              ) : (
-                <Friends />
-              )}
+              {renderContent()}
             </motion.div>
           </AnimatePresence>
         </div>
