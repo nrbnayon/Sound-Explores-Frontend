@@ -139,9 +139,9 @@ export function AuthProvider({ children }) {
 
       // Handle validation errors
       if (error.response?.data?.errors) {
-        const validationErrors = error.response.data.errors;
+        const validationErrors = error.response.data.message;
         // Display first validation error as toast
-        toast.error(validationErrors[0]?.message || "Validation failed");
+        toast.error(validationErrors || "Validation failed");
       } else if (error.response?.data?.message) {
         // Handle case where email already exists
         if (error.response?.data?.message.includes("email already exist")) {

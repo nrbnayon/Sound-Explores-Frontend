@@ -207,59 +207,63 @@ const SendOtp = () => {
   };
 
   return (
-    <div className='bg-background flex flex-col w-full min-h-screen'>
+    <div className="bg-background flex flex-col w-full min-h-screen">
       {/* StatusBar and Header - fixed at top */}
-      <div className='bg-card shadow-md'>
+      <div className="bg-card shadow-md">
         {/* <StatusBar /> */}
         <motion.div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.3 }}
-          className='flex items-center justify-between p-4 border-b bg-card'
+          className="flex items-center justify-between p-4 border-b bg-card"
         >
-          <div className='flex items-center'>
+          <div className="flex items-center">
             {!isTimerActive && (
               <Link
                 to={isPasswordReset ? ROUTES.FORGET_PASSWORD : ROUTES.SIGNUP}
+                className="p-2 rounded-full z-40"
               >
                 <motion.div
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
-                  className='p-2 rounded-full hover:bg-gray-100 transition-colors'
+                  className="p-2 rounded-full hover:bg-gray-100 transition-colors z-50"
                 >
-                  <ArrowLeft className='w-5 h-5' />
+                  <ArrowLeft className="w-5 h-5 z-50" />
                 </motion.div>
               </Link>
             )}
             {isTimerActive && (
-              <div className='p-2 rounded-full text-gray-300 cursor-not-allowed'>
-                <ArrowLeft className='w-5 h-5' />
-              </div>
+              <Link
+                to={isPasswordReset ? ROUTES.FORGET_PASSWORD : ROUTES.SIGNUP}
+                className="p-2 rounded-full text-gray-300 cursor-not-allowed z-40"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </Link>
             )}
-            <h1 className='text-xl font-bold ml-2'>Verify OTP</h1>
+            <h1 className="text-xl font-bold ml-2">Verify OTP</h1>
           </div>
         </motion.div>
       </div>
 
       {/* Centered content container */}
-      <div className='flex-grow flex flex-col justify-center items-center p-6 -mt-8 md:-mt-16'>
+      <div className="flex-grow flex flex-col justify-center items-center p-6 -mt-8 md:-mt-16">
         {/* Logo and instruction */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className='flex flex-col items-center mb-8'
+          className="flex flex-col items-center mb-8"
         >
           <motion.img
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className='w-36 h-36 object-cover mb-4'
-            alt='Logo'
-            src='/logo.png'
+            className="w-36 h-36 object-cover mb-4"
+            alt="Logo"
+            src="/logo.png"
           />
-          <h2 className='text-2xl font-bold mb-1'>Verification Code</h2>
-          <p className='text-xs text-muted-foreground text-center'>
+          <h2 className="text-2xl font-bold mb-1">Verification Code</h2>
+          <p className="text-xs text-muted-foreground text-center">
             {email
               ? `We sent a code to ${email}`
               : "Please check your email for the verification code"}
@@ -267,28 +271,28 @@ const SendOtp = () => {
         </motion.div>
 
         {/* OTP Form */}
-        <form onSubmit={handleSubmit} className='w-full max-w-md'>
-          <div className='space-y-6'>
+        <form onSubmit={handleSubmit} className="w-full max-w-md">
+          <div className="space-y-6">
             {/* OTP Input Fields */}
-            <div className='flex justify-center gap-3 mb-2'>
+            <div className="flex justify-center gap-3 mb-2">
               {otp.map((digit, index) => (
                 <motion.div
                   key={index}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className='w-14 h-14 border border-gray-200 rounded-lg flex items-center justify-center bg-card shadow-sm'
+                  className="w-14 h-14 border border-gray-200 rounded-lg flex items-center justify-center bg-card shadow-sm"
                 >
                   <input
                     ref={inputRefs[index]}
-                    type='text'
-                    inputMode='numeric'
+                    type="text"
+                    inputMode="numeric"
                     maxLength={1}
                     value={digit}
                     onChange={(e) => handleOtpChange(e, index)}
                     onKeyDown={(e) => handleKeyDown(e, index)}
                     onPaste={index === 0 ? handlePaste : undefined}
-                    className='w-full h-full text-black text-center text-2xl font-semibold border-none focus:outline-none focus:ring-0'
+                    className="w-full h-full text-black text-center text-2xl font-semibold border-none focus:outline-none focus:ring-0"
                     autoFocus={index === 0}
                   />
                 </motion.div>
@@ -297,13 +301,13 @@ const SendOtp = () => {
 
             {/* Error message */}
             {error && (
-              <p className='text-center text-red-500 text-sm'>{error}</p>
+              <p className="text-center text-red-500 text-sm">{error}</p>
             )}
 
             {/* Timer and Resend */}
-            <div className='text-center'>
+            <div className="text-center">
               <button
-                type='button'
+                type="button"
                 onClick={handleResendCode}
                 disabled={isTimerActive || isResending}
                 className={`text-sm font-medium flex items-center justify-center mx-auto ${
@@ -314,7 +318,7 @@ const SendOtp = () => {
               >
                 {isResending ? (
                   <>
-                    <Loader2 className='w-3 h-3 mr-2 animate-spin' />
+                    <Loader2 className="w-3 h-3 mr-2 animate-spin" />
                     Sending...
                   </>
                 ) : isTimerActive ? (
@@ -328,13 +332,13 @@ const SendOtp = () => {
             {/* Verify Button */}
             <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
               <Button
-                type='submit'
-                className='w-full py-3 bg-primary rounded-full text-white font-medium hover:bg-blue-600 transition-colors'
+                type="submit"
+                className="w-full py-3 bg-primary rounded-full text-white font-medium hover:bg-blue-600 transition-colors"
                 disabled={otp.join("").length !== 4 || isSubmitting}
               >
                 {isSubmitting ? (
-                  <div className='flex items-center justify-center'>
-                    <Loader2 className='w-4 h-4 mr-2 animate-spin' />
+                  <div className="flex items-center justify-center">
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     Verifying...
                   </div>
                 ) : (

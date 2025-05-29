@@ -344,46 +344,6 @@ const SignUp = () => {
             </div>
           </div>
         </form>
-
-        {/* Custom styles for PhoneInput */}
-        <style jsx>{`
-          .phone-input-custom {
-            padding: 12px 16px;
-            border: none;
-            outline: none;
-            width: 100%;
-            font-size: 14px;
-            background: transparent;
-          }
-
-          .phone-input-custom input {
-            border: none !important;
-            outline: none !important;
-            box-shadow: none !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            background: transparent !important;
-            font-size: 14px;
-          }
-
-          .phone-input-custom .PhoneInputCountry {
-            margin-right: 8px;
-          }
-
-          .phone-input-custom .PhoneInputCountrySelect {
-            border: none;
-            background: transparent;
-            outline: none;
-          }
-
-          .phone-input-custom .PhoneInputCountrySelect:focus {
-            box-shadow: none;
-          }
-
-          .phone-input-custom .PhoneInputCountrySelectArrow {
-            margin-left: 4px;
-          }
-        `}</style>
       </div>
     </div>
   );
