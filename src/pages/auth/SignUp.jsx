@@ -63,7 +63,7 @@ const SignUp = () => {
 
   // Handle form submission
   const onSubmit = async (data) => {
-    console.log("Create new user::", data);
+    // console.log("Create new user::", data);
     try {
       const res = await signUp(data);
       // if (res) {

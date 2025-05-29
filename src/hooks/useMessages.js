@@ -54,51 +54,7 @@ export const useSendSoundMessage = () => {
     },
   });
 };
-// export const useSendSoundMessage = () => {
-//   const queryClient = useQueryClient();
 
-//   return useMutation({
-//     mutationFn: async ({ users, link, soundTitle }) => {
-//       console.log(
-//         "Sending sound message to users:",
-//         users,
-//         "with link:",
-//         link,
-//         "and title:",
-//         soundTitle
-//       );
-//       const { data } = await apiClient.post("/message/send-sound", {
-//         users,
-//         link,
-//         soundTitle,
-//       });
-//       console.log("Send sound message response:", data);
-//       return data;
-//     },
-//     onSuccess: (data, variables) => {
-//       // Ensure users is always treated as an array
-//       const userArray = Array.isArray(variables.users)
-//         ? variables.users
-//         : [variables.users];
-
-//       // Invalidate relevant queries
-//       userArray.forEach((userId) => {
-//         queryClient.invalidateQueries({
-//           queryKey: MESSAGE_KEYS.conversation(userId),
-//         });
-//       });
-//       queryClient.invalidateQueries({ queryKey: MESSAGE_KEYS.lists() });
-//     },
-//     onError: (error) => {
-//       console.error("Send sound message error:", error);
-//       toast.error(
-//         error.response?.data?.message || "Failed to send sound message"
-//       );
-//     },
-//   });
-// };
-
-// Get conversation messages with a user
 export const useConversation = (userId) => {
   return useQuery({
     queryKey: MESSAGE_KEYS.conversation(userId),

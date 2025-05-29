@@ -8,7 +8,7 @@ export const useDeleteUserByAdmin = () => {
 
   return useMutation({
     mutationFn: async (userId) => {
-      console.log(`Deleting user with ID:`, userId);
+      // console.log(`Deleting user with ID:`, userId);
       const { data } = await apiClient.delete(`/user/delete-user`, {
         data: { userId: userId },
       });

@@ -39,7 +39,7 @@ const ManageUsers = () => {
     ? allUsers.filter((user) => user._id !== currentUser?._id)
     : [];
 
-  console.log("Filtered Users:", filteredUsers);
+  // console.log("Filtered Users:", filteredUsers);
 
   // Handle search
   const handleSearch = (e) => {
