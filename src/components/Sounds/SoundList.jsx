@@ -682,7 +682,7 @@ const SoundList = () => {
 
       {/* Bottom Action Buttons - Static, doesn't scroll */}
       <div
-        className="sticky bottom-0 bg-white pt-2 pb-safe space-y-2"
+        className="sticky bottom-0 bg-background pt-2 pb-safe space-y-2"
         style={{ paddingBottom: "max(16px, env(safe-area-inset-bottom))" }}
       >
         <motion.div
