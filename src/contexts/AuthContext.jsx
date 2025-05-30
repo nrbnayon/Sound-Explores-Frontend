@@ -31,30 +31,23 @@ export function AuthProvider({ children }) {
   const checkAuth = useCallback(async () => {
     try {
       setLoading(true);
-      // console.log("Checking authentication status");
 
-      // Check for the authentication cookie
       if (
         hasCookie("isAuthenticated") &&
         (hasCookie("accessToken") || hasCookie("refreshToken"))
       ) {
-        // console.log("Auth cookie found, fetching user profile");
         try {
-          // Get user profile from API
           const response = await apiClient.get("/user/me");
-          // console.log("Get user:::", response);
           setUser(response.data.data);
         } catch (error) {
           console.error("Error fetching user profile:", error);
 
-          // Only remove tokens if the error is authentication related
           if (error.response && error.response.status === 401) {
             removeAuthTokens();
             setUser(null);
           }
         }
       } else {
-        // console.log("No auth cookie found, setting user to null");
         setUser(null);
       }
     } catch (error) {
@@ -72,9 +65,6 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     if (location.pathname === ROUTES.SEND_CODE) {
       if (!location.state?.email) {
-        // console.log(
-        //   "No email provided for verification, redirecting to signup"
-        // );
         navigate(ROUTES.HOME);
       }
     }
@@ -84,22 +74,16 @@ export function AuthProvider({ children }) {
   const signIn = async (credentials) => {
     try {
       setLoading(true);
-      // console.log("Signing in with:", credentials);
 
       const response = await apiClient.post("/auth/login", credentials);
-      // console.log("Sign in response:", response.data);
 
       if (response) {
         const { accessToken, refreshToken } = response.data.data;
         setAuthTokens(accessToken, refreshToken);
         const userData = await apiClient.get("/user/me");
-        // console.log("Get user check auth:::", response);
         checkAuth();
         setUser(userData.data.data);
       }
-      // Set auth tokens in cookies
-
-      // Store user data in state
 
       toast.success("Successfully signed in!");
       navigate(ROUTES.SOUND_LIBRARY);
@@ -113,44 +97,54 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // Sign up function
+  // Simplified sign up function - same flow as sign in
   const signUp = async (userData) => {
     try {
       setLoading(true);
-      // console.log("Creating new user account:", userData.email);
-
+      console.log("Sign up data:", userData);
       const response = await apiClient.post("/user/create-user", userData);
-      // console.log("Sign up response:", response.data);
 
-      // Start verification process
+      console.log("Sign up response:", response);
+
       if (response.data.success) {
-        setVerificationInProgress(true);
+        // If backend returns tokens directly (same as sign in)
+        if (
+          response.data.data?.accessToken &&
+          response.data.data?.refreshToken
+        ) {
+          const { accessToken, refreshToken } = response.data.data;
+          setAuthTokens(accessToken, refreshToken);
+          const userDataResponse = await apiClient.get("/user/me");
+          setUser(userDataResponse.data.data);
+
+          toast.success("Account created successfully!");
+          navigate(ROUTES.SOUND_LIBRARY);
+          return true;
+        }
+
+        // If backend still returns success but no tokens, handle accordingly
         toast.success(
-          response?.data?.message ||
-            `Account created successfully!  Please check your email ${userData?.email} for code.`
+          response?.data?.message || "Account created successfully!"
         );
-        // Pass the email in the state
-        navigate(ROUTES.SEND_CODE, { state: { email: userData.email } });
-        return true;
+
+        // Try to sign in immediately with the same credentials
+        return await signIn({
+          email: userData.email,
+          password: userData.password,
+        });
       }
       return false;
     } catch (error) {
       console.error("Sign up error:", error);
-
-      // Handle validation errors
       if (error.response?.data?.errors) {
         const validationErrors = error.response.data.message;
-        // Display first validation error as toast
         toast.error(validationErrors || "Validation failed");
       } else if (error.response?.data?.message) {
-        // Handle case where email already exists
         if (error.response?.data?.message.includes("email already exist")) {
-          setVerificationInProgress(true);
-          resendOtp(userData.email);
-          navigate(ROUTES.SEND_CODE, { state: { email: userData.email } });
           toast.warn(
-            "This email is already registered. Verification code resent."
+            "This email is already registered. Please sign in instead."
           );
+          navigate(ROUTES.SIGNIN);
         } else {
           toast.error(
             error.response.data.message || "Failed to create account"
@@ -166,10 +160,8 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // Sign out function
   const signOut = async () => {
     try {
-      // console.log("Signing out user");
       removeAuthTokens();
       setUser(null);
       setVerificationInProgress(false);
@@ -182,21 +174,14 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // Request password reset
   const sendPasswordResetEmail = async (email) => {
     try {
       setLoading(true);
-      // console.log("Requesting password reset for:", email);
-
       const response = await apiClient.patch("/auth/forgot-password-request", {
         email,
       });
-      // console.log("Get response Forget Pass::", response);
-
-      // Based on your API response structure
       if (response?.data?.success) {
         setVerificationInProgress(true);
-        // Explicitly pass the email in state for the next page and mark as password reset flow
         navigate(ROUTES.SEND_CODE, {
           state: {
             email: email,
@@ -210,7 +195,6 @@ export function AuthProvider({ children }) {
         );
         return true;
       } else {
-        // Fallback success handling
         toast.success(
           response?.data?.message || `Verification code sent to ${email}`
         );
@@ -230,39 +214,30 @@ export function AuthProvider({ children }) {
       const errorMessage =
         error.response?.data?.message || "Failed to send reset email";
       toast.error(errorMessage);
-
       return false;
     } finally {
       setLoading(false);
     }
   };
 
-  // Verify OTP code
+  // Verify OTP code (kept for password reset functionality)
   const verifyOtp = async (email, otp) => {
     try {
       setLoading(true);
-      // console.log("Verifying OTP for:", email);
-
       if (!email || !otp) {
         throw new Error("Email and OTP are required");
       }
-
       const response = await apiClient.patch("/auth/verify-user", {
         email,
         otp,
       });
-      // console.log("OTP verification response:", response.data);
 
-      // Mark verification as complete
       setVerificationInProgress(false);
       toast.success("Your account verified successfully");
-
       const isPasswordReset = location.state?.fromPasswordReset;
-
       const authToken = response.data?.data?.token || response.data?.token;
 
       if (isPasswordReset && authToken) {
-        // Navigate to reset password with token for password reset flow
         navigate(ROUTES.RESET_PASSWORD, {
           state: {
             email,
@@ -281,18 +256,14 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // Resend OTP code
+  // Resend OTP code (kept for password reset functionality)
   const resendOtp = async (email) => {
     try {
       setLoading(true);
-      // console.log("Resending OTP for:", email);
-
       if (!email) {
         throw new Error("Email is required");
       }
-
       const response = await apiClient.patch("/auth/resend-code", { email });
-      // console.log("Resend OTP response:", response.data);
 
       toast.success("Verification code resent successfully");
       return true;
@@ -309,9 +280,6 @@ export function AuthProvider({ children }) {
   const resetPassword = async (passwords, token) => {
     try {
       setLoading(true);
-      // console.log("Resetting password with token");
-
-      // Use the token in the Authorization header
       const response = await apiClient.patch(
         "/auth/reset-password",
         passwords,
@@ -321,9 +289,6 @@ export function AuthProvider({ children }) {
           },
         }
       );
-
-      // console.log("Reset password response:", response.data);
-
       toast.success("Password reset successfully");
       navigate(ROUTES.SIGNIN);
       return true;
@@ -340,13 +305,11 @@ export function AuthProvider({ children }) {
   const changePassword = async (passwords) => {
     try {
       setLoading(true);
-      // console.log("Changing password");
 
       const response = await apiClient.patch(
         "/auth/update-password",
         passwords
       );
-      // console.log("Change password response:", response.data);
 
       toast.success("Password changed successfully");
       return true;
@@ -363,17 +326,12 @@ export function AuthProvider({ children }) {
   const updateProfile = async (profileData) => {
     try {
       setLoading(true);
-      // console.log("Updating user profile:", profileData);
-
       const response = await apiClient.patch(
         "/user/update-profile-data",
         profileData
       );
 
-      // console.log("Update profile response:", response.data);
-
       if (response?.data?.success) {
-        // Get the updated user data from the response
         const updatedUser = response.data.data || response.data.user;
         setUser((prevUser) => {
           return {
@@ -393,12 +351,9 @@ export function AuthProvider({ children }) {
           };
         });
 
-        // Wait for state update to complete before navigating
         setTimeout(() => {
           toast.success("Profile updated successfully");
-          // navigate(ROUTES.PROFILE, { replace: true });
         }, 100);
-
         return true;
       }
       return false;

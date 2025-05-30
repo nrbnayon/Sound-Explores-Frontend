@@ -1,12 +1,8 @@
 // src/lib/api-client.js
 import axios from "axios";
 import { getCookie, setCookie, removeAuthTokens } from "../utils/cookie-utils";
-
-// Use environment variable for API URL or default to localhost
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4500/api";
 
-// Create axios instance with base URL
-// console.log("API URL:", API_URL);
 const apiClient = axios.create({
   baseURL: API_URL,
   withCredentials: true,
@@ -15,18 +11,12 @@ const apiClient = axios.create({
   },
 });
 
-// Request interceptor to add auth token from cookies if available
 apiClient.interceptors.request.use(
   (config) => {
-    // console.log(`API Request: ${config.method.toUpperCase()} ${config.url}`);
-
-    // Get access token from cookie and add it to the Authorization header
     const accessToken = getCookie("accessToken");
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
-      // console.log("Adding Authorization header with access token");
     }
-
     return config;
   },
   (error) => {
@@ -35,7 +25,6 @@ apiClient.interceptors.request.use(
   }
 );
 
-// For token refresh mechanism
 let isRefreshing = false;
 let failedQueue = [];
 
@@ -51,25 +40,19 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
-// Response interceptor for handling common error scenarios
 apiClient.interceptors.response.use(
   (response) => {
-    // console.log(`API Response: ${response.status} ${response.config.url}`);
     return response;
   },
   async (error) => {
     console.error("API Response Error:", error.response?.data || error.message);
     if (error?.response?.data?.message.includes("You are not authorized")) {
-      // Handle invalid token error
       console.error("Invalid token detected, clearing auth state");
       removeAuthTokens();
       clearAuthState();
     }
-    // Handle 401 Unauthorized errors (token expired or invalid)
     if (error.response && error.response.status === 401) {
       const originalRequest = error.config;
-
-      // If this request hasn't been retried yet and isn't the refresh token endpoint itself
       if (
         !originalRequest._retry &&
         !originalRequest.url.includes("/auth/refresh-token")
@@ -86,35 +69,26 @@ apiClient.interceptors.response.use(
           }
         }
 
-        // Mark this request as retried
         originalRequest._retry = true;
         isRefreshing = true;
 
         const refreshToken = getCookie("refreshToken");
         if (!refreshToken) {
-          // No refresh token available, clear auth state and redirect
           clearAuthState();
           return Promise.reject(error);
         }
 
-        // Try to get a new access token using the refresh token
         try {
           const response = await apiClient.get(
             `/auth/refresh-token?refreshToken=${refreshToken}`
           );
-          // const response = await apiClient.post("/auth/refresh-token", {
-          //   refreshToken,
-          // });
           const { accessToken } = response.data.data;
           setCookie("accessToken", accessToken, { maxAge: 30 * 24 * 60 * 60 });
-
-          // Update authorization header
           originalRequest.headers.Authorization = `Bearer ${accessToken}`;
           processQueue(null, accessToken);
           return axios(originalRequest);
         } catch (err) {
           processQueue(err, null);
-          // Token refresh failed, clear auth state
           clearAuthState();
           return Promise.reject(err);
         } finally {
@@ -127,9 +101,7 @@ apiClient.interceptors.response.use(
   }
 );
 
-// Helper function to clear auth state
 function clearAuthState() {
-  // console.log("Clearing authentication state");
   removeAuthTokens();
 }
 

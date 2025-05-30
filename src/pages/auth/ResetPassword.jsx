@@ -10,7 +10,6 @@ import { Card, CardContent } from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
 import { useAuth } from "../../contexts/AuthContext";
 import { motion } from "framer-motion";
-import { StatusBar } from "../../components/common/StatusBar";
 import { ROUTES } from "../../config/constants";
 
 // Validation schema
@@ -91,7 +90,6 @@ const ResetPassword = () => {
   return (
     <div className='bg-background flex flex-row justify-center w-full min-h-screen'>
       <div className='bg-card w-full max-w-md relative shadow-md'>
-        {/* <StatusBar /> */}
 
         {/* Header */}
         <motion.div

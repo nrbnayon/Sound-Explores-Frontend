@@ -4,8 +4,6 @@ import { Link } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import PhoneInput from "react-phone-number-input";
-import { isValidPhoneNumber } from "react-phone-number-input";
 import { EyeIcon, EyeOffIcon, ArrowLeft } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent } from "../../components/ui/card";
@@ -13,24 +11,10 @@ import { Checkbox } from "../../components/ui/checkbox";
 import { Input } from "../../components/ui/input";
 import { useAuth } from "../../contexts/AuthContext";
 import { motion } from "framer-motion";
-import { StatusBar } from "../../components/common/StatusBar";
 import { Helmet } from "react-helmet-async";
-import "react-phone-number-input/style.css";
 
-// Validation schema aligned with backend
+// Simplified validation schema - only email, password, and terms
 const signUpSchema = z.object({
-  fullName: z.string().min(2, "Name is required"),
-  phone: z
-    .string()
-    .min(1, "Phone number is required")
-    .refine(
-      (val) => {
-        return isValidPhoneNumber(val);
-      },
-      {
-        message: "Please enter a valid phone number with country code",
-      }
-    ),
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   agreeToTerms: z.literal(true, {
@@ -53,8 +37,6 @@ const SignUp = () => {
   } = useForm({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
-      fullName: "",
-      phone: "",
       email: "",
       password: "",
       agreeToTerms: false,
@@ -63,23 +45,21 @@ const SignUp = () => {
 
   // Handle form submission
   const onSubmit = async (data) => {
-    // console.log("Create new user::", data);
     try {
-      const res = await signUp(data);
-      // if (res) {
-      //   toast.success(
-      //     `Please check your email ${data?.email} for a 4-digit OTP and verify your account.`
-      //   );
-      // }
+      await signUp(data);
     } catch (error) {
-      // Handle specific validation errors from the backend
       if (error.response?.data?.errors) {
         error.response.data.errors.forEach((err) => {
-          // Map backend errors to form fields
-          if (err.path && err.path.includes("phone")) {
-            setError("phone", {
+          if (err.path && err.path.includes("email")) {
+            setError("email", {
               type: "manual",
-              message: err.message || "Invalid phone number format",
+              message: err.message || "Invalid email format",
+            });
+          }
+          if (err.path && err.path.includes("password")) {
+            setError("password", {
+              type: "manual",
+              message: err.message || "Invalid password format",
             });
           }
         });
@@ -116,7 +96,6 @@ const SignUp = () => {
           <meta property="og:url" content="https://poopalert.fun/signup" />
           <meta property="og:type" content="website" />
         </Helmet>
-        {/* <StatusBar /> */}
 
         {/* Header */}
         <motion.div
@@ -161,7 +140,7 @@ const SignUp = () => {
               Create Account
             </h2>
             <p className="text-xs text-muted-foreground">
-              Fill in your details to register
+              Enter your email and password to register
             </p>
           </motion.div>
         </div>
@@ -169,67 +148,6 @@ const SignUp = () => {
         {/* Form */}
         <form onSubmit={handleSubmit(onSubmit)} className="p-6">
           <div className="space-y-4">
-            {/* Name Field */}
-            <div className="flex flex-col gap-2">
-              <label className="font-medium text-base">
-                Full Name<span className="text-red-400">*</span>{" "}
-              </label>
-              <Card className="p-0 w-full border border-solid border-gray-200 shadow-none">
-                <CardContent className="p-0">
-                  <Input
-                    {...register("fullName")}
-                    className={`border-none px-4 py-3 h-auto text-foreground text-sm ${
-                      errors.fullName ? "border-red-500" : ""
-                    }`}
-                    placeholder="Enter your full name..."
-                  />
-                </CardContent>
-              </Card>
-              {errors.fullName && (
-                <span className="text-destructive text-sm">
-                  {errors.fullName.message}
-                </span>
-              )}
-            </div>
-
-            {/* Phone Field with Country Code */}
-            <div className="flex flex-col gap-2">
-              <label className="font-medium text-base">
-                Phone Number<span className="text-red-400">*</span>
-              </label>
-              <Card className="p-0 w-full border border-solid border-gray-200 shadow-none">
-                <CardContent className="p-0">
-                  <Controller
-                    name="phone"
-                    control={control}
-                    render={({ field: { onChange, value } }) => (
-                      <PhoneInput
-                        value={value}
-                        onChange={onChange}
-                        defaultCountry="US" // Set default country (USA)
-                        international
-                        countryCallingCodeEditable={false}
-                        className={`phone-input-custom ${
-                          errors.phone ? "border-red-500" : ""
-                        }`}
-                        placeholder="Enter phone number"
-                        style={{
-                          "--PhoneInputCountryFlag-height": "1em",
-                          "--PhoneInputCountrySelectArrow-color": "#6b7280",
-                          "--PhoneInput-color--focus": "#3b82f6",
-                        }}
-                      />
-                    )}
-                  />
-                </CardContent>
-              </Card>
-              {errors.phone && (
-                <span className="text-destructive text-sm">
-                  {errors.phone.message}
-                </span>
-              )}
-            </div>
-
             {/* Email Field */}
             <div className="flex flex-col gap-2">
               <label className="font-medium text-base">

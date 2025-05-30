@@ -1,7 +1,4 @@
 import { useState } from "react";
-import { ChevronLeft, MoreVertical } from "lucide-react";
-import { Link } from "react-router-dom";
-import { StatusBar } from "../../../components/common/StatusBar";
 import { useAuth } from "../../../contexts/AuthContext";
 import { AnimatePresence, motion } from "framer-motion";
 import toast from "react-hot-toast";
@@ -161,7 +158,7 @@ const EditProfile = () => {
                 onChange={handleChange}
                 placeholder="Enter your email..."
                 disabled
-                className={`w-full text-black p-3 border ${
+                className={`w-full text-black dark:text-white p-3 border ${
                   errors.email ? "border-red-500" : "border-gray-200"
                 } rounded-lg`}
               />
@@ -173,7 +170,7 @@ const EditProfile = () => {
             </div>
 
             {/* Phone */}
-            <div>
+            {/* <div>
               <label className="block text-base font-medium mb-1">Phone</label>
               <input
                 type="tel"
@@ -183,7 +180,7 @@ const EditProfile = () => {
                 placeholder="Enter your Phone..."
                 className="w-full text-black p-3 border border-gray-200 rounded-lg"
               />
-            </div>
+            </div> */}
 
             {/* Address */}
             <div>
