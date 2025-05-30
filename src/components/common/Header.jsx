@@ -108,7 +108,9 @@ const Header = ({ backHref, title, onLogoutClick }) => {
                   onClick={() => setShowOptions(false)}
                 >
                   <Music2Icon className="w-4 h-4 mr-3 text-muted-foreground" />
-                  <span className="text-sm font-medium">Sound Library</span>
+                  <span className="text-sm font-medium">
+                    Popular Sounds
+                  </span>
                 </Link>
                 {!isAdmin && (
                   <Link

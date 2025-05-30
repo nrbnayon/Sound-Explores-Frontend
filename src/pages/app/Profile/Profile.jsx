@@ -145,7 +145,7 @@ const Profile = () => {
           />
           <meta
             property="og:image"
-            content={avatar || "https://poopalert.fun/default-og-image.jpg"}
+            content={"https://i.postimg.cc/HkHXj7zF/logo.png"}
           />
           <meta
             property="og:url"
@@ -205,7 +205,9 @@ const Profile = () => {
             </div>
 
             <h2 className="text-2xl text-black font-bold mb-1">
-              {profileName}
+              {profileName ||
+                user?.email?.split("@")[0].slice(0, 10) ||
+                "User Name"}
             </h2>
             <p className="text-xs text-muted-foreground mb-2">
               {user?.email || "user@example.com"}

@@ -576,6 +576,53 @@ const SoundList = () => {
             </Button>
           )}
         </div>
+        {/* send sound to friend button and delete sounds button */}
+        <div className="sticky bottom-0 bg-background pt-3 space-y-2">
+          <motion.div
+            initial={{ y: 20, opacity: 1 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="flex flex-col gap-2"
+          >
+            {/* Delete button (only shown for admin when sounds are selected) */}
+            <AnimatePresence>
+              {isAdmin && selectedSounds.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                >
+                  <Button
+                    onClick={openDeleteModal}
+                    className="flex items-center justify-center gap-2 px-6 py-3 w-full bg-red-500 rounded-full h-auto hover:bg-red-600 text-white font-medium"
+                  >
+                    <Trash2 size={18} />
+                    Delete{" "}
+                    {selectedSounds.length > 1
+                      ? `Selected Sounds (${selectedSounds.length})`
+                      : "Selected Sound"}
+                  </Button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Share Sound button (only for non-admin users) */}
+            {!isAdmin && (
+              <Button
+                onClick={shareSound}
+                disabled={!sounds.some((sound) => sound.selected)}
+                className="flex items-center justify-center gap-2.5 px-6 py-3 w-full bg-primary rounded-full h-auto hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium"
+              >
+                <Share2 size={18} />
+                {canShare ? (
+                  <span className="rounded-full">Share Sound</span>
+                ) : (
+                  "Share Sound"
+                )}
+              </Button>
+            )}
+          </motion.div>
+        </div>
       </div>
 
       {/* Sound List - Only this section scrolls */}
@@ -679,57 +726,6 @@ const SoundList = () => {
           </div>
         </div>
       )}
-
-      {/* Bottom Action Buttons - Static, doesn't scroll */}
-      <div
-        className="sticky bottom-0 bg-background pt-2 pb-safe space-y-2"
-        style={{ paddingBottom: "max(16px, env(safe-area-inset-bottom))" }}
-      >
-        <motion.div
-          initial={{ y: 20, opacity: 1 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="flex flex-col gap-2"
-        >
-          {/* Delete button (only shown for admin when sounds are selected) */}
-          <AnimatePresence>
-            {isAdmin && selectedSounds.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-              >
-                <Button
-                  onClick={openDeleteModal}
-                  className="flex items-center justify-center gap-2 px-6 py-3 w-full bg-red-500 rounded-full h-auto hover:bg-red-600 text-white font-medium"
-                >
-                  <Trash2 size={18} />
-                  Delete{" "}
-                  {selectedSounds.length > 1
-                    ? `Selected Sounds (${selectedSounds.length})`
-                    : "Selected Sound"}
-                </Button>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Share Sound button (only for non-admin users) */}
-          {!isAdmin && (
-            <Button
-              onClick={shareSound}
-              disabled={!sounds.some((sound) => sound.selected)}
-              className="flex items-center justify-center gap-2.5 px-6 py-3 w-full bg-primary rounded-full h-auto hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium"
-            >
-              <Share2 size={18} />
-              {canShare ? (
-                <span className="rounded-full">Share Sound</span>
-              ) : (
-                "Share Sound"
-              )}
-            </Button>
-          )}
-        </motion.div>
-      </div>
 
       {/* Modals */}
       <DeleteModal />

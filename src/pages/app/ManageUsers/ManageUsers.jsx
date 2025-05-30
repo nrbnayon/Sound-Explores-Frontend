@@ -106,7 +106,7 @@ const ManageUsers = () => {
             <div>
               <h2 className="text-lg font-semibold">Manage Users</h2>
               <p className="text-sm text-muted-foreground">
-                {totalUsers} total users
+                {filteredUsers?.length} total users
               </p>
             </div>
           </div>
@@ -174,8 +174,15 @@ const ManageUsers = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <h3 className="text-base font-medium truncate">
-                        {user.profile?.fullName || user.email.split("@")[0]}
+                        {user.profile?.fullName}
                       </h3>
+
+                      {user.isVerified && (
+                        <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
+                          Verified
+                        </span>
+                      )}
+
                       <span
                         className={`px-2 py-1 text-xs rounded-full ${
                           user.role === "ADMIN"
@@ -185,20 +192,17 @@ const ManageUsers = () => {
                       >
                         {user.role}
                       </span>
-                      {user.isVerified && (
-                        <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
-                          Verified
-                        </span>
-                      )}
                     </div>
                     <p className="text-sm text-muted-foreground truncate mb-1">
-                      {user.email}
+                      {user.email.length > 25
+                        ? `${user.email.slice(0, 25)}...`
+                        : user.email || user.email.split("@")[0]}
                     </p>
-                    {user.phone && (
+                    {/* {user.phone && (
                       <p className="text-xs text-muted-foreground">
                         {user.phone}
                       </p>
-                    )}
+                    )} */}
                   </div>
 
                   <div className="flex-shrink-0">

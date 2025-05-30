@@ -10,11 +10,12 @@ import ManageUsers from "../ManageUsers/ManageUsers";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSelectedSound } from "../../../contexts/SelectedSoundContext";
 import { useAuth } from "../../../contexts/AuthContext";
+import { ThemeToggle } from "../../../components/common/ThemeToggle";
 
 const SoundLibrary = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeView, setActiveView] = useState("sounds"); // "sounds", "friends", "manageUsers"
-  const [title, setTitle] = useState("Sound Library");
+  const [title, setTitle] = useState("Popular");
   const [scrolled, setScrolled] = useState(false);
   const queryClient = useQueryClient();
   const sidebarRef = useRef(null);
@@ -45,7 +46,7 @@ const SoundLibrary = () => {
     setActiveView(view);
     switch (view) {
       case "sounds":
-        setTitle("Sound Library");
+        setTitle("Popular");
         break;
       case "friends":
         setTitle("Friends");
@@ -54,7 +55,7 @@ const SoundLibrary = () => {
         setTitle("Manage Users");
         break;
       default:
-        setTitle("Sound Library");
+        setTitle("Popular");
     }
   };
 
@@ -142,29 +143,37 @@ const SoundLibrary = () => {
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.3 }}
-          className={`flex items-center justify-between p-4 border-b bg-card sticky top-0 z-10 w-full transition-shadow ${
+          className={`grid grid-cols-3 items-center p-4 border-b bg-card sticky top-0 z-10 w-full transition-shadow ${
             scrolled ? "shadow-md" : ""
           }`}
         >
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            className="p-2 rounded-full hover:bg-background transition-colors"
-            onClick={toggleSidebar}
-          >
-            <Menu className="w-5 h-5" />
-          </motion.button>
-
-          <h1 className="text-xl font-bold">{title}</h1>
-          <Link to="/profile">
-            <motion.div
+          <div className="flex items-center gap-2 justify-start">
+            <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               className="p-2 rounded-full hover:bg-background transition-colors"
+              onClick={toggleSidebar}
             >
-              <CircleUserRound className="w-5 h-5" />
-            </motion.div>
-          </Link>
+              <Menu className="w-5 h-5" />
+            </motion.button>
+            <ThemeToggle />
+          </div>
+
+          <h1 className="text-xl font-bold text-[#8B4513] text-center">
+            {title}
+          </h1>
+
+          <div className="flex justify-end">
+            <Link to="/profile">
+              <motion.div
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                className="p-2 rounded-full hover:bg-background transition-colors"
+              >
+                <CircleUserRound className="w-5 h-5" />
+              </motion.div>
+            </Link>
+          </div>
         </motion.div>
 
         <div className="h-[calc(100vh-56px)] overflow-hidden">

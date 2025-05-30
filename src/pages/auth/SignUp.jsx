@@ -111,7 +111,7 @@ const SignUp = () => {
           />
           <meta
             property="og:image"
-            content="https://poopalert.fun/og-image-signup.jpg"
+            content="https://i.postimg.cc/HkHXj7zF/logo.png"
           />
           <meta property="og:url" content="https://poopalert.fun/signup" />
           <meta property="og:type" content="website" />

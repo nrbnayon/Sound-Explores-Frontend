@@ -68,7 +68,7 @@ const SignIn = () => {
         />
         <meta
           property="og:image"
-          content="https://poopalert.fun/og-image-signin.jpg"
+          content="https://i.postimg.cc/HkHXj7zF/logo.png"
         />
         <meta property="og:url" content="https://poopalert.fun/signin" />
         <meta property="og:type" content="website" />
