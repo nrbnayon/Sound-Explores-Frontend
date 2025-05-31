@@ -28,7 +28,7 @@ const SideBar = ({ onTitleChange, onViewChange, onClose, activeView }) => {
   }, [activeView]);
 
   const handleSoundButtonClick = () => {
-    onTitleChange("Popular");
+    onTitleChange("Poop Alert");
     onViewChange("sounds");
     setActiveButton(1);
     if (onClose) onClose();

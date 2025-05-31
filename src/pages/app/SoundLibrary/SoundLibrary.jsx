@@ -15,7 +15,7 @@ import { ThemeToggle } from "../../../components/common/ThemeToggle";
 const SoundLibrary = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeView, setActiveView] = useState("sounds"); // "sounds", "friends", "manageUsers"
-  const [title, setTitle] = useState("Popular");
+  const [title, setTitle] = useState("Poop Alert");
   const [scrolled, setScrolled] = useState(false);
   const queryClient = useQueryClient();
   const sidebarRef = useRef(null);
@@ -46,7 +46,7 @@ const SoundLibrary = () => {
     setActiveView(view);
     switch (view) {
       case "sounds":
-        setTitle("Popular");
+        setTitle("Poop Alert");
         break;
       case "friends":
         setTitle("Friends");
@@ -55,7 +55,7 @@ const SoundLibrary = () => {
         setTitle("Manage Users");
         break;
       default:
-        setTitle("Popular");
+        setTitle("Poop Alert");
     }
   };
 

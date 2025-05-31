@@ -76,15 +76,12 @@ const SignUp = () => {
     <div className="bg-background flex flex-row justify-center w-full min-h-screen">
       <div className="bg-card w-full max-w-md relative">
         <Helmet>
-          <title>Sign Up - Sound Explores Library</title>
+          <title>Sign Up - Poop Alert</title>
           <meta
             name="description"
             content="Create a new Sound Explores account"
           />
-          <meta
-            property="og:title"
-            content="Sign Up - Sound Explores Library"
-          />
+          <meta property="og:title" content="Sign Up - Poop Alert" />
           <meta
             property="og:description"
             content="Create a new Sound Explores account"

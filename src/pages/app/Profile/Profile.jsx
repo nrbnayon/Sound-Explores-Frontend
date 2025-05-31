@@ -135,7 +135,7 @@ const Profile = () => {
             property="og:title"
             content={`${
               profileName !== "User Name" ? profileName : "User"
-            }'s Profile - Sound Explores Library`}
+            }'s Profile - Poop Alert`}
           />
           <meta
             property="og:description"
