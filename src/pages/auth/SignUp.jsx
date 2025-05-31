@@ -15,7 +15,10 @@ import { Helmet } from "react-helmet-async";
 
 // Simplified validation schema - only email, password, and terms
 const signUpSchema = z.object({
-  email: z.string().email("Invalid email address"),
+  email: z
+    .string()
+    .email("Invalid email address")
+    .transform((val) => val.replace(/\s+/g, "").toLowerCase()),
   password: z.string().min(6, "Password must be at least 6 characters"),
   agreeToTerms: z.literal(true, {
     errorMap: () => ({ message: "You must agree to the terms" }),
@@ -46,7 +49,11 @@ const SignUp = () => {
   // Handle form submission
   const onSubmit = async (data) => {
     try {
-      await signUp(data);
+      const submitData = {
+        ...data,
+        email: data.email.replace(/\s+/g, "").toLowerCase(),
+      };
+      await signUp(submitData);
     } catch (error) {
       if (error.response?.data?.errors) {
         error.response.data.errors.forEach((err) => {
@@ -159,6 +166,12 @@ const SignUp = () => {
                       errors.email ? "border-red-500" : ""
                     }`}
                     placeholder="Enter your email address..."
+                    onChange={(e) => {
+                      e.target.value = e.target.value
+                        .replace(/\s+/g, "")
+                        .toLowerCase();
+                      register("email").onChange(e);
+                    }}
                   />
                 </CardContent>
               </Card>

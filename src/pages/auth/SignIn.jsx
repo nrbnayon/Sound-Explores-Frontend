@@ -16,7 +16,10 @@ import { Helmet } from "react-helmet-async";
 
 // Validation schema
 const loginSchema = z.object({
-  email: z.string().email("Email is invalid"),
+  email: z
+    .string()
+    .email("Email is invalid")
+    .transform((val) => val.replace(/\s+/g, "").toLowerCase()),
   password: z.string().min(6, "Password must be at least 6 characters"),
   rememberMe: z.boolean().optional(),
 });
@@ -42,7 +45,11 @@ const SignIn = () => {
 
   // Handle form submission
   const onSubmit = async (data) => {
-    await signIn(data);
+    const submitData = {
+      ...data,
+      email: data.email.replace(/\s+/g, "").toLowerCase(),
+    };
+    await signIn(submitData);
   };
 
   // Toggle password visibility
@@ -116,6 +123,12 @@ const SignIn = () => {
                         errors.email ? "border-red-500" : ""
                       }`}
                       placeholder="Enter your Email..."
+                      onChange={(e) => {
+                        e.target.value = e.target.value
+                          .replace(/\s+/g, "")
+                          .toLowerCase();
+                        register("email").onChange(e);
+                      }}
                     />
                   </CardContent>
                 </Card>
