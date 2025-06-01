@@ -16,9 +16,9 @@ const SideBar = ({ onTitleChange, onViewChange, onClose, activeView }) => {
       case "sounds":
         setActiveButton(1);
         break;
-      case "friends":
-        setActiveButton(2);
-        break;
+      // case "friends":
+      //   setActiveButton(2);
+      //   break;
       case "manageUsers":
         setActiveButton(2); // Same button for admin
         break;
@@ -38,11 +38,12 @@ const SideBar = ({ onTitleChange, onViewChange, onClose, activeView }) => {
     if (isAdmin) {
       onTitleChange("Manage Users");
       onViewChange("manageUsers");
-    } else {
-      onTitleChange("Friends");
-      onViewChange("friends");
+      setActiveButton(2);
     }
-    setActiveButton(2);
+    // else {
+    //   onTitleChange("Friends");
+    //   onViewChange("friends");
+    // }
     if (onClose) onClose();
   };
 
@@ -78,7 +79,24 @@ const SideBar = ({ onTitleChange, onViewChange, onClose, activeView }) => {
             </button>
           </motion.li>
 
-          <motion.li whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          {isAdmin && (
+            <motion.li whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <button
+                onClick={handleSecondButtonClick}
+                className={`px-4 py-2 rounded-md w-full text-left transition-colors duration-200 flex items-center gap-3
+                  ${
+                    activeButton === 2
+                      ? "bg-card text-foreground"
+                      : "text-white hover:bg-gray-600"
+                  }`}
+              >
+                <UserCog className="w-4 h-4" />
+                Manage Users
+              </button>
+            </motion.li>
+          )}
+
+          {/* <motion.li whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <button
               onClick={handleSecondButtonClick}
               className={`px-4 py-2 rounded-md w-full text-left transition-colors duration-200 flex items-center gap-3
@@ -93,14 +111,14 @@ const SideBar = ({ onTitleChange, onViewChange, onClose, activeView }) => {
                   <UserCog className="w-4 h-4" />
                   Manage Users
                 </>
-              ) : (
-                <>
-                  <Users className="w-4 h-4" />
-                  Friends
-                </>
+                ) : (
+                  <>
+                    <Users className="w-4 h-4" />
+                    Friends
+                  </>
               )}
             </button>
-          </motion.li>
+          </motion.li> */}
         </ul>
       </nav>
 
