@@ -118,30 +118,19 @@ const Profile = () => {
     <div className="bg-background flex flex-row justify-center w-full min-h-screen">
       <div className="bg-card w-full max-w-md relative shadow-md">
         <Helmet>
-          <title>
-            {profileName !== "User Name"
-              ? `${profileName}'s Profile`
-              : "Profile"}{" "}
-            - Sound Explores App
-          </title>
+          <title>Poop Alert Sound Explores Library Application</title>
           <meta
             name="description"
-            content={`View ${
-              profileName !== "User Name" ? profileName : "User"
-            }'s profile on Sound Explores`}
+            content={`View Poop Alert Sound Explores Library Application profile`}
           />
           <meta name="robots" content="noindex, nofollow" />
           <meta
             property="og:title"
-            content={`${
-              profileName !== "User Name" ? profileName : "User"
-            }'s Profile - Poop Alert`}
+            content={`View Poop Alert Sound Explores Library Application profile`}
           />
           <meta
             property="og:description"
-            content={`View ${
-              profileName !== "User Name" ? profileName : "user"
-            }'s profile on Sound Explores`}
+            content={`View Poop Alert Sound Explores Library Application profile`}
           />
           <meta
             property="og:image"
