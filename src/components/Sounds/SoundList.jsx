@@ -599,9 +599,9 @@ const SoundList = () => {
       className="flex flex-col h-[calc(100vh-125px)] justify-between"
     >
       {/* Search Bar and Admin Add Button */}
-      <div className="sticky top-0 z-10 bg-background pb-2">
+      <div className="sticky top-0 bg-background z-30">
         <div className="flex items-center gap-2">
-          <div className="relative text-black flex-1">
+          <div className="relative text-black flex-1 pb-1">
             <input
               type="text"
               placeholder="Search sounds"
@@ -615,7 +615,7 @@ const SoundList = () => {
           {isAdmin && (
             <Button
               onClick={() => setIsAddModalOpen(true)}
-              className="bg-primary hover:bg-blue-600 text-white px-3 py-3.5 rounded-lg h-auto flex items-center gap-2"
+              className="bg-primary hover:bg-blue-600 text-white px-3 py-3.5 rounded-lg h-auto flex items-center gap-2 mb-1"
             >
               <Plus size={18} />
               <span className="hidden sm:inline">Add Sound</span>

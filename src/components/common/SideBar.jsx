@@ -59,7 +59,7 @@ const SideBar = ({ onTitleChange, onViewChange, onClose, activeView }) => {
   return (
     <div className="flex w-full flex-col h-full bg-[#252525]">
       <div className="p-5 border-b border-gray-300 flex justify-between items-center">
-        <h1 className="text-xl text-white font-bold">Sound App</h1>
+        <h1 className="text-xl text-white font-bold">Poop Alert</h1>
       </div>
 
       <nav className="flex-1 w-full p-4">

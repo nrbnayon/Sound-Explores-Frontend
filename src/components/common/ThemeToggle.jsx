@@ -43,9 +43,9 @@ export const ThemeToggle = () => {
           transition={{ duration: 0.2 }}
         >
           {theme === "light" ? (
-            <MoonIcon className='w-5 h-5 text-primary' />
+            <MoonIcon className='w-4 h-4 text-primary' />
           ) : (
-            <SunIcon className='w-5 h-5 text-yellow-400' />
+            <SunIcon className='w-4 h-4 text-yellow-400' />
           )}
         </motion.div>
       </AnimatePresence>
