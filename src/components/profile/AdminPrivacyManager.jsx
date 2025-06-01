@@ -320,7 +320,7 @@ const AdminPrivacyManager = () => {
                   <div onSubmit={handleSubmit} className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Title *
+                        Title <span className="text-destructive">*</span>
                       </label>
                       <input
                         type="text"
@@ -335,7 +335,7 @@ const AdminPrivacyManager = () => {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Description *
+                        Description <span className="text-destructive">*</span>
                       </label>
                       <textarea
                         value={formData.description}
@@ -353,16 +353,17 @@ const AdminPrivacyManager = () => {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Order
+                        Order Number
                       </label>
                       <input
                         type="number"
+                        placeholder="1"
                         value={formData.order}
                         onChange={(e) =>
                           setFormData({ ...formData, order: e.target.value })
                         }
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        min="0"
+                        min="1"
                       />
                     </div>
 
