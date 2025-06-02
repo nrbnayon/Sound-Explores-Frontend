@@ -31,7 +31,7 @@ const SoundList = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [limit] = useState(200);
+  const [limit] = useState(1000);
   const audioRef = useRef(null);
   const { user } = useAuth();
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
