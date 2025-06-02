@@ -236,7 +236,7 @@ const SignUp = () => {
                 htmlFor="terms"
                 className="cursor-pointer text-sm text-foreground"
               >
-                I agree to the processing of personal data and accept the{" "}
+                I agree and accept the Poop Alert{" "}
                 <Link
                   to="/privacy-policy"
                   className="text-primary hover:underline"
