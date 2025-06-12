@@ -101,10 +101,10 @@ export function AuthProvider({ children }) {
   const signUp = async (userData) => {
     try {
       setLoading(true);
-      console.log("Sign up data:", userData);
+      // console.log("Sign up data:", userData); 
       const response = await apiClient.post("/user/create-user", userData);
 
-      console.log("Sign up response:", response);
+      // console.log("Sign up response:", response);
 
       if (response.data.success) {
         // If backend returns tokens directly (same as sign in)

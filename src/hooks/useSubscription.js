@@ -9,9 +9,9 @@ export const subscriptionService = {
         payload.paymentMethodId = paymentMethodId;
       }
 
-      console.log("Buying subscription with payload:", payload);
+      // console.log("Buying subscription with payload:", payload);
       const response = await apiClient.post("/user/buy-subscription", payload);
-      console.log("Subscription response:", response.data);
+      // console.log("Subscription response:", response.data);
       return response.data;
     } catch (error) {
       console.error("Subscription error:", error);
@@ -52,9 +52,9 @@ export const subscriptionService = {
 
   syncSubscriptionStatus: async () => {
     try {
-      console.log("Syncing subscription status...");
+      // console.log("Syncing subscription status...");
       const response = await apiClient.post("/user/sync-subscription");
-      console.log("Sync subscription response:", response.data);
+      // console.log("Sync subscription response:", response.data);
       return response.data;
     } catch (error) {
       console.error("Sync subscription error:", error);
@@ -66,9 +66,9 @@ export const subscriptionService = {
 
   cancelSubscription: async () => {
     try {
-      console.log("Cancelling subscription...");
+      // console.log("Cancelling subscription...");
       const response = await apiClient.post("/user/cancel-subscription");
-      console.log("Cancel subscription response:", response.data);
+      // console.log("Cancel subscription response:", response.data);
       return response.data;
     } catch (error) {
       console.error("Cancel subscription error:", error);
@@ -80,9 +80,9 @@ export const subscriptionService = {
 
   getSubscriptionStatus: async () => {
     try {
-      console.log("Fetching subscription status...");
+      // console.log("Fetching subscription status...");
       const response = await apiClient.get("/user/subscription-status");
-      console.log("Subscription status response:", response.data);
+      // console.log("Subscription status response:", response.data);
       return response.data;
     } catch (error) {
       console.error("Get subscription status error:", error);

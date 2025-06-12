@@ -159,7 +159,7 @@ const PaymentForm = ({ subscriptionStatus, onSubscriptionUpdate }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="p-6 bg-white rounded-3xl shadow-lg border border-gray-100"
+      className="p-6 bg-background rounded-3xl shadow-lg border border-gray-100"
     >
       <form onSubmit={handleSubmit} className="space-y-6">
         <motion.div
@@ -203,7 +203,7 @@ const PaymentForm = ({ subscriptionStatus, onSubscriptionUpdate }) => {
           </label>
           <div className="relative">
             <div
-              className={`w-full px-4 py-3.5 border-2 bg-white rounded-xl transition-all duration-200 ${
+              className={`w-full px-4 py-3.5 border-2 bg-background rounded-xl transition-all duration-200 ${
                 cardError
                   ? "border-red-300 focus-within:border-red-500"
                   : cardComplete
@@ -764,8 +764,8 @@ const Payment = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-md mx-auto shadow-xl relative min-h-screen bg-white rounded-3xl overflow-hidden">
+    <div className="min-h-screen ">
+      <div className="max-w-md mx-auto shadow-xl relative min-h-screen bg-background rounded-3xl overflow-hidden">
         <Header
           backHref="/profile"
           title="Payment Method"
@@ -846,7 +846,7 @@ const Payment = () => {
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: 400, opacity: 0 }}
                 transition={{ type: "spring", damping: 30, stiffness: 300 }}
-                className="w-full max-w-md bg-white rounded-t-3xl shadow-2xl"
+                className="w-full max-w-md bg-background rounded-t-3xl shadow-2xl"
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="flex flex-col items-center">

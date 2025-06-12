@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Checkbox } from "../ui/checkbox";
 import { Button } from "../ui/button";
-import { Search, Trash2, Plus, Share2 } from "lucide-react";
+import { Search, Trash2, Plus, Share2, Download } from "lucide-react";
 import { useNativeShare } from "../../hooks/useNativeShare";
 import {
   useSounds,
@@ -37,11 +37,7 @@ const SoundList = () => {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [shareData, setShareData] = useState(null);
   const { share, canShare } = useNativeShare();
-
-  // console.log("Share support:", shareData, "Can share", canShare);
-
   const API_URL = import.meta.env.VITE_BASE_URL || "";
-  // Get the setSelectedSound function from context
   const navigate = useNavigate();
   const { setSelectedSound, clearSelectedSound } = useSelectedSound();
   const sendSoundMessage = useSendSoundMessage();
@@ -54,132 +50,90 @@ const SoundList = () => {
     : [];
 
   const isAdmin = user?.role === "ADMIN";
-
-  // const shareSound = async () => {
-  //   const selectedSound = sounds.find((sound) => sound.selected);
-  //   // console.log("Selected sound for sharing:", selectedSound);
-
-  //   if (!selectedSound) {
-  //     toast.error("No sound selected. Please select a sound first!");
-  //     return;
-  //   }
-
-  //   // Fixed recipient name as "Friend"
-  //   const recipientName = "Friend";
-
-  //   // Prepare the complete message with the exact format you want
-  //   const soundUrl = `${API_URL}${selectedSound.link}`;
-  //   const shareMessage = `Hi, ${recipientName}\nI've shared an audio you might enjoy\nCheck out "${selectedSound.name}"\nClick to play the sound: ${soundUrl}`;
-
-  //   const sharePayload = {
-  //     title: `Audio Share - ${selectedSound.name}`,
-  //     text: shareMessage, // This is the complete formatted message
-  //     url: soundUrl,
-  //   };
-
-  //   // console.log("Share payload:", sharePayload);
-
-  //   // Try native share first - this will open the bottom sheet
-  //   if (canShare) {
-  //     try {
-  //       await navigator.share(sharePayload);
-  //       // Native share was successful
-  //       clearSelectedSound();
-  //       toast.success(`"${selectedSound.name}" sound ready to shared!`);
-  //     } catch (error) {
-  //       if (error.name === "AbortError") {
-  //         // User cancelled the share - do nothing
-  //         // console.log("Share cancelled by user");
-  //       } else {
-  //         console.error("Native share failed:", error);
-  //         // Fallback to modal
-  //         setShareData(sharePayload);
-  //         setIsShareModalOpen(true);
-  //       }
-  //     }
-  //   } else {
-  //     // Browser doesn't support native sharing - show modal
-  //     setShareData(sharePayload);
-  //     setIsShareModalOpen(true);
-  //   }
-  // };
-
-  // Load audio durations for all sounds
+  const isSubscribed = user?.isSubscribed || false;
 
   const shareSound = async () => {
     const selectedSound = sounds.find((sound) => sound.selected);
-    // console.log("Selected sound for sharing:", selectedSound);
-
     if (!selectedSound) {
       toast.error("No sound selected. Please select a sound first!");
       return;
     }
-
-    // Only share the URL - no additional text
     const soundUrl = `${API_URL}${selectedSound.link}`;
-
     const sharePayload = {
-      title: selectedSound.name, // Keep title for platforms that use it
-      text: soundUrl, // Only the URL, no additional formatting
+      title: selectedSound.name,
+      text: soundUrl,
       url: soundUrl,
     };
 
-    // console.log("Share payload:", sharePayload);
-
-    // Try native share first - this will open the bottom sheet
     if (canShare) {
       try {
         await navigator.share(sharePayload);
-        // Native share was successful
         clearSelectedSound();
         toast.success(`"${selectedSound.name}" sound ready to shared!`);
       } catch (error) {
         if (error.name === "AbortError") {
-          // User cancelled the share - do nothing
-          // console.log("Share cancelled by user");
         } else {
           console.error("Native share failed:", error);
-          // Fallback to modal
           setShareData(sharePayload);
           setIsShareModalOpen(true);
         }
       }
     } else {
-      // Browser doesn't support native sharing - show modal
       setShareData(sharePayload);
       setIsShareModalOpen(true);
     }
   };
 
+  const downloadSound = async (sound) => {
+    if (!isSubscribed) {
+      toast.error("Please upgrade to premium to download sounds!");
+      return;
+    }
+
+    try {
+      const audioUrl = `${import.meta.env.VITE_ASSETS_URL}${sound.link}`;
+      const response = await fetch(audioUrl);
+
+      if (!response.ok) {
+        throw new Error("Download failed");
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${sound.name}.mp3`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast.success(`"${sound.name}" downloaded successfully!`);
+    } catch (error) {
+      console.error("Download error:", error);
+      toast.error("Failed to download sound. Please try again.");
+    }
+  };
+
   const loadAudioDurations = async (soundsList) => {
-    // Create a copy of the sounds list to update with durations
     const soundsWithDurations = [...soundsList];
-
-    // Process sounds in batches to avoid overwhelming the browser
     const BATCH_SIZE = 5;
-
     for (let i = 0; i < soundsWithDurations.length; i += BATCH_SIZE) {
       const batch = soundsWithDurations.slice(i, i + BATCH_SIZE);
 
-      // Create promises for each sound in the batch
       const promises = batch.map((sound, batchIndex) => {
         return new Promise((resolve) => {
           const index = i + batchIndex;
-
-          // Skip if the sound already has a valid duration
           if (sound.duration && sound.duration !== "00:00") {
             resolve();
             return;
           }
-
           const audioUrl = `${import.meta.env.VITE_ASSETS_URL}${sound.link}`;
           const audio = new Audio();
-
-          // Set a timeout to avoid hanging indefinitely
           const timeoutId = setTimeout(() => {
             audio.removeEventListener("loadedmetadata", onLoaded);
             audio.removeEventListener("error", onError);
-            soundsWithDurations[index].duration = "00:00"; // Fallback duration
+            soundsWithDurations[index].duration = "00:00";
             resolve();
           }, 5000);
 
@@ -196,27 +150,21 @@ const SoundList = () => {
           const onError = () => {
             clearTimeout(timeoutId);
             console.error(`Error loading audio for ${sound.name}`);
-            soundsWithDurations[index].duration = "00:00"; // Fallback duration
+            soundsWithDurations[index].duration = "00:00";
             audio.removeEventListener("loadedmetadata", onLoaded);
             audio.removeEventListener("error", onError);
             resolve();
           };
-
           audio.addEventListener("loadedmetadata", onLoaded);
           audio.addEventListener("error", onError);
           audio.src = audioUrl;
           audio.preload = "metadata";
         });
       });
-
-      // Wait for this batch to complete
       await Promise.all(promises);
-
-      // Update the sounds state after each batch to show progress
       setSounds([...soundsWithDurations]);
       setFilteredSounds([...soundsWithDurations]);
     }
-
     return soundsWithDurations;
   };
 
@@ -256,16 +204,10 @@ const SoundList = () => {
         selected: false,
         isPlaying: false,
       }));
-
       setSounds(formattedSounds);
       setFilteredSounds(formattedSounds);
-
-      // Load durations asynchronously for all sounds
       loadAudioDurations(formattedSounds);
-
       setIsLoading(false);
-
-      // Update pagination data
       if (soundsData.meta) {
         setTotalPages(soundsData.meta.totalPage);
       }
@@ -278,8 +220,6 @@ const SoundList = () => {
       .map((sound) => sound.id);
     setSelectedSounds(selected);
   }, [sounds]);
-
-  // Stop audio when component unmounts
   useEffect(() => {
     return () => {
       if (audioRef.current) {
@@ -288,21 +228,15 @@ const SoundList = () => {
       }
     };
   }, []);
-
-  // Toggle sound selection with ability to select multiple for admin
   const toggleSelect = (id) => {
     if (isAdmin) {
-      // Admin can select multiple sounds
       const updatedSounds = sounds.map((sound) =>
         sound.id === id ? { ...sound, selected: !sound.selected } : sound
       );
       setSounds(updatedSounds);
       applySearch(searchTerm, updatedSounds);
     } else {
-      // Regular users can only select one sound at a time
       const soundToUpdate = sounds.find((sound) => sound.id === id);
-
-      // If sound is already selected, unselect it, otherwise select it and unselect others
       if (soundToUpdate && soundToUpdate.selected) {
         const updatedSounds = sounds.map((sound) =>
           sound.id === id ? { ...sound, selected: false } : sound
@@ -321,67 +255,57 @@ const SoundList = () => {
     }
   };
 
-  // Play/pause sound function (only one at a time)
   const togglePlaySound = (id) => {
-    // Find sound to play
     const soundToPlay = sounds.find((sound) => sound.id === id);
-
     if (!soundToPlay) return;
 
-    // Format audio URL
-    const audioUrl = `${import.meta.env.VITE_ASSETS_URL}${soundToPlay.link}`;
+    // Check if user can play premium sounds
+    if (soundToPlay.isPremium && !isSubscribed) {
+      toast.error(
+        "This is a premium sound. Please upgrade your plan to play premium sounds!"
+      );
+      return;
+    }
 
-    // If the sound is already playing, stop it
+    const audioUrl = `${import.meta.env.VITE_ASSETS_URL}${soundToPlay.link}`;
     if (soundToPlay.isPlaying) {
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current = null;
       }
-
-      // Update sounds state to reflect that nothing is playing
       const updatedSounds = sounds.map((sound) => ({
         ...sound,
         isPlaying: false,
       }));
-
       setSounds(updatedSounds);
       applySearch(searchTerm, updatedSounds);
       setCurrentlyPlayingId(null);
       return;
     }
 
-    // If another sound is playing, stop it first
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current = null;
     }
 
-    // Create and play new audio element
     const audio = new Audio(audioUrl);
     audioRef.current = audio;
-
-    // Update sound with playing state
     const updatedSounds = sounds.map((sound) =>
       sound.id === id
         ? { ...sound, isPlaying: true }
         : { ...sound, isPlaying: false }
     );
-
     setSounds(updatedSounds);
     applySearch(searchTerm, updatedSounds);
     setCurrentlyPlayingId(id);
 
-    // Start playing
     audio.play().catch((error) => {
       console.error("Error playing audio:", error);
       toast.error("Failed to play audio");
-
-      // Reset state if play fails
       const resetSounds = sounds.map((sound) => ({
         ...sound,
         isPlaying: false,
       }));
-
       setSounds(resetSounds);
       applySearch(searchTerm, resetSounds);
       setCurrentlyPlayingId(null);
@@ -389,12 +313,10 @@ const SoundList = () => {
     });
 
     audio.onended = () => {
-      // Reset playing state when audio ends
       const updatedSounds = sounds.map((sound) => ({
         ...sound,
         isPlaying: false,
       }));
-
       setSounds(updatedSounds);
       applySearch(searchTerm, updatedSounds);
       setCurrentlyPlayingId(null);
@@ -402,7 +324,6 @@ const SoundList = () => {
     };
   };
 
-  // Send to friend function (only selected sound)
   const sendToFriend = () => {
     const selectedSound = sounds.find((sound) => sound.selected);
     if (selectedSound) {
@@ -428,32 +349,25 @@ const SoundList = () => {
     }
   };
 
-  // Delete selected sounds
   const openDeleteModal = () => {
     setIsDeleteModalOpen(true);
   };
 
   const confirmDelete = () => {
-    // If only one sound is selected
     if (selectedSounds.length === 1) {
       deleteSoundMutation.mutate(selectedSounds[0]);
-    }
-    // If multiple sounds are selected
-    else if (selectedSounds.length > 1) {
+    } else if (selectedSounds.length > 1) {
       deleteMultipleSoundsMutation.mutate(selectedSounds);
     }
-
     setIsDeleteModalOpen(false);
   };
 
-  // Handle search
   const handleSearch = (e) => {
     const term = e.target.value;
     setSearchTerm(term);
     applySearch(term, sounds);
   };
 
-  // Apply search filter
   const applySearch = (term, soundList) => {
     if (!term || !term.trim()) {
       setFilteredSounds(soundList);
@@ -465,7 +379,6 @@ const SoundList = () => {
     }
   };
 
-  // Handle page change
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
@@ -539,7 +452,6 @@ const SoundList = () => {
     );
   };
 
-  // Delete confirmation modal
   const DeleteModal = () => {
     if (!isDeleteModalOpen) return null;
 
@@ -598,7 +510,6 @@ const SoundList = () => {
       animate={{ opacity: 1 }}
       className="flex flex-col h-[calc(100vh-125px)] justify-between"
     >
-      {/* Search Bar and Admin Add Button */}
       <div className="sticky top-0 bg-background z-30">
         <div className="flex items-center gap-2">
           <div className="relative text-black flex-1 pb-1">
@@ -622,7 +533,6 @@ const SoundList = () => {
             </Button>
           )}
         </div>
-        {/* send sound to friend button and delete sounds button */}
         <div className="sticky bottom-0 bg-background pt-3 space-y-2">
           <motion.div
             initial={{ y: 20, opacity: 1 }}
@@ -733,18 +643,33 @@ const SoundList = () => {
                     <AudioWave isPlaying={sound.isPlaying} />
                   </div>
 
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => togglePlaySound(sound.id)}
-                    className={`rounded-full w-16 h-8 flex items-center justify-center text-white text-xs font-medium ${
-                      sound.isPlaying
-                        ? "bg-red-500 hover:bg-red-600"
-                        : "bg-primary hover:bg-blue-600"
-                    } transition-colors shadow-sm`}
-                  >
-                    {sound.isPlaying ? "Stop" : "Play"}
-                  </motion.button>
+                  <div className="flex items-center gap-2">
+                    {/* Download button - only for subscribed users */}
+                    {isSubscribed && (
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => downloadSound(sound)}
+                        className="rounded-full w-10 h-8 flex items-center justify-center text-white bg-green-500 hover:bg-green-600 transition-colors shadow-sm"
+                        title="Download Sound"
+                      >
+                        <Download size={14} />
+                      </motion.button>
+                    )}
+
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => togglePlaySound(sound.id)}
+                      className={`rounded-full w-16 h-8 flex items-center justify-center text-white text-xs font-medium ${
+                        sound.isPlaying
+                          ? "bg-red-500 hover:bg-red-600"
+                          : "bg-primary hover:bg-blue-600"
+                      } transition-colors shadow-sm`}
+                    >
+                      {sound.isPlaying ? "Stop" : "Play"}
+                    </motion.button>
+                  </div>
                 </motion.div>
               ))}
             </motion.div>

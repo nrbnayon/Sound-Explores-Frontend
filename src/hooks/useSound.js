@@ -22,8 +22,10 @@ export const useSounds = (filters = {}) => {
       if (filters.page) params.append("page", filters.page);
       if (filters.limit) params.append("limit", filters.limit);
 
+      // Add parameter to show all sounds including premium
+      params.append("showAllSounds", "true");
+
       const query = params.toString() ? `?${params.toString()}` : "";
-      // console.log(`Fetching sounds with query:`, query);
 
       const { data } = await apiClient.get(`/sound/get-all-sound${query}`);
       return data;

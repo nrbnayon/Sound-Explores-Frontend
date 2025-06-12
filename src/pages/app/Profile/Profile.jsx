@@ -47,6 +47,8 @@ const Profile = () => {
     setShowLogoutModal(!showLogoutModal);
   };
 
+  // console.log("User data::", user);
+
   // Handle logout confirmation
   const handleLogout = () => {
     signOut();
@@ -204,9 +206,14 @@ const Profile = () => {
             <div className="mb-4 flex items-center bg-blue-50 px-3 py-1 rounded-full">
               <Crown className="w-4 h-4 text-blue-500 mr-1" />
               <span className="text-xs font-medium text-blue-700">
-                Premium Member
+                {user?.subscription?.plan
+                  ? user.subscription.plan.charAt(0).toUpperCase() +
+                    user.subscription.plan.slice(1)
+                  : "Free"}{" "}
+                Member
               </span>
             </div>
+
             <div className="flex gap-4 w-full justify-center mt-2">
               <Link
                 to="/edit-profile"
@@ -263,7 +270,7 @@ const Profile = () => {
             </div>
             <div className="flex items-center">
               <span className="text-xs font-medium text-green-600 mr-2">
-                Premium
+                Upgrade
               </span>
               <ChevronRight className="w-5 h-5 text-muted-foreground" />
             </div>
