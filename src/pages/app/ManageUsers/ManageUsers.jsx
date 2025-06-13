@@ -177,11 +177,17 @@ const ManageUsers = () => {
                         {user.profile?.fullName}
                       </h3>
 
-                      {user.isVerified && (
-                        <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
-                          Verified
-                        </span>
-                      )}
+                      <span
+                        className={`px-2 py-1 text-xs rounded-full ${
+                          user?.isSubscribed
+                            ? "bg-green-100 text-green-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
+                        {user?.isSubscribed
+                          ? `Premium #${user?.premiumUserNumber}`
+                          : "Free"}
+                      </span>
 
                       <span
                         className={`px-2 py-1 text-xs rounded-full ${
