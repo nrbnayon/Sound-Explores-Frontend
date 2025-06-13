@@ -533,6 +533,48 @@ const SoundList = () => {
             </Button>
           )}
         </div>
+
+        {isAdmin && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="flex items-center justify-between py-2 px-1 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100 mb-3 shadow-sm"
+          >
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                <span className="text-sm font-medium text-blue-800">
+                  Total Sounds:
+                  <span className="ml-1 px-2 py-1 bg-blue-600 text-white rounded-full text-xs font-semibold">
+                    {sounds.length}
+                  </span>
+                </span>
+              </div>
+
+              {searchTerm && filteredSounds.length !== sounds.length && (
+                <div className="flex items-center gap-2">
+                  <div className="w-1 h-4 bg-blue-300 rounded-full"></div>
+                  <span className="text-sm font-medium text-indigo-700">
+                    Filtered:
+                    <span className="ml-1 px-2 py-1 bg-indigo-600 text-white rounded-full text-xs font-semibold">
+                      {filteredSounds.length}
+                    </span>
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Optional: Add percentage indicator when filtering */}
+            {searchTerm && filteredSounds.length !== sounds.length && (
+              <div className="text-xs text-indigo-600 font-medium">
+                {Math.round((filteredSounds.length / sounds.length) * 100)}%
+                shown
+              </div>
+            )}
+          </motion.div>
+        )}
+
         <div className="sticky bottom-0 bg-background pt-3 space-y-2">
           <motion.div
             initial={{ y: 20, opacity: 1 }}

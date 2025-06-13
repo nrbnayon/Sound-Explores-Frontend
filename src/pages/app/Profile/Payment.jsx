@@ -89,7 +89,7 @@ const PaymentForm = ({ subscriptionStatus, onSubscriptionUpdate }) => {
 
       const response = await subscriptionService.buySubscription(
         "premium",
-        4.99,
+        3.99,
         paymentMethod.id
       );
       const { data } = response;
@@ -159,7 +159,7 @@ const PaymentForm = ({ subscriptionStatus, onSubscriptionUpdate }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="p-6 bg-background rounded-3xl shadow-lg border border-gray-100"
+      className="p-6 bg-white rounded-3xl shadow-lg border border-gray-100"
     >
       <form onSubmit={handleSubmit} className="space-y-6">
         <motion.div
@@ -168,7 +168,7 @@ const PaymentForm = ({ subscriptionStatus, onSubscriptionUpdate }) => {
           transition={{ delay: 0.1 }}
           className="space-y-2"
         >
-          <label className="block text-sm font-semibold text-gray-700">
+          <label className="block text-sm font-semibold text-black">
             Cardholder Name
           </label>
           <div className="relative">
@@ -198,12 +198,12 @@ const PaymentForm = ({ subscriptionStatus, onSubscriptionUpdate }) => {
           transition={{ delay: 0.2 }}
           className="space-y-2"
         >
-          <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+          <label className="text-sm  font-semibold text-black  flex items-center gap-2">
             Card Details <Shield className="w-4 h-4 text-indigo-500" />
           </label>
           <div className="relative">
             <div
-              className={`w-full px-4 py-3.5 border-2 bg-background rounded-xl transition-all duration-200 ${
+              className={`w-full px-4 py-3.5 border-2  rounded-xl transition-all duration-200 ${
                 cardError
                   ? "border-red-300 focus-within:border-red-500"
                   : cardComplete
@@ -287,7 +287,7 @@ const PaymentForm = ({ subscriptionStatus, onSubscriptionUpdate }) => {
             ) : (
               <>
                 <Crown className="w-5 h-5" />
-                <span>Subscribe to Premium - $4.99/month</span>
+                <span>Subscribe to Premium - $3.99/month</span>
                 <Sparkles className="w-5 h-5" />
               </>
             )}
@@ -419,12 +419,14 @@ const SubscriptionStatusCard = ({ subscriptionStatus, onRefresh }) => {
     }
   };
 
+  // console.log("Sub status::", subscriptionStatus);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: 0.1 }}
-      className={`mx-6 mb-6 p-6 rounded-3xl border ${statusConfig.bgColor} ${statusConfig.borderColor} shadow-lg`}
+      className={`mx-4 mt-6 p-6 rounded-3xl border ${statusConfig.bgColor} ${statusConfig.borderColor} shadow-lg`}
     >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
@@ -579,12 +581,12 @@ const PremiumCard = ({ user, subscriptionStatus }) => {
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className="flex items-center justify-center mt-6 mb-6 px-6"
+      className="flex items-center justify-center my-4 px-4"
     >
       <motion.div
         whileHover={{ scale: 1.03, rotateY: 5 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        className="relative w-full max-w-[340px] h-[200px] bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 rounded-2xl shadow-2xl overflow-hidden"
+        className="relative w-full h-[200px] bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 rounded-2xl shadow-2xl overflow-hidden"
         style={{
           background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
           boxShadow: "0 20px 40px rgba(102, 126, 234, 0.4)",
@@ -668,7 +670,7 @@ const PremiumFeatures = ({ subscriptionStatus }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.2 }}
-      className="mx-6 mb-6 p-6 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 rounded-3xl border border-indigo-100 shadow-lg"
+      className=" mt-4 p-6 mx-4 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 rounded-3xl border border-indigo-100 shadow-lg"
     >
       <div className="flex justify-between items-start mb-4">
         <div>
@@ -702,7 +704,7 @@ const PremiumFeatures = ({ subscriptionStatus }) => {
 
         <div className="text-right">
           <div className="flex items-baseline gap-1">
-            <span className="text-xl font-bold text-indigo-600">$4.99</span>
+            <span className="text-xl font-bold text-indigo-600">$3.99</span>
             <span className="text-sm text-gray-500">/month</span>
           </div>
           <div className="text-xs text-gray-500 mt-1">Billed monthly</div>
@@ -716,6 +718,7 @@ const Payment = () => {
   const [subscriptionStatus, setSubscriptionStatus] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
   const { user, signOut } = useAuth();
 
   useEffect(() => {
@@ -733,11 +736,13 @@ const Payment = () => {
   };
 
   const handleCancelSubscription = async () => {
-    if (!window.confirm("Are you sure you want to cancel your subscription?")) {
-      return;
-    }
+    setShowCancelModal(true);
+  };
 
+  const confirmCancelSubscription = async () => {
     setIsLoading(true);
+    setShowCancelModal(false);
+
     try {
       await subscriptionService.cancelSubscription();
       toast.success("Subscription cancelled successfully.");
@@ -765,14 +770,12 @@ const Payment = () => {
 
   return (
     <div className="min-h-screen ">
-      <div className="max-w-md mx-auto shadow-xl relative min-h-screen bg-background rounded-3xl overflow-hidden">
+      <div className="max-w-md  mx-auto shadow-xl relative min-h-screen bg-background rounded-3xl overflow-hidden">
         <Header
           backHref="/profile"
           title="Payment Method"
           onLogoutClick={toggleLogoutModal}
         />
-
-        <PremiumCard user={user} subscriptionStatus={subscriptionStatus} />
 
         <SubscriptionStatusCard
           subscriptionStatus={subscriptionStatus}
@@ -780,6 +783,8 @@ const Payment = () => {
         />
 
         <PremiumFeatures subscriptionStatus={subscriptionStatus} />
+
+        <PremiumCard user={user} subscriptionStatus={subscriptionStatus} />
 
         {!subscriptionStatus?.isSubscribed ? (
           <Elements stripe={stripePromise}>
@@ -885,6 +890,62 @@ const Payment = () => {
                         Sign Out
                       </motion.button>
                     </div>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {showCancelModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+              onClick={() => setShowCancelModal(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                transition={{ type: "spring", damping: 30, stiffness: 300 }}
+                className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-6"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex flex-col items-center text-center">
+                  <div className="p-4 bg-red-100 rounded-full mb-4">
+                    <XCircle className="w-8 h-8 text-red-600" />
+                  </div>
+
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">
+                    Cancel Subscription
+                  </h3>
+
+                  <p className="text-gray-600 mb-6">
+                    Are you sure you want to cancel your subscription? You'll
+                    lose access to premium features at the end of your current
+                    billing period.
+                  </p>
+
+                  <div className="flex gap-3 w-full">
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => setShowCancelModal(false)}
+                      className="flex-1 py-3 px-4 bg-gray-100 hover:bg-gray-200 rounded-xl text-gray-700 font-semibold transition-colors"
+                    >
+                      Keep Subscription
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={confirmCancelSubscription}
+                      className="flex-1 py-3 px-4 bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 rounded-xl text-white font-semibold transition-all duration-200 shadow-lg"
+                    >
+                      Cancel Subscription
+                    </motion.button>
                   </div>
                 </div>
               </motion.div>

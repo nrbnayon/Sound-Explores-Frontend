@@ -55,6 +55,14 @@ const Profile = () => {
     setShowLogoutModal(false);
   };
 
+  const isPremiumUser = (user) => {
+    return (
+      user?.isSubscribed &&
+      user?.subscription?.status === "active" &&
+      user?.subscription?.plan === "premium"
+    );
+  };
+
   // Handle avatar upload
   const handleAvatarChange = async (e) => {
     const file = e.target.files[0];
@@ -196,9 +204,16 @@ const Profile = () => {
             </div>
 
             <h2 className="text-2xl text-black font-bold mb-1">
-              {profileName ||
-                user?.email?.split("@")[0].slice(0, 10) ||
-                "User Name"}
+              <span>
+                {profileName ||
+                  user?.email?.split("@")[0].slice(0, 10) ||
+                  "User Name"}
+              </span>
+              {isPremiumUser(user) && user?.premiumUserNumber && (
+                <span className="text-sm font-normal text-blue-500 bg-blue-50 px-2 py-1 rounded-full ml-2">
+                  #{user.premiumUserNumber}
+                </span>
+              )}
             </h2>
             <p className="text-xs text-muted-foreground mb-2">
               {user?.email || "user@example.com"}
