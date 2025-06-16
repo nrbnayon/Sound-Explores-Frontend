@@ -16,6 +16,8 @@ const Profile = () => {
   const [profileName, setProfileName] = useState("");
   const fileInputRef = useRef(null);
 
+  const isAdmin = user?.role === "ADMIN";
+
   // Get the API URL from environment variables
   const API_URL = import.meta.env.VITE_ASSETS_URL || "";
 
@@ -268,28 +270,31 @@ const Profile = () => {
           </Link>
 
           {/* Upgrade Plan */}
-          <Link
-            to="/payment"
-            className="flex items-center justify-between py-3 px-2 mb-1 rounded-lg hover:bg-background transition-colors"
-          >
-            <div className="flex items-center">
-              <div className="p-2 mr-4 bg-yellow-100 rounded-full">
-                <Crown className="w-5 h-5 text-yellow-600" />
+
+          {!isAdmin && (
+            <Link
+              to="/payment"
+              className="flex items-center justify-between py-3 px-2 mb-1 rounded-lg hover:bg-background transition-colors"
+            >
+              <div className="flex items-center">
+                <div className="p-2 mr-4 bg-yellow-100 rounded-full">
+                  <Crown className="w-5 h-5 text-yellow-600" />
+                </div>
+                <div>
+                  <span className="text-base font-medium">Subscription</span>
+                  <p className="text-xs text-muted-foreground">
+                    Manage your plan
+                  </p>
+                </div>
               </div>
-              <div>
-                <span className="text-base font-medium">Subscription</span>
-                <p className="text-xs text-muted-foreground">
-                  Manage your plan
-                </p>
+              <div className="flex items-center">
+                <span className="text-xs font-medium text-green-600 mr-2">
+                  Upgrade
+                </span>
+                <ChevronRight className="w-5 h-5 text-muted-foreground" />
               </div>
-            </div>
-            <div className="flex items-center">
-              <span className="text-xs font-medium text-green-600 mr-2">
-                Upgrade
-              </span>
-              <ChevronRight className="w-5 h-5 text-muted-foreground" />
-            </div>
-          </Link>
+            </Link>
+          )}
 
           {/* Privacy Policy */}
           <Link

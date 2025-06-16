@@ -106,7 +106,10 @@ const PaymentForm = ({ subscriptionStatus, onSubscriptionUpdate }) => {
 
         if (paymentIntent.status === "succeeded") {
           toast.success("Payment successful! Subscription activated.");
-          setTimeout(() => onSubscriptionUpdate(), 2000);
+          setTimeout(() => {
+            onSubscriptionUpdate();
+            window.location.reload();
+          }, 2000);
         } else if (paymentIntent.status === "requires_action") {
           toast.warning(
             "Payment requires additional authentication. Please complete the process."
@@ -118,7 +121,10 @@ const PaymentForm = ({ subscriptionStatus, onSubscriptionUpdate }) => {
         }
       } else if (data.status === "active") {
         toast.success("Subscription activated successfully!");
-        setTimeout(() => onSubscriptionUpdate(), 1000);
+        setTimeout(() => {
+          onSubscriptionUpdate();
+          window.location.reload();
+        }, 1000);
       } else if (data.status === "incomplete") {
         toast.info("Processing payment... Please wait.");
         setTimeout(async () => {
@@ -270,9 +276,9 @@ const PaymentForm = ({ subscriptionStatus, onSubscriptionUpdate }) => {
             subscriptionStatus?.isSubscribed ||
             !cardHolderName.trim()
           }
-          className="w-full py-4 px-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed relative overflow-hidden group"
+          className="w-full py-4 px-6 bg-blue-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed relative overflow-hidden group"
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-indigo-700 to-purple-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          <div className="absolute inset-0 bg-blue-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           <div className="relative flex items-center justify-center gap-2">
             {isLoading ? (
               <>
