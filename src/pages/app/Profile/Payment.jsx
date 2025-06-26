@@ -1,7 +1,7 @@
 // src/pages/app/Profile/Payment.jsx
 import { useEffect, useState } from "react";
 import {
-  CreditCard,
+  // CreditCard,
   CheckCircle,
   XCircle,
   Clock,
@@ -606,7 +606,7 @@ const PremiumCard = ({ user, subscriptionStatus }) => {
 
         <div className="absolute top-6 left-6 right-6 flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <CreditCard className="text-white w-6 h-6" />
+            {/* <CreditCard className="text-white w-6 h-6" /> */}
             <span className="text-white font-semibold text-sm tracking-wide">
               PREMIUM CARD
             </span>

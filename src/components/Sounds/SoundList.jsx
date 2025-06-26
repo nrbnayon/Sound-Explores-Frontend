@@ -41,6 +41,7 @@ const SoundList = () => {
   const navigate = useNavigate();
   const { setSelectedSound, clearSelectedSound } = useSelectedSound();
   const sendSoundMessage = useSendSoundMessage();
+  const [hasShownPremiumWarning, setHasShownPremiumWarning] = useState(false);
 
   const { data: friendListData, isLoading: isFriendListLoading } =
     useFriendList();
@@ -228,15 +229,21 @@ const SoundList = () => {
       }
     };
   }, []);
- 
+
   const toggleSelect = (id) => {
     const soundToUpdate = sounds.find((sound) => sound.id === id);
 
     // Check if non-subscribed user is trying to select premium sound
     if (!isSubscribed && soundToUpdate?.isPremium) {
-      toast.error(
-        "This is a premium sound. Please upgrade your plan to select premium sounds!"
-      );
+      if (!hasShownPremiumWarning) {
+        toast.error(
+          "Please upgrade your subscription to enjoy playing and sharing the Members Only sounds",
+          {
+            duration: 4000,
+          }
+        );
+        setHasShownPremiumWarning(true);
+      }
       return;
     }
 
@@ -271,9 +278,15 @@ const SoundList = () => {
 
     // Check if user can play premium sounds
     if (soundToPlay.isPremium && !isSubscribed) {
-      toast.error(
-        "This is a premium sound. Please upgrade your plan to play premium sounds!"
-      );
+      if (!hasShownPremiumWarning) {
+        toast.error(
+          "Please upgrade your subscription to enjoy playing and sharing the Members Only sounds",
+          {
+            duration: 4000, // 4 seconds
+          }
+        );
+        setHasShownPremiumWarning(true);
+      }
       return;
     }
 
@@ -518,28 +531,28 @@ const SoundList = () => {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className='flex flex-col h-[calc(100vh-125px)] justify-between'
+      className="flex flex-col h-[calc(100vh-125px)] justify-between"
     >
-      <div className='sticky top-0 bg-background z-30'>
-        <div className='flex items-center gap-2'>
-          <div className='relative text-black flex-1 pb-1'>
+      <div className="sticky top-0 bg-background z-30">
+        <div className="flex items-center gap-2">
+          <div className="relative text-black flex-1 pb-1">
             <input
-              type='text'
-              placeholder='Search sounds'
+              type="text"
+              placeholder="Search sounds"
               value={searchTerm}
               onChange={handleSearch}
-              className='w-full p-3 pl-10 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
+              className="w-full p-3 pl-10 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            <Search className='absolute left-3 top-3 h-5 w-5 text-muted-foreground' />
+            <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
           </div>
 
           {isAdmin && (
             <Button
               onClick={() => setIsAddModalOpen(true)}
-              className='bg-primary hover:bg-blue-600 text-white px-3 py-3.5 rounded-lg h-auto flex items-center gap-2 mb-1'
+              className="bg-primary hover:bg-blue-600 text-white px-3 py-3.5 rounded-lg h-auto flex items-center gap-2 mb-1"
             >
               <Plus size={18} />
-              <span className='hidden sm:inline'>Add Sound</span>
+              <span className="hidden sm:inline">Add Sound</span>
             </Button>
           )}
         </div>
@@ -549,25 +562,25 @@ const SoundList = () => {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
-            className='flex items-center justify-between py-2 px-1 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100 mb-3 shadow-sm'
+            className="flex items-center justify-between py-2 px-1 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100 mb-3 shadow-sm"
           >
-            <div className='flex items-center gap-4'>
-              <div className='flex items-center gap-2'>
-                <div className='w-2 h-2 bg-blue-500 rounded-full animate-pulse'></div>
-                <span className='text-sm font-medium text-blue-800'>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                <span className="text-sm font-medium text-blue-800">
                   Total Sounds:
-                  <span className='ml-1 px-2 py-1 bg-blue-600 text-white rounded-full text-xs font-semibold'>
+                  <span className="ml-1 px-2 py-1 bg-blue-600 text-white rounded-full text-xs font-semibold">
                     {sounds.length}
                   </span>
                 </span>
               </div>
 
               {searchTerm && filteredSounds.length !== sounds.length && (
-                <div className='flex items-center gap-2'>
-                  <div className='w-1 h-4 bg-blue-300 rounded-full'></div>
-                  <span className='text-sm font-medium text-indigo-700'>
+                <div className="flex items-center gap-2">
+                  <div className="w-1 h-4 bg-blue-300 rounded-full"></div>
+                  <span className="text-sm font-medium text-indigo-700">
                     Filtered:
-                    <span className='ml-1 px-2 py-1 bg-indigo-600 text-white rounded-full text-xs font-semibold'>
+                    <span className="ml-1 px-2 py-1 bg-indigo-600 text-white rounded-full text-xs font-semibold">
                       {filteredSounds.length}
                     </span>
                   </span>
@@ -577,7 +590,7 @@ const SoundList = () => {
 
             {/* Optional: Add percentage indicator when filtering */}
             {searchTerm && filteredSounds.length !== sounds.length && (
-              <div className='text-xs text-indigo-600 font-medium'>
+              <div className="text-xs text-indigo-600 font-medium">
                 {Math.round((filteredSounds.length / sounds.length) * 100)}%
                 shown
               </div>
@@ -585,12 +598,12 @@ const SoundList = () => {
           </motion.div>
         )}
 
-        <div className='sticky bottom-0 bg-background pt-3 space-y-2'>
+        <div className="sticky bottom-0 bg-background pt-3 space-y-2">
           <motion.div
             initial={{ y: 20, opacity: 1 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className='flex flex-col gap-2'
+            className="flex flex-col gap-2"
           >
             {/* Delete button (only shown for admin when sounds are selected) */}
             <AnimatePresence>
@@ -602,7 +615,7 @@ const SoundList = () => {
                 >
                   <Button
                     onClick={openDeleteModal}
-                    className='flex items-center justify-center gap-2 px-6 py-3 w-full bg-red-500 rounded-full h-auto hover:bg-red-600 text-white font-medium'
+                    className="flex items-center justify-center gap-2 px-6 py-3 w-full bg-red-500 rounded-full h-auto hover:bg-red-600 text-white font-medium"
                   >
                     <Trash2 size={18} />
                     Delete{" "}
@@ -619,11 +632,11 @@ const SoundList = () => {
               <Button
                 onClick={shareSound}
                 disabled={!sounds.some((sound) => sound.selected)}
-                className='flex items-center justify-center gap-2.5 px-6 py-3 w-full bg-primary rounded-full h-auto hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium'
+                className="flex items-center justify-center gap-2.5 px-6 py-3 w-full bg-primary rounded-full h-auto hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium"
               >
                 <Share2 size={18} />
                 {canShare ? (
-                  <span className='rounded-full'>Share Sound</span>
+                  <span className="rounded-full">Share Sound</span>
                 ) : (
                   "Share Sound"
                 )}
@@ -634,26 +647,26 @@ const SoundList = () => {
       </div>
 
       {/* Sound List - Only this section scrolls */}
-      <div className='overflow-y-auto scroll-container flex-1 my-2'>
+      <div className="overflow-y-auto scroll-container flex-1 my-2">
         <AnimatePresence>
           {isLoading || isFetchingData ? (
             <motion.div
               initial={{ opacity: 1 }}
               animate={{ opacity: 1 }}
-              className='flex flex-col items-center justify-center h-64'
+              className="flex flex-col items-center justify-center h-64"
             >
-              <p className='text-muted-foreground'>Loading sounds...</p>
+              <p className="text-muted-foreground">Loading sounds...</p>
             </motion.div>
           ) : isError ? (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className='flex flex-col items-center justify-center h-64'
+              className="flex flex-col items-center justify-center h-64"
             >
-              <p className='text-red-500'>Error loading sounds</p>
+              <p className="text-red-500">Error loading sounds</p>
             </motion.div>
           ) : filteredSounds.length > 0 ? (
-            <motion.div className='space-y-2 opacity-100'>
+            <motion.div className="space-y-2 opacity-100">
               {filteredSounds.map((sound) => (
                 <motion.div
                   key={sound.id}
@@ -680,15 +693,15 @@ const SoundList = () => {
                       checked={sound.selected}
                       onCheckedChange={() => toggleSelect(sound.id)}
                       disabled={!isSubscribed && sound.isPremium}
-                      className='w-5 h-5 border-2 border-gray-300 rounded mr-3'
+                      className="w-5 h-5 border-2 border-gray-300 rounded mr-3"
                     />
 
-                    <div className='mr-3'>
-                      <p className='text-sm font-medium'>{sound.name}</p>
-                      <p className='text-xs text-muted-foreground'>
+                    <div className="mr-3">
+                      <p className="text-sm font-medium">{sound.name}</p>
+                      <p className="text-xs text-muted-foreground">
                         {sound.duration}
                         {sound.isPremium && (
-                          <span className='ml-2 text-amber-500 font-medium'>
+                          <span className="ml-2 text-amber-500 font-medium">
                             Members Only
                           </span>
                         )}
@@ -696,20 +709,20 @@ const SoundList = () => {
                     </div>
                   </div>
 
-                  <div className='flex-1 mx-2'>
+                  <div className="flex-1 mx-2">
                     {/* Dynamic waveform */}
                     <AudioWave isPlaying={sound.isPlaying} />
                   </div>
 
-                  <div className='flex items-center gap-2'>
+                  <div className="flex items-center gap-2">
                     {/* Download button - only for subscribed users */}
                     {isSubscribed && (
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => downloadSound(sound)}
-                        className='rounded-full w-10 h-8 flex items-center justify-center text-white bg-green-500 hover:bg-green-600 transition-colors shadow-sm'
-                        title='Download Sound'
+                        className="rounded-full w-10 h-8 flex items-center justify-center text-white bg-green-500 hover:bg-green-600 transition-colors shadow-sm"
+                        title="Download Sound"
                       >
                         <Download size={14} />
                       </motion.button>
@@ -735,9 +748,9 @@ const SoundList = () => {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className='flex flex-col items-center justify-center h-64'
+              className="flex flex-col items-center justify-center h-64"
             >
-              <p className='text-muted-foreground'>No sounds found</p>
+              <p className="text-muted-foreground">No sounds found</p>
             </motion.div>
           )}
         </AnimatePresence>
@@ -745,8 +758,8 @@ const SoundList = () => {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className='mt-4 mb-4'>
-          <div className='flex justify-center'>
+        <div className="mt-4 mb-4">
+          <div className="flex justify-center">
             <Pagination
               totalPages={totalPages}
               currentPage={currentPage}
