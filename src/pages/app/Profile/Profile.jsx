@@ -213,7 +213,7 @@ const Profile = () => {
               </span>
               {isPremiumUser(user) && user?.premiumUserNumber && (
                 <span className="text-sm font-normal text-blue-500 bg-blue-50 px-2 py-1 rounded-full ml-2">
-                  #{user.premiumUserNumber}
+                  Premium
                 </span>
               )}
             </h2>

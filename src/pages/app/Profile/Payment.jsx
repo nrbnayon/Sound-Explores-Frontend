@@ -676,7 +676,7 @@ const PremiumFeatures = ({ subscriptionStatus }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.2 }}
-      className=" mt-4 p-6 mx-4 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 rounded-3xl border border-indigo-100 shadow-lg"
+      className=" my-6 p-6 mx-4 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 rounded-3xl border border-indigo-100 shadow-lg"
     >
       <div className="flex justify-between items-start mb-4">
         <div>
@@ -782,16 +782,14 @@ const Payment = () => {
           title="Payment Method"
           onLogoutClick={toggleLogoutModal}
         />
-
         <SubscriptionStatusCard
           subscriptionStatus={subscriptionStatus}
           onRefresh={fetchSubscriptionStatus}
         />
-
         <PremiumFeatures subscriptionStatus={subscriptionStatus} />
-
         {/* <PremiumCard user={user} subscriptionStatus={subscriptionStatus} />  */}
-
+        {/* // Replace the existing cancel subscription button section (around line
+        680-720) with this: */}
         {!subscriptionStatus?.isSubscribed ? (
           <Elements stripe={stripePromise}>
             <PaymentForm
@@ -806,13 +804,33 @@ const Payment = () => {
             className="p-6"
           >
             <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={{
+                scale: subscriptionStatus?.subscription?.autoRenew ? 1.02 : 1,
+              }}
+              whileTap={{
+                scale: subscriptionStatus?.subscription?.autoRenew ? 0.98 : 1,
+              }}
               onClick={handleCancelSubscription}
-              disabled={isLoading}
-              className="w-full py-4 px-6 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 disabled:from-gray-400 disabled:to-gray-500 relative overflow-hidden group"
+              disabled={
+                isLoading ||
+                !subscriptionStatus?.subscription?.autoRenew ||
+                subscriptionStatus?.subscription?.cancelAtPeriodEnd
+              }
+              className={`w-full py-4 px-6 rounded-xl font-semibold shadow-lg transition-all duration-300 relative overflow-hidden group ${
+                subscriptionStatus?.subscription?.autoRenew &&
+                !subscriptionStatus?.subscription?.cancelAtPeriodEnd
+                  ? "bg-gradient-to-r from-red-500 to-pink-500 text-white hover:shadow-xl"
+                  : "bg-gray-200 text-gray-500 cursor-not-allowed"
+              }`}
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div
+                className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${
+                  subscriptionStatus?.subscription?.autoRenew &&
+                  !subscriptionStatus?.subscription?.cancelAtPeriodEnd
+                    ? "bg-gradient-to-r from-red-600 to-pink-600"
+                    : ""
+                }`}
+              />
               <div className="relative flex items-center justify-center gap-2">
                 {isLoading ? (
                   <>
@@ -828,21 +846,34 @@ const Payment = () => {
                     </motion.div>
                     <span>Processing...</span>
                   </>
-                ) : (
+                ) : subscriptionStatus?.subscription?.cancelAtPeriodEnd ? (
+                  <>
+                    <CheckCircle className="w-5 h-5" />
+                    <span>Subscription Already Cancelled</span>
+                  </>
+                ) : subscriptionStatus?.subscription?.autoRenew ? (
                   <>
                     <XCircle className="w-5 h-5" />
                     <span>Cancel Subscription</span>
                   </>
+                ) : (
+                  <>
+                    <Clock className="w-5 h-5" />
+                    <span>Auto-Renewal Disabled</span>
+                  </>
                 )}
               </div>
             </motion.button>
+
             <p className="text-xs text-gray-500 text-center mt-3">
-              Your subscription will remain active until the end of your current
-              billing period.
+              {subscriptionStatus?.subscription?.cancelAtPeriodEnd
+                ? "Your subscription is already cancelled and will end at the current billing period."
+                : subscriptionStatus?.subscription?.autoRenew
+                ? "Your subscription will remain active until the end of your current billing period."
+                : "Your subscription will not auto-renew and will end at the current billing period."}
             </p>
           </motion.div>
         )}
-
         <AnimatePresence>
           {showLogoutModal && (
             <motion.div
@@ -902,7 +933,6 @@ const Payment = () => {
             </motion.div>
           )}
         </AnimatePresence>
-
         <AnimatePresence>
           {showCancelModal && (
             <motion.div

@@ -79,17 +79,22 @@ export function AuthProvider({ children }) {
 
       if (response) {
         const { accessToken, refreshToken } = response.data.data;
-        setAuthTokens(accessToken, refreshToken);
-        const userData = await apiClient.get("/user/me");
-        checkAuth();
-        setUser(userData.data.data);
-      }
 
-      toast.success("Successfully signed in!");
-      navigate(ROUTES.SOUND_LIBRARY);
-      return true;
+        // First verify the tokens work by getting user data
+        const userData = await apiClient.get("/user/me");
+
+        // Only set cookies if everything succeeds
+        setAuthTokens(accessToken, refreshToken);
+        setUser(userData.data.data);
+
+        toast.success("Successfully signed in!");
+        navigate(ROUTES.SOUND_LIBRARY);
+        return true;
+      }
     } catch (error) {
       console.error("Sign in error:", error);
+      // Make sure no cookies are set on error
+      removeAuthTokens();
       toast.error(error.response?.data?.message || "Failed to sign in");
       return false;
     } finally {
@@ -101,11 +106,9 @@ export function AuthProvider({ children }) {
   const signUp = async (userData) => {
     try {
       setLoading(true);
-      // console.log("Sign up data:", userData); 
+      // console.log("Sign up data:", userData);
       const response = await apiClient.post("/user/create-user", userData);
-
       // console.log("Sign up response:", response);
-
       if (response.data.success) {
         // If backend returns tokens directly (same as sign in)
         if (
@@ -116,7 +119,7 @@ export function AuthProvider({ children }) {
           setAuthTokens(accessToken, refreshToken);
           const userDataResponse = await apiClient.get("/user/me");
           setUser(userDataResponse.data.data);
-
+          window.location.reload();
           toast.success("Account created successfully!");
           navigate(ROUTES.SOUND_LIBRARY);
           return true;
@@ -167,6 +170,7 @@ export function AuthProvider({ children }) {
       setVerificationInProgress(false);
       queryClient.clear();
       toast.success("Successfully signed out");
+      window.location.reload();
       navigate(ROUTES.SIGNIN);
     } catch (error) {
       console.error("Sign out error:", error);

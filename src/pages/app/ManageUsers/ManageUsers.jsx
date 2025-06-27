@@ -185,7 +185,7 @@ const ManageUsers = () => {
                         }`}
                       >
                         {user?.isSubscribed
-                          ? `Premium #${user?.premiumUserNumber}`
+                          ? `Premium `
                           : "Free"}
                       </span>
 
