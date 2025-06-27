@@ -572,89 +572,89 @@ const SubscriptionStatusCard = ({ subscriptionStatus, onRefresh }) => {
   );
 };
 
-const PremiumCard = ({ user, subscriptionStatus }) => {
-  const currentDate = new Date();
-  const expiryDate = subscriptionStatus?.subscription?.currentPeriodEnd
-    ? new Date(subscriptionStatus.subscription.currentPeriodEnd)
-    : currentDate;
-  const expiryMonthYear = `${String(expiryDate.getMonth() + 1).padStart(
-    2,
-    "0"
-  )}/${String(expiryDate.getFullYear()).slice(-2)}`;
+// const PremiumCard = ({ user, subscriptionStatus }) => {
+//   const currentDate = new Date();
+//   const expiryDate = subscriptionStatus?.subscription?.currentPeriodEnd
+//     ? new Date(subscriptionStatus.subscription.currentPeriodEnd)
+//     : currentDate;
+//   const expiryMonthYear = `${String(expiryDate.getMonth() + 1).padStart(
+//     2,
+//     "0"
+//   )}/${String(expiryDate.getFullYear()).slice(-2)}`;
 
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
-      className="flex items-center justify-center my-4 px-4"
-    >
-      <motion.div
-        whileHover={{ scale: 1.03, rotateY: 5 }}
-        transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        className="relative w-full h-[200px] bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 rounded-2xl shadow-2xl overflow-hidden"
-        style={{
-          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-          boxShadow: "0 20px 40px rgba(102, 126, 234, 0.4)",
-        }}
-      >
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-4 left-4 w-16 h-16 border border-white rounded-full animate-pulse" />
-          <div className="absolute top-8 right-8 w-8 h-8 border border-white rounded-full animate-ping" />
-          <div className="absolute bottom-8 left-8 w-12 h-12 border border-white rounded-full animate-pulse delay-300" />
-        </div>
+//   return (
+//     <motion.div
+//       initial={{ opacity: 0, y: 30 }}
+//       animate={{ opacity: 1, y: 0 }}
+//       transition={{ duration: 0.6 }}
+//       className="flex items-center justify-center my-4 px-4"
+//     >
+//       <motion.div
+//         whileHover={{ scale: 1.03, rotateY: 5 }}
+//         transition={{ type: "spring", stiffness: 300, damping: 30 }}
+//         className="relative w-full h-[200px] bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 rounded-2xl shadow-2xl overflow-hidden"
+//         style={{
+//           background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+//           boxShadow: "0 20px 40px rgba(102, 126, 234, 0.4)",
+//         }}
+//       >
+//         <div className="absolute inset-0 opacity-20">
+//           <div className="absolute top-4 left-4 w-16 h-16 border border-white rounded-full animate-pulse" />
+//           <div className="absolute top-8 right-8 w-8 h-8 border border-white rounded-full animate-ping" />
+//           <div className="absolute bottom-8 left-8 w-12 h-12 border border-white rounded-full animate-pulse delay-300" />
+//         </div>
 
-        <div className="absolute top-6 left-6 right-6 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            {/* <CreditCard className="text-white w-6 h-6" /> */}
-            <span className="text-white font-semibold text-sm tracking-wide">
-              PREMIUM CARD
-            </span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Crown className="text-yellow-300 w-5 h-5" />
-            <span className="text-white font-bold text-lg">
-              {subscriptionStatus?.isSubscribed ? "PREMIUM" : "FREE"}
-            </span>
-          </div>
-        </div>
+//         <div className="absolute top-6 left-6 right-6 flex justify-between items-center">
+//           <div className="flex items-center gap-2">
+//             {/* <CreditCard className="text-white w-6 h-6" /> */}
+//             <span className="text-white font-semibold text-sm tracking-wide">
+//               PREMIUM CARD
+//             </span>
+//           </div>
+//           <div className="flex items-center gap-1">
+//             <Crown className="text-yellow-300 w-5 h-5" />
+//             <span className="text-white font-bold text-lg">
+//               {subscriptionStatus?.isSubscribed ? "PREMIUM" : "FREE"}
+//             </span>
+//           </div>
+//         </div>
 
-        <div className="absolute top-1/2 left-6 transform -translate-y-1/2">
-          <div className="text-white font-mono text-xl tracking-wider">
-            {subscriptionStatus?.isSubscribed
-              ? "•••• •••• •••• ACTIVE"
-              : "•••• •••• •••• INACTIVE"}
-          </div>
-        </div>
+//         <div className="absolute top-1/2 left-6 transform -translate-y-1/2">
+//           <div className="text-white font-mono text-xl tracking-wider">
+//             {subscriptionStatus?.isSubscribed
+//               ? "•••• •••• •••• ACTIVE"
+//               : "•••• •••• •••• INACTIVE"}
+//           </div>
+//         </div>
 
-        <div className="absolute bottom-6 left-6 right-6 flex justify-between items-end">
-          <div>
-            <div className="text-white/70 text-xs uppercase tracking-wide mb-1">
-              Card Holder
-            </div>
-            <div className="text-white font-semibold truncate max-w-[150px]">
-              {user?.name?.toUpperCase() ||
-                user?.email?.toUpperCase() ||
-                "YOUR NAME"}
-            </div>
-          </div>
-          <div className="text-right">
-            <div className="text-white/70 text-xs uppercase tracking-wide mb-1">
-              Expires
-            </div>
-            <div className="text-white font-bold">MM/YY</div>
-          </div>
-        </div>
+//         <div className="absolute bottom-6 left-6 right-6 flex justify-between items-end">
+//           <div>
+//             <div className="text-white/70 text-xs uppercase tracking-wide mb-1">
+//               Card Holder
+//             </div>
+//             <div className="text-white font-semibold truncate max-w-[150px]">
+//               {user?.name?.toUpperCase() ||
+//                 user?.email?.toUpperCase() ||
+//                 "YOUR NAME"}
+//             </div>
+//           </div>
+//           <div className="text-right">
+//             <div className="text-white/70 text-xs uppercase tracking-wide mb-1">
+//               Expires
+//             </div>
+//             <div className="text-white font-bold">MM/YY</div>
+//           </div>
+//         </div>
 
-        <motion.div
-          className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-10 transform -skew-x-12"
-          animate={{ x: [-100, 400] }}
-          transition={{ duration: 3, repeat: Infinity, repeatDelay: 2 }}
-        />
-      </motion.div>
-    </motion.div>
-  );
-};
+//         <motion.div
+//           className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-10 transform -skew-x-12"
+//           animate={{ x: [-100, 400] }}
+//           transition={{ duration: 3, repeat: Infinity, repeatDelay: 2 }}
+//         />
+//       </motion.div>
+//     </motion.div>
+//   );
+// };
 
 const PremiumFeatures = ({ subscriptionStatus }) => {
   if (subscriptionStatus?.isSubscribed) return null;
@@ -790,7 +790,7 @@ const Payment = () => {
 
         <PremiumFeatures subscriptionStatus={subscriptionStatus} />
 
-        <PremiumCard user={user} subscriptionStatus={subscriptionStatus} />
+        {/* <PremiumCard user={user} subscriptionStatus={subscriptionStatus} />  */}
 
         {!subscriptionStatus?.isSubscribed ? (
           <Elements stripe={stripePromise}>
