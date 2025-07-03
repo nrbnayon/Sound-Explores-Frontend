@@ -32,9 +32,10 @@ ReactDOM.createRoot(document.getElementById("root")).render(
             <ThemeProvider>
               <AuthProvider>
                 <Toaster
-                  position='top-center'
+                  position="top-center"
                   toastOptions={{
                     duration: 3000,
+                    closeButton: false,
                     style: {
                       background: "#fff",
                       color: "#333",
