@@ -46,7 +46,7 @@ const SoundList = () => {
   const showPremiumToast = (message) => {
     toast.custom(
       (t) => (
-        <div className="max-w- w-full mx-auto mt-2 bg-red-50 border border-red-200 shadow-lg rounded-lg p-4 flex items-center">
+        <div className="max-w-xs w-full mx-auto mt-2 bg-red-50 border border-red-200 shadow-lg rounded-lg p-4 flex items-center">
           <div className="">
             <p className="text-sm font-medium text-red-800">{message}</p>
           </div>
