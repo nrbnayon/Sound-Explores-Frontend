@@ -48,6 +48,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
                       style: {
                         border: "1px solid #ff4b4b",
                       },
+                      closeButton: false,
                     },
                   }}
                 />
