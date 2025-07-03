@@ -45,7 +45,12 @@ ReactDOM.createRoot(document.getElementById("root")).render(
                         border: "1px solid #00AE34",
                       },
                     },
-                    
+                    error: {
+                      style: {
+                        border: "1px solid #ff4b4b",
+                      },
+                      // closeButton: false,
+                    },
                   }}
                 />
                 <AppRoutes />

@@ -240,6 +240,7 @@ const SoundList = () => {
           "Please upgrade your subscription to enjoy playing and sharing the Members Only sounds",
           {
             duration: 4000,
+            closeButton: false,
           }
         );
         setHasShownPremiumWarning(true);
@@ -283,6 +284,7 @@ const SoundList = () => {
           "Please upgrade your subscription to enjoy playing and sharing the Members Only sounds",
           {
             duration: 4000, // 4 seconds
+            closeButton: false,
           }
         );
         setHasShownPremiumWarning(true);
