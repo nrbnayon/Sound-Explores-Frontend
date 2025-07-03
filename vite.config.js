@@ -7,14 +7,17 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      "@": path.resolve(__dirname, "./src"),
     },
   },
   preview: {
     allowedHosts: [
-      'poopalert.fun',
-      'api.poopalert.fun',
-      'www.poopalert.fun'
+      "poopalert.fun",
+      "api.poopalert.fun",
+      "www.poopalert.fun",
+      "poopalert.online",
+      "www.poopalert.online",
+      "api.poopalert.online",
     ],
   },
 });
