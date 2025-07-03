@@ -42,6 +42,32 @@ const SoundList = () => {
   const { setSelectedSound, clearSelectedSound } = useSelectedSound();
   const sendSoundMessage = useSendSoundMessage();
   const [hasShownPremiumWarning, setHasShownPremiumWarning] = useState(false);
+  
+  const showPremiumToast = (message) => {
+    toast.custom(
+      (t) => (
+        <div className="max-w-md w-full bg-red-50 border border-red-200 shadow-lg rounded-lg p-4 flex items-center">
+          <div className="flex-shrink-0">
+            <svg
+              className="h-5 w-5 text-red-400"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 8a1 1 0 100-2 1 1 0 000 2z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </div>
+          <div className="ml-3">
+            <p className="text-sm font-medium text-red-800">{message}</p>
+          </div>
+        </div>
+      ),
+      { duration: 4000 }
+    );
+  };
 
   const { data: friendListData, isLoading: isFriendListLoading } =
     useFriendList();
@@ -236,12 +262,8 @@ const SoundList = () => {
     // Check if non-subscribed user is trying to select premium sound
     if (!isSubscribed && soundToUpdate?.isPremium) {
       if (!hasShownPremiumWarning) {
-        toast.error(
-          "Please upgrade your subscription to enjoy playing and sharing the Members Only sounds",
-          {
-            duration: 4000,
-            closeButton: false,
-          }
+        showPremiumToast(
+          "Please upgrade your subscription to enjoy playing and sharing the Members Only sounds"
         );
         setHasShownPremiumWarning(true);
       }
@@ -280,12 +302,8 @@ const SoundList = () => {
     // Check if user can play premium sounds
     if (soundToPlay.isPremium && !isSubscribed) {
       if (!hasShownPremiumWarning) {
-        toast.error(
-          "Please upgrade your subscription to enjoy playing and sharing the Members Only sounds",
-          {
-            duration: 4000, // 4 seconds
-            closeButton: false,
-          }
+        showPremiumToast(
+          "Please upgrade your subscription to enjoy playing and sharing the Members Only sounds"
         );
         setHasShownPremiumWarning(true);
       }
