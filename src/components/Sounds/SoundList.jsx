@@ -46,7 +46,7 @@ const SoundList = () => {
   const showPremiumToast = (message) => {
     toast.custom(
       (t) => (
-        <div className="max-w-md w-[80%] mx-auto mt-2 bg-red-50 border border-red-200 shadow-lg rounded-lg p-4 flex items-center">
+        <div className=" w-[75%] mx-auto mt-2 bg-red-50 border border-red-200 shadow-lg rounded-lg p-4 flex items-center">
           {/* <div className="flex-shrink-0">
             <svg
               className="h-5 w-5 text-red-400"
