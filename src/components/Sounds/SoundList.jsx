@@ -47,7 +47,7 @@ const SoundList = () => {
     toast.custom(
       (t) => (
         <div className="max-w-md w-full bg-red-50 border border-red-200 shadow-lg rounded-lg p-4 flex items-center">
-          <div className="flex-shrink-0">
+          {/* <div className="flex-shrink-0">
             <svg
               className="h-5 w-5 text-red-400"
               viewBox="0 0 20 20"
@@ -59,8 +59,8 @@ const SoundList = () => {
                 clipRule="evenodd"
               />
             </svg>
-          </div>
-          <div className="ml-3">
+          </div> */}
+          <div className="">
             <p className="text-sm font-medium text-red-800">{message}</p>
           </div>
         </div>
