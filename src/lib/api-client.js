@@ -89,6 +89,9 @@ apiClient.interceptors.response.use(
   async (error) => {
     console.error("API Response Error:", error.response?.data || error.message);
     if (error?.response?.data?.message?.includes("You are not authorized")) {
+      await fetch(`${API_URL}/auth/logout`, {
+        method: "POST",
+      });
       console.error("Invalid token detected, clearing auth state");
       clearAuthState();
       return Promise.reject(error);

@@ -84,7 +84,7 @@ export function AuthProvider({ children }) {
     } catch (error) {
       console.error("Sign in error:", error);
       // Make sure no cookies are set on error
-      removeAuthTokens();
+      // removeAuthTokens();
       toast.error(error.response?.data?.message || "Failed to sign in");
       return false;
     } finally {
