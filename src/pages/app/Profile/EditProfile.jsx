@@ -3,9 +3,10 @@ import { useAuth } from "../../../contexts/AuthContext";
 import { AnimatePresence, motion } from "framer-motion";
 import toast from "react-hot-toast";
 import Header from "../../../components/common/Header";
+import { removeAuthTokens } from "../../../utils/cookie-utils";
 
 const EditProfile = () => {
-  const { user, updateProfile, signOut } = useAuth();
+  const { user, updateProfile } = useAuth();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [formData, setFormData] = useState({
     fullName: user?.profile?.fullName || "",
@@ -78,7 +79,7 @@ const EditProfile = () => {
   };
 
   const handleLogout = () => {
-    signOut();
+    removeAuthTokens();
     setShowLogoutModal(false);
   };
 
@@ -105,7 +106,7 @@ const EditProfile = () => {
             {/* Full Name */}
             <div>
               <label className="block text-base font-medium mb-1">
-              Enter Your Name
+                Enter Your Name
               </label>
               <input
                 type="text"
