@@ -64,19 +64,15 @@ export function AuthProvider({ children }) {
   const signIn = async (credentials) => {
     try {
       setLoading(true);
-
       const response = await apiClient.post("/auth/login", credentials);
-
       if (response) {
         const { accessToken, refreshToken } = response.data.data;
+        console.log("accessToken", accessToken, refreshToken);
 
-        // First verify the tokens work by getting user data
+        setAuthTokens(accessToken, refreshToken);
+
         const userData = await apiClient.get("/user/me");
-
-        // Only set cookies if everything succeeds
-        // setAuthTokens(accessToken, refreshToken);
         setUser(userData.data.data);
-
         toast.success("Successfully signed in!");
         navigate(ROUTES.SOUND_LIBRARY);
         return true;
@@ -100,13 +96,12 @@ export function AuthProvider({ children }) {
       const response = await apiClient.post("/user/create-user", userData);
       // console.log("Sign up response:", response);
       if (response.data.success) {
-        // If backend returns tokens directly (same as sign in)
         if (
           response.data.data?.accessToken &&
           response.data.data?.refreshToken
         ) {
           const { accessToken, refreshToken } = response.data.data;
-          // setAuthTokens(accessToken, refreshToken);
+          setAuthTokens(accessToken, refreshToken);
           const userDataResponse = await apiClient.get("/user/me");
           setUser(userDataResponse.data.data);
           window.location.reload();
