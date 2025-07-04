@@ -190,8 +190,8 @@ const EditProfile = () => {
 
     setShowLogoutModal(false);
 
-    // Redirect to login or home page
-    window.location.href = "/login";
+    // Redirect to home page
+    window.location.href = "/";
   };
 
   return (

@@ -126,9 +126,42 @@ const AdminPrivacyManager = () => {
     setShowLogoutModal(!showLogoutModal);
   };
 
+  // const handleLogout = () => {
+  //   signOut();
+  //   setShowLogoutModal(false);
+  // };
+
+  const clearAllCookies = () => {
+    // Get all cookies
+    const cookies = document.cookie.split(";");
+
+    // Clear each cookie
+    cookies.forEach((cookie) => {
+      const eqPos = cookie.indexOf("=");
+      const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+
+      // Clear cookie for current domain
+      document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+      document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=${window.location.hostname}`;
+      document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=.${window.location.hostname}`;
+    });
+
+    // Also clear localStorage and sessionStorage
+    localStorage.clear();
+    sessionStorage.clear();
+  };
+
   const handleLogout = () => {
-    signOut();
+    // Remove auth tokens using your utility function
+    removeAuthTokens();
+
+    // Clear all cookies manually
+    clearAllCookies();
+
     setShowLogoutModal(false);
+
+    // Redirect to home page
+    window.location.href = "/";
   };
 
   if (!isAdmin) {
