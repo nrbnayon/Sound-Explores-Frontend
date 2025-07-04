@@ -7,7 +7,7 @@ import {
 } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
-import { removeAuthTokens } from "../utils/cookie-utils";
+import { setAuthTokens, removeAuthTokens } from "../utils/cookie-utils";
 import apiClient from "../lib/api-client";
 import { ROUTES } from "../config/constants";
 import { useQueryClient } from "@tanstack/react-query";
