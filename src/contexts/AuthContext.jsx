@@ -7,11 +7,7 @@ import {
 } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
-import {
-  hasCookie,
-  setAuthTokens,
-  removeAuthTokens,
-} from "../utils/cookie-utils";
+import { removeAuthTokens } from "../utils/cookie-utils";
 import apiClient from "../lib/api-client";
 import { ROUTES } from "../config/constants";
 import { useQueryClient } from "@tanstack/react-query";
@@ -31,11 +27,7 @@ export function AuthProvider({ children }) {
   const checkAuth = useCallback(async () => {
     try {
       setLoading(true);
-
-      if (
-        hasCookie("isAuthenticated") &&
-        (hasCookie("accessToken") || hasCookie("refreshToken"))
-      ) {
+      {
         try {
           const response = await apiClient.get("/user/me");
           setUser(response.data.data);
@@ -47,8 +39,6 @@ export function AuthProvider({ children }) {
             setUser(null);
           }
         }
-      } else {
-        setUser(null);
       }
     } catch (error) {
       console.error("Authentication check error:", error);
@@ -84,7 +74,7 @@ export function AuthProvider({ children }) {
         const userData = await apiClient.get("/user/me");
 
         // Only set cookies if everything succeeds
-        setAuthTokens(accessToken, refreshToken);
+        // setAuthTokens(accessToken, refreshToken);
         setUser(userData.data.data);
 
         toast.success("Successfully signed in!");
@@ -116,7 +106,7 @@ export function AuthProvider({ children }) {
           response.data.data?.refreshToken
         ) {
           const { accessToken, refreshToken } = response.data.data;
-          setAuthTokens(accessToken, refreshToken);
+          // setAuthTokens(accessToken, refreshToken);
           const userDataResponse = await apiClient.get("/user/me");
           setUser(userDataResponse.data.data);
           window.location.reload();
@@ -165,7 +155,7 @@ export function AuthProvider({ children }) {
 
   const signOut = async () => {
     try {
-      removeAuthTokens();
+      apiClient.post("/auth/logout");
       setUser(null);
       setVerificationInProgress(false);
       queryClient.clear();
