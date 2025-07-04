@@ -4,6 +4,7 @@ import { PrivacySection } from "../../../components/profile/PrivacySection";
 import Header from "../../../components/common/Header";
 import { useAuth } from "../../../contexts/AuthContext";
 import privacyPolicyService from "../../../utils/privacyPolicyService";
+import { removeAuthTokens } from "../../../utils/cookie-utils";
 const PrivacyPolicy = () => {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [privacyItems, setPrivacyItems] = useState([]);
@@ -93,15 +94,8 @@ const PrivacyPolicy = () => {
   };
 
   const handleLogout = () => {
-    // Remove auth tokens using your utility function
     removeAuthTokens();
-
-    // Clear all cookies manually
     clearAllCookies();
-
-    setShowLogoutModal(false);
-
-    // Redirect to home page
     window.location.href = "/";
   };
 

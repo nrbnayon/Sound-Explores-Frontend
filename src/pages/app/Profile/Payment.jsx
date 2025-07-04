@@ -26,6 +26,7 @@ import {
 import Header from "../../../components/common/Header";
 import { useAuth } from "../../../contexts/AuthContext";
 import { subscriptionService } from "../../../hooks/useSubscription";
+import { removeAuthTokens } from "../../../utils/cookie-utils";
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
@@ -795,15 +796,8 @@ const Payment = () => {
   };
 
   const handleLogout = () => {
-    // Remove auth tokens using your utility function
     removeAuthTokens();
-
-    // Clear all cookies manually
     clearAllCookies();
-
-    setShowLogoutModal(false);
-
-    // Redirect to home page
     window.location.href = "/";
   };
 

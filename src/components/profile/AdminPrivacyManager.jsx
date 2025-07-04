@@ -13,6 +13,7 @@ import {
 import privacyPolicyService from "../../utils/privacyPolicyService";
 import { useAuth } from "../../contexts/AuthContext";
 import Header from "../common/Header";
+import { removeAuthTokens } from "../../utils/cookie-utils";
 
 const AdminPrivacyManager = () => {
   const [policies, setPolicies] = useState([]);
@@ -152,15 +153,8 @@ const AdminPrivacyManager = () => {
   };
 
   const handleLogout = () => {
-    // Remove auth tokens using your utility function
     removeAuthTokens();
-
-    // Clear all cookies manually
     clearAllCookies();
-
-    setShowLogoutModal(false);
-
-    // Redirect to home page
     window.location.href = "/";
   };
 

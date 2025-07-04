@@ -7,6 +7,7 @@ import Header from "../../../components/common/Header";
 import { Helmet } from "react-helmet-async";
 import apiClient from "../../../lib/api-client";
 import LoadingScreen from "./../../../components/ui/LoadingScreen";
+import { removeAuthTokens } from "../../../utils/cookie-utils";
 
 const Profile = () => {
   const { user, signOut } = useAuth();
@@ -83,8 +84,6 @@ const Profile = () => {
 
     // Clear all cookies manually
     clearAllCookies();
-
-    setShowLogoutModal(false);
 
     // Redirect to home page
     window.location.href = "/";

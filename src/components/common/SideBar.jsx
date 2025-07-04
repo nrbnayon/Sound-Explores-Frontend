@@ -4,6 +4,7 @@ import { LogOut, Music, Users, UserCog } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "../../contexts/AuthContext";
 import toast from "react-hot-toast";
+import { removeAuthTokens } from "../../utils/cookie-utils";
 
 const SideBar = ({ onTitleChange, onViewChange, onClose, activeView }) => {
   const [activeButton, setActiveButton] = useState(1);
@@ -77,15 +78,8 @@ const SideBar = ({ onTitleChange, onViewChange, onClose, activeView }) => {
   };
 
   const handleLogout = () => {
-    // Remove auth tokens using your utility function
     removeAuthTokens();
-
-    // Clear all cookies manually
     clearAllCookies();
-
-    setShowLogoutModal(false);
-
-    // Redirect to home page
     window.location.href = "/";
   };
 
