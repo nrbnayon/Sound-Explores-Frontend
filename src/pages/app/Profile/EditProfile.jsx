@@ -275,8 +275,9 @@ const EditProfile = () => {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
+                  disabled
                   placeholder="Enter your email..."
-                  className={`w-full text-black dark:text-white p-4 border ${
+                  className={`w-full text-black dark:text-white p-4 border disabled ${
                     errors.email
                       ? "border-red-500"
                       : "border-gray-300 dark:border-gray-600"
