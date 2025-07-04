@@ -78,9 +78,38 @@ const EditProfile = () => {
     setShowLogoutModal(!showLogoutModal);
   };
 
+  // Clear all cookies manually
+  const clearAllCookies = () => {
+    // Get all cookies
+    const cookies = document.cookie.split(";");
+
+    // Clear each cookie
+    cookies.forEach((cookie) => {
+      const eqPos = cookie.indexOf("=");
+      const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+
+      // Clear cookie for current domain
+      document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+      document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=${window.location.hostname}`;
+      document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=.${window.location.hostname}`;
+    });
+
+    // Also clear localStorage and sessionStorage
+    localStorage.clear();
+    sessionStorage.clear();
+  };
+
   const handleLogout = () => {
+    // Remove auth tokens using your utility function
     removeAuthTokens();
+
+    // Clear all cookies manually
+    clearAllCookies();
+
     setShowLogoutModal(false);
+
+    // Redirect to login or home page
+    window.location.href = "/login";
   };
 
   return (
@@ -95,120 +124,69 @@ const EditProfile = () => {
           onLogoutClick={toggleLogoutModal}
         />
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="p-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            className="space-y-4"
-          >
-            {/* Full Name */}
-            <div>
-              <label className="block text-base font-medium mb-1">
-                Enter Your Name
-              </label>
-              <input
-                type="text"
-                name="fullName"
-                value={formData.fullName}
-                onChange={handleChange}
-                placeholder="Enter your full name..."
-                className="w-full text-black p-3 border border-gray-200 rounded-lg"
-              />
-            </div>
+        {/* Form Container - Centered */}
+        <div className="flex items-center justify-center min-h-[calc(100vh-80px)] p-4">
+          <div className="w-full max-w-sm">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+                className="space-y-4"
+              >
+                {/* Full Name */}
+                <div className="w-full">
+                  <label className="block text-base font-medium mb-1">
+                    Enter Your Name
+                  </label>
+                  <input
+                    type="text"
+                    name="fullName"
+                    value={formData.fullName}
+                    onChange={handleChange}
+                    placeholder="Enter your full name..."
+                    className="w-full text-black p-3 border border-gray-200 rounded-lg"
+                  />
+                </div>
 
-            {/* Nickname */}
-            {/* <div>
-              <label className="block text-base font-medium mb-1">
-                Nickname
-              </label>
-              <input
-                type="text"
-                name="nickname"
-                value={formData.nickname}
-                onChange={handleChange}
-                placeholder="Enter your Nickname..."
-                className="w-full text-black p-3 border border-gray-200 rounded-lg"
-              />
-            </div> */}
+                {/* Email */}
+                <div>
+                  <label className="block text-base font-medium mb-1">
+                    Email <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="Enter your email..."
+                    disabled
+                    className={`w-full text-black dark:text-white p-3 border ${
+                      errors.email ? "border-red-500" : "border-gray-200"
+                    } rounded-lg`}
+                  />
+                  {errors.email && (
+                    <span className="text-destructive text-sm mt-1 block">
+                      {errors.email}
+                    </span>
+                  )}
+                </div>
+              </motion.div>
 
-            {/* Date of Birth */}
-            {/* <div>
-              <label className="block text-base font-medium mb-1">
-                Date of Birth
-              </label>
-              <input
-                type="date"
-                name="dateOfBirth"
-                value={formData.dateOfBirth}
-                onChange={handleChange}
-                className="w-full text-black p-3 border border-gray-200 rounded-lg"
-              />
-            </div> */}
+              {/* Update Button */}
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                type="submit"
+                disabled={!isDirty()}
+                className="w-full py-3 px-4 bg-primary text-white rounded-full font-medium shadow-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-600 transition-colors"
+              >
+                Update
+              </motion.button>
+            </form>
+          </div>
+        </div>
 
-            {/* Email */}
-            <div>
-              <label className="block text-base font-medium mb-1">
-                Email <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="Enter your email..."
-                disabled
-                className={`w-full text-black dark:text-white p-3 border ${
-                  errors.email ? "border-red-500" : "border-gray-200"
-                } rounded-lg`}
-              />
-              {errors.email && (
-                <span className="text-destructive text-sm mt-1 block">
-                  {errors.email}
-                </span>
-              )}
-            </div>
-
-            {/* Phone */}
-            {/* <div>
-              <label className="block text-base font-medium mb-1">Phone</label>
-              <input
-                type="tel"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                placeholder="Enter your Phone..."
-                className="w-full text-black p-3 border border-gray-200 rounded-lg"
-              />
-            </div> */}
-
-            {/* Address */}
-            {/* <div>
-              <label className="block text-base font-medium mb-1">
-                Address
-              </label>
-              <textarea
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                placeholder="Address"
-                className="w-full text-black p-3 border border-gray-200 rounded-lg h-20"
-              />
-            </div> */}
-          </motion.div>
-
-          {/* Update Button */}
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            type="submit"
-            disabled={!isDirty()}
-            className="w-full mt-6 py-3 px-4 bg-primary text-white rounded-full font-medium shadow-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-600 transition-colors"
-          >
-            Update
-          </motion.button>
-        </form>
         {/* Logout Modal */}
         <AnimatePresence>
           {showLogoutModal && (
