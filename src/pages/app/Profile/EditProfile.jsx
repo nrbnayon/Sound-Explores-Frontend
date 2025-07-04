@@ -105,7 +105,7 @@ const EditProfile = () => {
             {/* Full Name */}
             <div>
               <label className="block text-base font-medium mb-1">
-                Full Name
+              Enter Your Name
               </label>
               <input
                 type="text"
@@ -118,7 +118,7 @@ const EditProfile = () => {
             </div>
 
             {/* Nickname */}
-            <div>
+            {/* <div>
               <label className="block text-base font-medium mb-1">
                 Nickname
               </label>
@@ -130,10 +130,10 @@ const EditProfile = () => {
                 placeholder="Enter your Nickname..."
                 className="w-full text-black p-3 border border-gray-200 rounded-lg"
               />
-            </div>
+            </div> */}
 
             {/* Date of Birth */}
-            <div>
+            {/* <div>
               <label className="block text-base font-medium mb-1">
                 Date of Birth
               </label>
@@ -144,7 +144,7 @@ const EditProfile = () => {
                 onChange={handleChange}
                 className="w-full text-black p-3 border border-gray-200 rounded-lg"
               />
-            </div>
+            </div> */}
 
             {/* Email */}
             <div>
@@ -183,7 +183,7 @@ const EditProfile = () => {
             </div> */}
 
             {/* Address */}
-            <div>
+            {/* <div>
               <label className="block text-base font-medium mb-1">
                 Address
               </label>
@@ -194,7 +194,7 @@ const EditProfile = () => {
                 placeholder="Address"
                 className="w-full text-black p-3 border border-gray-200 rounded-lg h-20"
               />
-            </div>
+            </div> */}
           </motion.div>
 
           {/* Update Button */}

@@ -4,9 +4,9 @@ import {
   MoreVertical,
   X,
   Music2Icon,
-  UsersRound,
   HelpCircle,
   LogOut,
+  Contact2,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -110,7 +110,7 @@ const Header = ({ backHref, title, onLogoutClick }) => {
                   <Music2Icon className="w-4 h-4 mr-3 text-muted-foreground" />
                   <span className="text-sm font-medium">Poop Alert Sounds</span>
                 </Link>
-                {!isAdmin && (
+                {/* {!isAdmin && (
                   <Link
                     to="/all-friends"
                     className="flex items-center px-4 py-3 hover:bg-background"
@@ -118,6 +118,16 @@ const Header = ({ backHref, title, onLogoutClick }) => {
                   >
                     <UsersRound className="w-4 h-4 mr-3 text-muted-foreground" />
                     <span className="text-sm font-medium">Friends</span>
+                  </Link>
+                )} */}
+                {!isAdmin && (
+                  <Link
+                    to="/contact-us"
+                    className="flex items-center px-4 py-3 hover:bg-background"
+                    onClick={() => setShowOptions(false)}
+                  >
+                    <Contact2 className="w-4 h-4 mr-3 text-muted-foreground" />
+                    <span className="text-sm font-medium">Contact Us</span>
                   </Link>
                 )}
                 <Link
