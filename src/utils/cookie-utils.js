@@ -1,6 +1,58 @@
 // src/utils/cookie-utils.js
+export const setCookie = (name, value, options = {}) => {
+  let cookieString = `${encodeURIComponent(name)}=${encodeURIComponent(value)}`;
 
-// Remove auth tokens by making a request to backend logout endpoint
+  if (options.maxAge) cookieString += `; Max-Age=${options.maxAge}`;
+  if (options.path) cookieString += `; Path=${options.path}`;
+  if (options.secure) cookieString += `; Secure`;
+  if (options.sameSite) cookieString += `; SameSite=${options.sameSite}`;
+  if (options.httpOnly) cookieString += `; HttpOnly`;
+
+  document.cookie = cookieString;
+};
+
+export const getCookie = (name) => {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  return parts.length === 2
+    ? decodeURIComponent(parts.pop().split(";").shift())
+    : null;
+};
+
+export const removeCookie = (name, options = {}) => {
+  setCookie(name, "", { ...options, maxAge: -1 });
+};
+
+export const setAuthTokens = (accessToken, refreshToken) => {
+  const isProduction = import.meta.env.VITE_NODE_ENV === "production";
+
+  const cookieOptions = {
+    secure: isProduction,
+    sameSite: "strict",
+    path: "/",
+  };
+
+  setCookie("accessToken", accessToken, {
+    ...cookieOptions,
+    maxAge: 365 * 24 * 60 * 60, // 365 days
+  });
+
+  setCookie("refreshToken", refreshToken, {
+    ...cookieOptions,
+    maxAge: 365 * 24 * 60 * 60, // 365 days
+  });
+
+  setCookie("isAuthenticated", "true", {
+    ...cookieOptions,
+    maxAge: 365 * 24 * 60 * 60, // 365 days
+  });
+
+  console.log("Auth tokens set with expiration:");
+  console.log(" accessToken: 365 days");
+  console.log(" RToken: 365 days");
+  console.log(" accessToken: 365 days");
+};
+
 export const removeAuthTokens = async () => {
   try {
     // First, call backend logout to clear httpOnly cookies
