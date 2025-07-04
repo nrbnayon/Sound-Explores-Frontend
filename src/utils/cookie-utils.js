@@ -66,9 +66,18 @@ export const removeAuthTokens = async () => {
       }
     );
 
+    const cookieOptions = { path: "/" };
+    removeCookie("accessToken", cookieOptions);
+    removeCookie("refreshToken", cookieOptions);
+    removeCookie("isAuthenticated", cookieOptions);
+
     // Then clear any client-side accessible cookies
     const cookiesToClear = ["accessToken", "refreshToken", "isAuthenticated"];
-    const domains = [window.location.hostname, "localhost", "127.0.0.1"];
+    const domains = [
+      window.location.hostname,
+      "https://www.poopalert.online",
+      "poopalert.online",
+    ];
 
     cookiesToClear.forEach((cookieName) => {
       // Clear for different domain/path combinations
