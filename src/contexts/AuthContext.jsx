@@ -67,7 +67,7 @@ export function AuthProvider({ children }) {
       const response = await apiClient.post("/auth/login", credentials);
       if (response) {
         const { accessToken, refreshToken } = response.data.data;
-        console.log("accessToken", accessToken, refreshToken);
+        // console.log("accessToken", accessToken, refreshToken);
 
         setAuthTokens(accessToken, refreshToken);
 

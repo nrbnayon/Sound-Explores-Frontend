@@ -47,10 +47,10 @@ export const setAuthTokens = (accessToken, refreshToken) => {
     maxAge: 365 * 24 * 60 * 60, // 365 days
   });
 
-  console.log("Auth tokens set with expiration:");
-  console.log(" accessToken: 365 days");
-  console.log(" RToken: 365 days");
-  console.log(" accessToken: 365 days");
+  // console.log("Auth tokens set with expiration:");
+  // console.log(" accessToken: 365 days");
+  // console.log(" RToken: 365 days");
+  // console.log(" accessToken: 365 days");
 };
 
 export const removeAuthTokens = async () => {
@@ -80,7 +80,7 @@ export const removeAuthTokens = async () => {
       });
     });
 
-    console.log("Auth tokens cleared successfully");
+    // console.log("Auth tokens cleared successfully");
   } catch (error) {
     console.error("Error clearing cookies:", error);
     // Still try to clear client-side cookies even if backend call fails
