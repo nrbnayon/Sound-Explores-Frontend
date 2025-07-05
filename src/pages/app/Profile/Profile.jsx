@@ -1,5 +1,13 @@
 import { useState, useRef, useEffect } from "react";
-import { User, Crown, Lock, LogOut, ChevronRight, ImageUp } from "lucide-react";
+import {
+  User,
+  Crown,
+  Lock,
+  LogOut,
+  ChevronRight,
+  ImageUp,
+  Contact2Icon,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -327,6 +335,25 @@ const Profile = () => {
               </div>
             </Link>
           )}
+
+          {/* Contact us */}
+          <Link
+            to="/contact-us"
+            className="flex items-center justify-between py-3 px-2 mb-1 rounded-lg hover:bg-background transition-colors"
+          >
+            <div className="flex items-center">
+              <div className="p-2 mr-4 bg-purple-100 rounded-full">
+                <Contact2Icon className="w-5 h-5 text-green-600" />
+              </div>
+              <div>
+                <span className="text-base font-medium">Contact Us</span>
+                <p className="text-xs text-muted-foreground">
+                  Sent your request. We are here to support you
+                </p>
+              </div>
+            </div>
+            <ChevronRight className="w-5 h-5 text-muted-foreground" />
+          </Link>
 
           {/* Privacy Policy */}
           <Link

@@ -57,7 +57,7 @@ const Header = ({ backHref, title, onLogoutClick }) => {
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className={`flex items-center justify-between p-4 border-b bg-card sticky top-0 z-10 transition-shadow ${
+      className={`flex items-center justify-between p-2 py-4 border-b  bg-card sticky top-0 z-10 transition-shadow ${
         scrolled ? "shadow-md" : ""
       }`}
     >

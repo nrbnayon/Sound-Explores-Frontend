@@ -25,6 +25,7 @@ const EditProfile = lazy(() => import("../pages/app/Profile/EditProfile"));
 const PrivacyPolicy = lazy(() => import("../pages/app/Profile/PrivacyPolicy"));
 const Payment = lazy(() => import("../pages/app/Profile/Payment"));
 const ChatInterface = lazy(() => import("../pages/app/Chat/ChatInterface"));
+const ContactPage = lazy(() => import("../pages/app/ContactUs"));
 const NotFound = lazy(() => import("../pages/errors/NotFound"));
 const AudioPlayerPage = lazy(() =>
   import("../pages/app/AudioPlayer/AudioPlayerPage")
@@ -63,6 +64,7 @@ const AppRoutes = () => {
               <Route path="/edit-profile" element={<EditProfile />} />
               <Route path="/payment" element={<Payment />} />
               <Route path="/chat-interface" element={<ChatInterface />} />
+              <Route path="/contact-us" element={<ContactPage />} />
               <Route
                 path="/admin/privacy-policies"
                 element={<AdminPrivacyManager />}
