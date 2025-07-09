@@ -167,102 +167,102 @@ const Profile = () => {
   };
 
   return (
-    <div className="bg-background flex flex-row justify-center w-full min-h-screen">
-      <div className="bg-card w-full max-w-md relative shadow-md">
+    <div className='bg-background flex flex-row justify-center w-full min-h-screen'>
+      <div className='bg-card w-full max-w-md relative shadow-md'>
         <Helmet>
           <title>Poop Alert Sound Explores Library Application</title>
           <meta
-            name="description"
+            name='description'
             content={`View Poop Alert Sound Explores Library Application profile`}
           />
-          <meta name="robots" content="noindex, nofollow" />
+          <meta name='robots' content='noindex, nofollow' />
           <meta
-            property="og:title"
-            content={`View Poop Alert Sound Explores Library Application profile`}
-          />
-          <meta
-            property="og:description"
+            property='og:title'
             content={`View Poop Alert Sound Explores Library Application profile`}
           />
           <meta
-            property="og:image"
+            property='og:description'
+            content={`View Poop Alert Sound Explores Library Application profile`}
+          />
+          <meta
+            property='og:image'
             content={"https://i.postimg.cc/HkHXj7zF/logo.png"}
           />
           <meta
-            property="og:url"
+            property='og:url'
             content={`https://poopalert.fun/profile/${user?.id || ""}`}
           />
-          <meta property="og:type" content="profile" />
+          <meta property='og:type' content='profile' />
         </Helmet>
         {/* <StatusBar /> */}
 
         {/* Header */}
         <Header
-          backHref="/sound-library"
-          title="Profile"
+          backHref='/sound-library'
+          title='Profile'
           onLogoutClick={toggleLogoutModal}
         />
 
         {/* Profile Info */}
-        <div className="bg-background pr-0.5">
+        <div className='bg-background pr-0.5'>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
-            className="flex flex-col items-center p-6 border-b bg-gradient-to-b from-blue-50 to-white"
+            className='flex flex-col items-center p-6 border-b bg-gradient-to-b from-blue-50 to-white'
           >
-            <div className="relative mb-5 group text-foreground">
+            <div className='relative mb-5 group text-foreground'>
               <motion.div
                 whileHover={{ scale: 1.05 }}
-                className="w-28 h-28 rounded-full overflow-hidden ring-4 ring-white shadow-md"
+                className='w-28 h-28 rounded-full overflow-hidden ring-4 ring-white shadow-md'
               >
                 {isUploading ? (
-                  <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                  <div className='w-full h-full flex items-center justify-center bg-gray-100'>
+                    <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500'></div>
                   </div>
                 ) : (
                   <img
                     src={avatar}
-                    alt="Profile"
-                    className="w-full h-full object-cover"
+                    alt='Profile'
+                    className='w-full h-full object-cover'
                   />
                 )}
               </motion.div>
               <motion.div
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
-                className="absolute bottom-0 right-0 bg-primary p-2 rounded-full shadow-md cursor-pointer transition-all hover:bg-blue-600"
+                className='absolute bottom-0 right-0 bg-primary p-2 rounded-full shadow-md cursor-pointer transition-all hover:bg-blue-600'
                 onClick={triggerFileInput}
               >
-                <ImageUp className="w-4 h-4 text-white" />
+                <ImageUp className='w-4 h-4 text-white' />
               </motion.div>
               <input
-                type="file"
+                type='file'
                 ref={fileInputRef}
-                className="hidden"
-                accept="image/*"
+                className='hidden'
+                accept='image/*'
                 onChange={handleAvatarChange}
               />
             </div>
 
-            <h2 className="text-2xl text-black font-bold mb-1">
+            <h2 className='text-2xl text-black font-bold mb-1'>
               <span>
                 {profileName ||
                   user?.email?.split("@")[0].slice(0, 10) ||
                   "User Name"}
               </span>
               {isPremiumUser(user) && user?.premiumUserNumber && (
-                <span className="text-sm font-normal text-blue-500 bg-blue-50 px-2 py-1 rounded-full ml-2">
+                <span className='text-sm font-normal text-blue-500 bg-blue-50 px-2 py-1 rounded-full ml-2'>
                   Premium
                 </span>
               )}
             </h2>
-            <p className="text-xs text-muted-foreground mb-2">
+            <p className='text-xs text-muted-foreground mb-2'>
               {user?.email || "user@example.com"}
             </p>
-            <div className="mb-4 flex items-center bg-blue-50 px-3 py-1 rounded-full">
-              <Crown className="w-4 h-4 text-blue-500 mr-1" />
-              <span className="text-xs font-medium text-blue-700">
+            <div className='mb-4 flex items-center bg-blue-50 px-3 py-1 rounded-full'>
+              <Crown className='w-4 h-4 text-blue-500 mr-1' />
+              <span className='text-xs font-medium text-blue-700'>
                 {user?.subscription?.plan
                   ? user.subscription.plan.charAt(0).toUpperCase() +
                     user.subscription.plan.slice(1)
@@ -271,10 +271,10 @@ const Profile = () => {
               </span>
             </div>
 
-            <div className="flex gap-4 w-full justify-center mt-2">
+            <div className='flex gap-4 w-full justify-center mt-2'>
               <Link
-                to="/edit-profile"
-                className="px-5 py-2 bg-primary text-white rounded-full text-sm font-medium hover:bg-blue-600 transition-colors"
+                to='/edit-profile'
+                className='px-5 py-2 bg-primary text-white rounded-full text-sm font-medium hover:bg-blue-600 transition-colors'
               >
                 Edit Profile
               </Link>
@@ -283,111 +283,111 @@ const Profile = () => {
         </div>
 
         {/* Menu Items */}
-        <div className="px-4 py-2">
-          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-2">
+        <div className='px-4 py-2'>
+          <h3 className='text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-2'>
             Account Settings
           </h3>
 
           {/* Edit Profile */}
           <Link
-            to="/edit-profile"
-            className="flex items-center justify-between py-3 px-2 mb-1 rounded-lg hover:bg-background transition-colors"
+            to='/edit-profile'
+            className='flex items-center justify-between py-3 px-2 mb-1 rounded-lg hover:bg-background transition-colors'
           >
-            <div className="flex items-center">
-              <div className="p-2 mr-4 bg-blue-100 rounded-full">
-                <User className="w-5 h-5 text-primary" />
+            <div className='flex items-center'>
+              <div className='p-2 mr-4 bg-blue-100 rounded-full'>
+                <User className='w-5 h-5 text-primary' />
               </div>
               <div>
-                <span className="text-base font-medium">
+                <span className='text-base font-medium'>
                   Personal Information
                 </span>
-                <p className="text-xs text-muted-foreground">
+                <p className='text-xs text-muted-foreground'>
                   Update your profile details
                 </p>
               </div>
             </div>
-            <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            <ChevronRight className='w-5 h-5 text-muted-foreground' />
           </Link>
 
           {/* Upgrade Plan */}
 
           {!isAdmin && (
             <Link
-              to="/payment"
-              className="flex items-center justify-between py-3 px-2 mb-1 rounded-lg hover:bg-background transition-colors"
+              to='/payment'
+              className='flex items-center justify-between py-3 px-2 mb-1 rounded-lg hover:bg-background transition-colors'
             >
-              <div className="flex items-center">
-                <div className="p-2 mr-4 bg-yellow-100 rounded-full">
-                  <Crown className="w-5 h-5 text-yellow-600" />
+              <div className='flex items-center'>
+                <div className='p-2 mr-4 bg-yellow-100 rounded-full'>
+                  <Crown className='w-5 h-5 text-yellow-600' />
                 </div>
                 <div>
-                  <span className="text-base font-medium">Subscription</span>
-                  <p className="text-xs text-muted-foreground">
+                  <span className='text-base font-medium'>Subscription</span>
+                  <p className='text-xs text-muted-foreground'>
                     Manage your plan
                   </p>
                 </div>
               </div>
-              <div className="flex items-center">
-                <span className="text-xs font-medium text-green-600 mr-2">
+              <div className='flex items-center'>
+                <span className='text-xs font-medium text-green-600 mr-2'>
                   Upgrade
                 </span>
-                <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                <ChevronRight className='w-5 h-5 text-muted-foreground' />
               </div>
             </Link>
           )}
 
           {/* Contact us */}
           <Link
-            to="/contact-us"
-            className="flex items-center justify-between py-3 px-2 mb-1 rounded-lg hover:bg-background transition-colors"
+            to='/contact-us'
+            className='flex items-center justify-between py-3 px-2 mb-1 rounded-lg hover:bg-background transition-colors'
           >
-            <div className="flex items-center">
-              <div className="p-2 mr-4 bg-purple-100 rounded-full">
-                <Contact2Icon className="w-5 h-5 text-green-600" />
+            <div className='flex items-center'>
+              <div className='p-2 mr-4 bg-purple-100 rounded-full'>
+                <Contact2Icon className='w-5 h-5 text-green-600' />
               </div>
               <div>
-                <span className="text-base font-medium">Contact Us</span>
-                <p className="text-xs text-muted-foreground">
-                  Sent your request. We are here to support you
+                <span className='text-base font-medium'>Contact Us</span>
+                <p className='text-xs text-muted-foreground'>
+                  Get in touch with us
                 </p>
               </div>
             </div>
-            <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            <ChevronRight className='w-5 h-5 text-muted-foreground' />
           </Link>
 
           {/* Privacy Policy */}
           <Link
-            to="/privacy-policy"
-            className="flex items-center justify-between py-3 px-2 mb-1 rounded-lg hover:bg-background transition-colors"
+            to='/privacy-policy'
+            className='flex items-center justify-between py-3 px-2 mb-1 rounded-lg hover:bg-background transition-colors'
           >
-            <div className="flex items-center">
-              <div className="p-2 mr-4 bg-purple-100 rounded-full">
-                <Lock className="w-5 h-5 text-purple-600" />
+            <div className='flex items-center'>
+              <div className='p-2 mr-4 bg-purple-100 rounded-full'>
+                <Lock className='w-5 h-5 text-purple-600' />
               </div>
               <div>
-                <span className="text-base font-medium">
+                <span className='text-base font-medium'>
                   Privacy & Security
                 </span>
-                <p className="text-xs text-muted-foreground">
+                <p className='text-xs text-muted-foreground'>
                   Manage your data and privacy
                 </p>
               </div>
             </div>
-            <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            <ChevronRight className='w-5 h-5 text-muted-foreground' />
           </Link>
 
-          <div className="border-t border-gray-100 my-4"></div>
+          <div className='border-t border-gray-100 my-4'></div>
 
           {/* Logout */}
           <motion.div
             whileHover={{ backgroundColor: "#fef2f2" }}
-            className="flex items-center py-3 px-2 rounded-lg hover:bg-red-50 transition-colors cursor-pointer"
+            className='flex items-center py-3 px-2 rounded-lg hover:bg-red-50 transition-colors cursor-pointer'
             onClick={toggleLogoutModal}
           >
-            <div className="p-2 mr-4 bg-red-100 rounded-full">
-              <LogOut className="w-5 h-5 text-destructive" />
+            <div className='p-2 mr-4 bg-red-100 rounded-full'>
+              <LogOut className='w-5 h-5 text-destructive' />
             </div>
-            <span className="text-base font-medium text-destructive">
+            <span className='text-base font-medium text-destructive'>
               Logout
             </span>
           </motion.div>
@@ -400,7 +400,7 @@ const Profile = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black bg-opacity-50 flex items-end justify-center z-50"
+              className='fixed inset-0 bg-black bg-opacity-50 flex items-end justify-center z-50'
               onClick={toggleLogoutModal}
             >
               <motion.div
@@ -408,25 +408,25 @@ const Profile = () => {
                 animate={{ y: 0 }}
                 exit={{ y: 300 }}
                 transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                className="bg-card w-full max-w-md rounded-t-2xl"
+                className='bg-card w-full max-w-md rounded-t-2xl'
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="flex flex-col items-center">
-                  <div className="w-12 h-1 bg-gray-300 rounded-full my-3"></div>
-                  <div className="w-full p-6">
-                    <h3 className="text-2xl font-bold text-destructive text-center mb-6">
+                <div className='flex flex-col items-center'>
+                  <div className='w-12 h-1 bg-gray-300 rounded-full my-3'></div>
+                  <div className='w-full p-6'>
+                    <h3 className='text-2xl font-bold text-destructive text-center mb-6'>
                       Logout
                     </h3>
-                    <div className="border-t border-gray-200 mb-6"></div>
-                    <p className="text-xl text-center mb-8">
+                    <div className='border-t border-gray-200 mb-6'></div>
+                    <p className='text-xl text-center mb-8'>
                       Are you sure you want to log out?
                     </p>
-                    <div className="flex gap-4">
+                    <div className='flex gap-4'>
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={toggleLogoutModal}
-                        className="flex-1 py-4 px-6 bg-gray-100 rounded-full text-black font-medium"
+                        className='flex-1 py-4 px-6 bg-gray-100 rounded-full text-black font-medium'
                       >
                         Cancel
                       </motion.button>
@@ -434,7 +434,7 @@ const Profile = () => {
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={handleLogout}
-                        className="flex-1 py-4 px-6 bg-red-500 rounded-full text-white font-medium"
+                        className='flex-1 py-4 px-6 bg-red-500 rounded-full text-white font-medium'
                       >
                         Yes, Logout
                       </motion.button>

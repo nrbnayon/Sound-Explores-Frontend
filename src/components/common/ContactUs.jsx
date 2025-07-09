@@ -73,6 +73,8 @@ const ContactUs = () => {
         title: formData.subject,
         message: formData.message,
         time: new Date().toLocaleString(),
+        subject: `Contact: ${formData.subject} - From ${formData.name}`,
+        reply_to: formData.email,
       };
 
       await emailjs.send(
