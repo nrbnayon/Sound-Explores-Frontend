@@ -348,7 +348,7 @@ const Profile = () => {
               <div>
                 <span className='text-base font-medium'>Contact Us</span>
                 <p className='text-xs text-muted-foreground'>
-                  Get in touch with us
+                  Get in touch with us.
                 </p>
               </div>
             </div>
