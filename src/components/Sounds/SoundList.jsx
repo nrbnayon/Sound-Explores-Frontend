@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Checkbox } from "../ui/checkbox";
 import { Button } from "../ui/button";
-import { Search, Trash2, Plus, Share2, Download } from "lucide-react";
+import { Search, Trash2, Plus, Share2, Download, Loader2 } from "lucide-react";
 import { useNativeShare } from "../../hooks/useNativeShare";
 import {
   useSounds,
@@ -20,8 +20,8 @@ import { useFriendList } from "../../hooks/useConnections";
 import { useSendSoundMessage } from "../../hooks/useMessages";
 import ShareModal from "../ShareModal";
 
-// Separate AudioWave component to prevent unnecessary re-renders
-const AudioWave = ({ isPlaying }) => {
+// Separate AudioWave component
+const AudioWave = ({ isPlaying, isLoading = false }) => {
   const [waveLines, setWaveLines] = useState(() => {
     const lineCount = 67;
     const lines = [];
@@ -38,7 +38,7 @@ const AudioWave = ({ isPlaying }) => {
   const animationRef = useRef(null);
 
   useEffect(() => {
-    if (isPlaying) {
+    if (isPlaying && !isLoading) {
       const animateWave = () => {
         setWaveLines((prevLines) => {
           const newLines = [...prevLines];
@@ -62,7 +62,23 @@ const AudioWave = ({ isPlaying }) => {
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [isPlaying]);
+  }, [isPlaying, isLoading]);
+
+  if (isLoading) {
+    return (
+      <div className="w-full h-8 flex items-center justify-center">
+        <div className="flex space-x-1">
+          {[...Array(5)].map((_, i) => (
+            <div
+              key={i}
+              className="w-1 h-4 bg-gray-300 rounded animate-pulse"
+              style={{ animationDelay: `${i * 0.1}s` }}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <svg viewBox={`0 0 ${waveLines.length * 2} 24`} className="w-full h-8">
@@ -146,6 +162,8 @@ const SoundList = () => {
   const [sounds, setSounds] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [isDurationLoading, setIsDurationLoading] = useState(false); // NEW: Track duration loading
+  const [loadingProgress, setLoadingProgress] = useState(0); // NEW: Track loading progress
   const [currentlyPlayingId, setCurrentlyPlayingId] = useState(null);
   const [selectedSounds, setSelectedSounds] = useState([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -156,14 +174,9 @@ const SoundList = () => {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [shareData, setShareData] = useState(null);
 
-  // FIXED: Changed from single boolean to Set of sound IDs that have shown warning
-  const [premiumWarningShownFor, setPremiumWarningShownFor] = useState(
-    new Set()
-  );
-
-  // Alternative approach: Use a timestamp-based throttling
+  // Premium warning with time-based throttling
   const lastPremiumWarningTime = useRef(0);
-  const PREMIUM_WARNING_THROTTLE = 3000; // 3 seconds between warnings
+  const PREMIUM_WARNING_THROTTLE = 3000;
 
   // Refs
   const audioRef = useRef(null);
@@ -184,6 +197,9 @@ const SoundList = () => {
   // Computed values
   const isAdmin = user?.role === "ADMIN";
   const isSubscribed = user?.isSubscribed || false;
+
+  // NEW: Check if component is fully ready for interactions
+  const isFullyLoaded = !isLoading && !isDurationLoading && sounds.length > 0;
 
   // Friend list data
   const { data: friendListData, isLoading: isFriendListLoading } =
@@ -229,26 +245,15 @@ const SoundList = () => {
       .padStart(2, "0")}`;
   }, []);
 
-  // FIXED: Updated premium toast logic with multiple approaches
   const showPremiumToast = useCallback(
     (message, soundId = null) => {
       const now = Date.now();
 
-      // Approach 1: Throttle-based (shows warning every 3 seconds max)
       if (now - lastPremiumWarningTime.current < PREMIUM_WARNING_THROTTLE) {
         return;
       }
 
-      // Approach 2: Per-sound tracking (uncomment if you want per-sound warnings)
-      // if (soundId && premiumWarningShownFor.has(soundId)) {
-      //   return
-      // }
-
       lastPremiumWarningTime.current = now;
-
-      if (soundId) {
-        setPremiumWarningShownFor((prev) => new Set([...prev, soundId]));
-      }
 
       toast.custom(
         (t) => (
@@ -264,18 +269,23 @@ const SoundList = () => {
     [PREMIUM_WARNING_THROTTLE]
   );
 
-  // Audio duration loading with proper cleanup
+  // FIXED: Enhanced audio duration loading with progress tracking
   const loadAudioDurations = useCallback(
     async (soundsList) => {
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
 
+      setIsDurationLoading(true); // NEW: Set duration loading state
+      setLoadingProgress(0); // NEW: Reset progress
+
       abortControllerRef.current = new AbortController();
       const { signal } = abortControllerRef.current;
 
       const soundsWithDurations = [...soundsList];
       const BATCH_SIZE = 3;
+      let processedCount = 0;
+      const totalSounds = soundsWithDurations.length;
 
       try {
         for (let i = 0; i < soundsWithDurations.length; i += BATCH_SIZE) {
@@ -287,6 +297,10 @@ const SoundList = () => {
               const index = i + batchIndex;
 
               if (sound.duration && sound.duration !== "00:00") {
+                processedCount++;
+                setLoadingProgress(
+                  Math.round((processedCount / totalSounds) * 100)
+                );
                 resolve();
                 return;
               }
@@ -306,6 +320,10 @@ const SoundList = () => {
               const timeoutId = setTimeout(() => {
                 cleanup();
                 soundsWithDurations[index].duration = "00:00";
+                processedCount++;
+                setLoadingProgress(
+                  Math.round((processedCount / totalSounds) * 100)
+                );
                 resolve();
               }, 3000);
 
@@ -314,6 +332,10 @@ const SoundList = () => {
                 const duration = formatDuration(audio.duration);
                 soundsWithDurations[index].duration = duration;
                 cleanup();
+                processedCount++;
+                setLoadingProgress(
+                  Math.round((processedCount / totalSounds) * 100)
+                );
                 resolve();
               };
 
@@ -322,6 +344,10 @@ const SoundList = () => {
                 console.warn(`Error loading audio for ${sound.name}`);
                 soundsWithDurations[index].duration = "00:00";
                 cleanup();
+                processedCount++;
+                setLoadingProgress(
+                  Math.round((processedCount / totalSounds) * 100)
+                );
                 resolve();
               };
 
@@ -343,10 +369,18 @@ const SoundList = () => {
           if (!signal.aborted) {
             setSounds([...soundsWithDurations]);
           }
+
+          // Small delay between batches to prevent overwhelming the browser
+          await new Promise((resolve) => setTimeout(resolve, 100));
         }
       } catch (error) {
         if (!signal.aborted) {
           console.error("Error loading audio durations:", error);
+        }
+      } finally {
+        if (!signal.aborted) {
+          setIsDurationLoading(false); // NEW: Clear duration loading state
+          setLoadingProgress(100);
         }
       }
 
@@ -355,15 +389,21 @@ const SoundList = () => {
     [ASSETS_URL, formatDuration]
   );
 
-  // FIXED: Updated event handlers with proper premium warning logic
+  // FIXED: Enhanced event handlers with loading state checks
   const toggleSelect = useCallback(
     (id) => {
+      // NEW: Prevent interaction during loading
+      if (!isFullyLoaded) {
+        toast.error("Please wait for sounds to finish loading...");
+        return;
+      }
+
       const soundToUpdate = sounds.find((sound) => sound.id === id);
 
       if (!isSubscribed && soundToUpdate?.isPremium) {
         showPremiumToast(
           "Please upgrade your subscription to enjoy playing and sharing the Members Only sounds",
-          id // Pass sound ID for per-sound tracking
+          id
         );
         return;
       }
@@ -388,18 +428,24 @@ const SoundList = () => {
         }
       });
     },
-    [sounds, isSubscribed, isAdmin, showPremiumToast]
+    [sounds, isSubscribed, isAdmin, showPremiumToast, isFullyLoaded]
   );
 
   const togglePlaySound = useCallback(
     (id) => {
+      // NEW: Prevent interaction during loading
+      if (!isFullyLoaded) {
+        toast.error("Please wait for sounds to finish loading...");
+        return;
+      }
+
       const soundToPlay = sounds.find((sound) => sound.id === id);
       if (!soundToPlay) return;
 
       if (soundToPlay.isPremium && !isSubscribed) {
         showPremiumToast(
           "Please upgrade your subscription to enjoy playing and sharing the Members Only sounds",
-          id // Pass sound ID for per-sound tracking
+          id
         );
         return;
       }
@@ -458,10 +504,15 @@ const SoundList = () => {
 
       audio.play().catch(handlePlayError);
     },
-    [sounds, isSubscribed, showPremiumToast, ASSETS_URL]
+    [sounds, isSubscribed, showPremiumToast, ASSETS_URL, isFullyLoaded]
   );
 
   const shareSound = useCallback(async () => {
+    if (!isFullyLoaded) {
+      toast.error("Please wait for sounds to finish loading...");
+      return;
+    }
+
     const selectedSound = sounds.find((sound) => sound.selected);
     if (!selectedSound) {
       toast.error("No sound selected. Please select a sound first!");
@@ -491,12 +542,17 @@ const SoundList = () => {
       setShareData(sharePayload);
       setIsShareModalOpen(true);
     }
-  }, [sounds, API_URL, canShare, clearSelectedSound]);
+  }, [sounds, API_URL, canShare, clearSelectedSound, isFullyLoaded]);
 
   const downloadSound = useCallback(
     async (sound) => {
       if (!isSubscribed) {
         toast.error("Please upgrade to premium to download sounds!");
+        return;
+      }
+
+      if (!isFullyLoaded) {
+        toast.error("Please wait for sounds to finish loading...");
         return;
       }
 
@@ -521,10 +577,15 @@ const SoundList = () => {
         toast.error("Failed to download sound. Please try again.");
       }
     },
-    [isSubscribed, ASSETS_URL]
+    [isSubscribed, ASSETS_URL, isFullyLoaded]
   );
 
   const sendToFriend = useCallback(() => {
+    if (!isFullyLoaded) {
+      toast.error("Please wait for sounds to finish loading...");
+      return;
+    }
+
     const selectedSound = sounds.find((sound) => sound.selected);
     if (selectedSound) {
       sendSoundMessage.mutate(
@@ -554,6 +615,7 @@ const SoundList = () => {
     sendSoundMessage,
     clearSelectedSound,
     navigate,
+    isFullyLoaded,
   ]);
 
   const handleSearch = useCallback((e) => {
@@ -565,8 +627,12 @@ const SoundList = () => {
   }, []);
 
   const openDeleteModal = useCallback(() => {
+    if (!isFullyLoaded) {
+      toast.error("Please wait for sounds to finish loading...");
+      return;
+    }
     setIsDeleteModalOpen(true);
-  }, []);
+  }, [isFullyLoaded]);
 
   const confirmDelete = useCallback(() => {
     if (selectedSounds.length === 1) {
@@ -593,8 +659,10 @@ const SoundList = () => {
       }));
 
       setSounds(formattedSounds);
+      setIsLoading(false); // NEW: Set initial loading to false first
+
+      // Then start duration loading
       loadAudioDurations(formattedSounds);
-      setIsLoading(false);
 
       if (soundsData.meta) {
         setTotalPages(soundsData.meta.totalPage);
@@ -644,6 +712,7 @@ const SoundList = () => {
               onChange={handleSearch}
               className="w-full p-3 pl-10 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               aria-label="Search sounds"
+              disabled={!isFullyLoaded} // NEW: Disable during loading
             />
             <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
           </div>
@@ -652,12 +721,36 @@ const SoundList = () => {
               onClick={() => setIsAddModalOpen(true)}
               className="bg-primary hover:bg-blue-600 text-white px-3 py-3.5 rounded-lg h-auto flex items-center gap-2 mb-1"
               aria-label="Add new sound"
+              disabled={!isFullyLoaded} // NEW: Disable during loading
             >
               <Plus size={18} />
               <span className="hidden sm:inline">Add Sound</span>
             </Button>
           )}
         </div>
+
+        {/* NEW: Loading progress indicator */}
+        {isDurationLoading && (
+          <div className="mb-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+            <div className="flex items-center gap-3">
+              <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-blue-800">
+                  Loading audio durations...
+                </p>
+                <div className="w-full bg-blue-200 rounded-full h-2 mt-1">
+                  <div
+                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${loadingProgress}%` }}
+                  ></div>
+                </div>
+              </div>
+              <span className="text-xs font-medium text-blue-600">
+                {loadingProgress}%
+              </span>
+            </div>
+          </div>
+        )}
 
         {isAdmin && (
           <motion.div
@@ -668,7 +761,11 @@ const SoundList = () => {
           >
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                <div
+                  className={`w-2 h-2 rounded-full ${
+                    isFullyLoaded ? "bg-green-500" : "bg-blue-500 animate-pulse"
+                  }`}
+                ></div>
                 <span className="text-sm font-medium text-blue-800">
                   Total Sounds:
                   <span className="ml-1 px-2 py-1 bg-blue-600 text-white rounded-full text-xs font-semibold">
@@ -713,10 +810,11 @@ const SoundList = () => {
                 >
                   <Button
                     onClick={openDeleteModal}
-                    className="flex items-center justify-center gap-2 px-6 py-3 w-full bg-red-500 rounded-full h-auto hover:bg-red-600 text-white font-medium"
+                    className="flex items-center justify-center gap-2 px-6 py-3 w-full bg-red-500 rounded-full h-auto hover:bg-red-600 text-white font-medium disabled:opacity-50"
                     aria-label={`Delete ${
                       selectedSounds.length
                     } selected sound${selectedSounds.length > 1 ? "s" : ""}`}
+                    disabled={!isFullyLoaded} // NEW: Disable during loading
                   >
                     <Trash2 size={18} />
                     Delete{" "}
@@ -731,7 +829,9 @@ const SoundList = () => {
             {!isAdmin && (
               <Button
                 onClick={shareSound}
-                disabled={!sounds.some((sound) => sound.selected)}
+                disabled={
+                  !sounds.some((sound) => sound.selected) || !isFullyLoaded
+                } // NEW: Also check loading state
                 className="flex items-center justify-center gap-2.5 px-6 py-3 w-full bg-primary rounded-full h-auto hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium"
                 aria-label="Share selected sound"
               >
@@ -755,6 +855,7 @@ const SoundList = () => {
               animate={{ opacity: 1 }}
               className="flex flex-col items-center justify-center h-64"
             >
+              <Loader2 className="h-8 w-8 animate-spin text-blue-600 mb-4" />
               <p className="text-muted-foreground">Loading sounds...</p>
             </motion.div>
           ) : isError ? (
@@ -778,28 +879,39 @@ const SoundList = () => {
                     sound.selected
                       ? "border bg-blue-50 text-black border-blue-200"
                       : ""
-                  } hover:bg-gray-50 hover:text-black transition-colors`}
+                  } hover:bg-gray-50 hover:text-black transition-colors ${
+                    !isFullyLoaded ? "opacity-60 pointer-events-none" : "" // NEW: Visual feedback during loading
+                  }`}
                 >
                   <div
                     className={`flex items-center cursor-pointer ${
                       !isSubscribed && sound.isPremium
                         ? "opacity-50 cursor-not-allowed"
                         : ""
-                    }`}
+                    } ${!isFullyLoaded ? "cursor-not-allowed" : ""}`} // NEW: Disable cursor during loading
                     onClick={() => toggleSelect(sound.id)}
                   >
                     <Checkbox
                       id={`sound-${sound.id}`}
                       checked={sound.selected}
                       onCheckedChange={() => toggleSelect(sound.id)}
-                      disabled={!isSubscribed && sound.isPremium}
+                      disabled={
+                        (!isSubscribed && sound.isPremium) || !isFullyLoaded
+                      } // NEW: Disable during loading
                       className="w-5 h-5 border-2 border-gray-300 rounded mr-3"
                       aria-label={`Select ${sound.name}`}
                     />
                     <div className="mr-3">
                       <p className="text-sm font-medium">{sound.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {sound.duration}
+                        {isDurationLoading && sound.duration === "00:00" ? (
+                          <span className="flex items-center gap-1">
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                            Loading...
+                          </span>
+                        ) : (
+                          sound.duration
+                        )}
                         {sound.isPremium && (
                           <span className="ml-2 text-amber-500 font-medium">
                             Members Only
@@ -809,33 +921,40 @@ const SoundList = () => {
                     </div>
                   </div>
                   <div className="flex-1 mx-2">
-                    <AudioWave isPlaying={sound.isPlaying} />
+                    <AudioWave
+                      isPlaying={sound.isPlaying}
+                      isLoading={
+                        isDurationLoading && sound.duration === "00:00"
+                      }
+                    />
                   </div>
                   <div className="flex items-center gap-2">
                     {isSubscribed && (
                       <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+                        whileHover={{ scale: isFullyLoaded ? 1.05 : 1 }}
+                        whileTap={{ scale: isFullyLoaded ? 0.95 : 1 }}
                         onClick={() => downloadSound(sound)}
-                        className="rounded-full w-10 h-8 flex items-center justify-center text-white bg-green-500 hover:bg-green-600 transition-colors shadow-sm"
+                        className="rounded-full w-10 h-8 flex items-center justify-center text-white bg-green-500 hover:bg-green-600 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                         title="Download Sound"
                         aria-label={`Download ${sound.name}`}
+                        disabled={!isFullyLoaded} // NEW: Disable during loading
                       >
                         <Download size={14} />
                       </motion.button>
                     )}
                     <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
+                      whileHover={{ scale: isFullyLoaded ? 1.05 : 1 }}
+                      whileTap={{ scale: isFullyLoaded ? 0.95 : 1 }}
                       onClick={() => togglePlaySound(sound.id)}
                       className={`rounded-full w-16 h-8 flex items-center justify-center text-white text-xs font-medium ${
                         sound.isPlaying
                           ? "bg-red-500 hover:bg-red-600"
                           : "bg-primary hover:bg-blue-600"
-                      } transition-colors shadow-sm`}
+                      } transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed`}
                       aria-label={`${sound.isPlaying ? "Stop" : "Play"} ${
                         sound.name
                       }`}
+                      disabled={!isFullyLoaded} // NEW: Disable during loading
                     >
                       {sound.isPlaying ? "Stop" : "Play"}
                     </motion.button>
@@ -862,6 +981,7 @@ const SoundList = () => {
               totalPages={totalPages}
               currentPage={currentPage}
               onPageChange={handlePageChange}
+              disabled={!isFullyLoaded} // NEW: Disable pagination during loading
             />
           </div>
         </div>
