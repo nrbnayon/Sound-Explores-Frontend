@@ -83,7 +83,7 @@ const SoundList = () => {
       try {
         await navigator.share(sharePayload);
         clearSelectedSound();
-        toast.success(`"${selectedSound.name}" sound ready to shared!`);
+        toast.success(`"${selectedSound.name}" sound has been shared!`);
       } catch (error) {
         if (error.name === "AbortError") {
         } else {

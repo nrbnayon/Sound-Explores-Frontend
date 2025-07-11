@@ -294,7 +294,7 @@ const ContactUs = () => {
                     <div className="min-w-0 flex-1">
                       <h3 className="font-medium text-foreground">Email</h3>
                       <p className="text-muted-foreground text-sm break-all">
-                        palert2025@gmail.com
+                        poopalert.email@gmail.com
                       </p>
                     </div>
                   </motion.div>
