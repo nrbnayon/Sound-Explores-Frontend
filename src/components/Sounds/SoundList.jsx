@@ -773,12 +773,12 @@ const SoundList = () => {
 
         {/* FIXED: Show progress only when sounds are loading */}
         {hasLoadingSounds && sounds.length > 0 && (
-          <div className="mb-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+          <div className="mb-3 p-3 bg-blue-50 rounded-lg border border-blue-200 hidden">
             <div className="flex items-center gap-3">
               <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
               <div className="flex-1">
                 <p className="text-sm font-medium text-blue-800">
-                 Please wait, Sound Loading...
+                  Please wait, Sound Loading...
                 </p>
                 <div className="w-full bg-blue-200 rounded-full h-2 mt-1">
                   <div
