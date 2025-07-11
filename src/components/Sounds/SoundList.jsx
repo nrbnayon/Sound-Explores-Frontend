@@ -375,7 +375,7 @@ const SoundList = () => {
         }
       } catch (error) {
         if (!signal.aborted) {
-          console.error("Error loading audio durations:", error);
+          console.error("Error loading audio:", error);
         }
       } finally {
         if (!signal.aborted) {
@@ -736,7 +736,7 @@ const SoundList = () => {
               <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
               <div className="flex-1">
                 <p className="text-sm font-medium text-blue-800">
-                  Loading audio durations...
+                  Please wait, Sound Loading ...
                 </p>
                 <div className="w-full bg-blue-200 rounded-full h-2 mt-1">
                   <div
